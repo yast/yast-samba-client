@@ -280,7 +280,7 @@ global define boolean WriteSettings() ``{
     // write global settings
     SCR::Write( .etc.smb.value.global.workgroup, workgroup );
     SCR::Write( .etc.smb.value.global.security, security );
-    if( size(password_server) > 0 )
+    if( password_server != nil && size(password_server) > 0 )
 	SCR::Write( .etc.smb.value.global."password server", password_server );
     
     // ensure "encrypt passwords = yes";

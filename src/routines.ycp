@@ -21,7 +21,7 @@ import "Samba";
  * Check for pending Abort press
  * @return true if pending abort
  */
-global define boolean PollAbort() ``{
+define boolean PollAbort() ``{
     return UI::PollInput() == `abort;
 }
 
@@ -29,7 +29,7 @@ global define boolean PollAbort() ``{
  * Progress::NextStage and Progress::Title combined into one function
  * @param title progressbar title
  */
-global define void ProgressNextStage(string title) ``{
+define void ProgressNextStage(string title) ``{
     Progress::NextStage();
     Progress::Title(title);
 }
@@ -40,7 +40,7 @@ global define void ProgressNextStage(string title) ``{
  * @param text	a text to be displayed above the password text entry
  * @return string entered password or nil on cancel
  */
-global define string passwordPopup( string text ) ``{
+define string passwordPopup( string text ) ``{
     UI::OpenDialog(
     	    `VBox( 
     		`Password(`id(`passwd), text),
@@ -67,7 +67,7 @@ global define string passwordPopup( string text ) ``{
  * @return map		$["user": string, "password": string] with information
  *			provided by the user or nil on cancel
  */
-global define map<string, string> passwordUserPopup( string message, string defaultuser ) ``{
+define map<string, string> passwordUserPopup( string message, string defaultuser ) ``{
     UI::OpenDialog(
     	    `VBox( 
 		`Label( message ),
@@ -98,7 +98,7 @@ global define map<string, string> passwordUserPopup( string message, string defa
  * If modified, ask for confirmation
  * @return true if abort is confirmed
  */
-global define boolean ReallyAbort() ``{
+define boolean ReallyAbort() ``{
     return !Samba::Modified() || Popup::ReallyAbort(true);
 }
 
@@ -107,7 +107,7 @@ global define boolean ReallyAbort() ``{
  *
  * @return term the widget term
  */
-global define term WorkgroupWidget() ``{
+define term WorkgroupWidget() ``{
     // text entry label
     return `HBox( `TextEntry( `id(`workgroup), _("&Domain or Workgroup:"), Samba::workgroup ),
                 `VBox(
@@ -121,12 +121,12 @@ global define term WorkgroupWidget() ``{
 /*
  * Do not repeat the last test of domain/workgroup
  */
-global string lastCheckedDomain = nil;
+string lastCheckedDomain = nil;
 
 /*
  * Do not repeat the last test of domain/workgroup
  */
-global symbol lastCheckedDomainResult = nil;
+symbol lastCheckedDomainResult = nil;
 
 /**
  * Check, if the workgroup is a domain or a workgroup. Uses caching to avoid long checks of a workgroup members.
@@ -135,7 +135,7 @@ global symbol lastCheckedDomainResult = nil;
  * @return symbol	type of the workgroup: `joined_domain, `not_joined_domain, `workgroup or `domain if 
  * 			it is a domain, but the status is not known
  */
-global define symbol CheckWorkgroup( string workgroup ) ``{
+define symbol CheckWorkgroup( string workgroup ) ``{
     
     // for autoyast, skip testing
     if( Mode::config ) return `workgroup;
@@ -178,7 +178,7 @@ global define symbol CheckWorkgroup( string workgroup ) ``{
  * @return boolean	true on successful join (workgroup is always successful),
  *			false on error or user cancel
  */
-global define boolean AskJoinDomain( string workgroup, symbol status ) ``{
+define boolean AskJoinDomain( string workgroup, symbol status ) ``{
 
     // for autoyast, skip testing
     if( Mode::config ) return true;
@@ -245,7 +245,7 @@ text entries empty.
  *
  * @return string chosen workgroup or nil if cancelled
  */
-global define string BrowseWorkgroups() ``{
+define string BrowseWorkgroups() ``{
    list<string> groups = Samba::availableWorkgroups();
 
     if( groups == nil ) return nil;
