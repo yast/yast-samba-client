@@ -125,7 +125,7 @@ sub config2all {
 	kind =>		"section", 
 	name=>		$share,
 	value=>		[], 
-	type=>		Integer($config->{$share}{_commentout}), 
+	type=>		Integer($config->{$share}{_disabled}?1:0), 
 	comment=>	$config->{$share}{_comment}
     };
     my $type = $out->{type} = $config->{$share}{$_};
@@ -173,7 +173,7 @@ sub Read {
 	my $share = $section->{name};
 
 	# disabled (comment-out) share
-	$Config{$share}{_commentout} = 1 if $section->{type};
+	$Config{$share}{_disabled} = 1 if $section->{type};
 	$Config{$share}{_comment} = $section->{comment};
 
 	foreach my $line (@{$section->{value}}) {
@@ -232,7 +232,7 @@ sub Write {
 	next unless $forceWrite || $Config{$share}{_modified};
 
 	# prepare the right type for writing out the value
-	my $commentout = $Config{$share}{_commentout} ? 1 : 0;
+	my $commentout = $Config{$share}{_disabled} ? 1 : 0;
 	
 	# write all the options
 	foreach my $key (sort keys %{$Config{$share}}) {
@@ -296,7 +296,7 @@ sub Export {
 	while(my ($key, $val) = each %{$Config{$share}}) {
 	    next unless defined $val;	# skip undefined values
 	    next if $key eq "_modified"; # skip internal modified flag
-	    next if $key eq "_commnetout" && !$val; # skip unnecessary internal flag
+	    next if $key eq "_disabled" && !$val; # skip unnecessary internal flag
 	    $myconfig{$share}{$key} = $val;
 	}
     }
@@ -461,8 +461,8 @@ sub ShareEnable {
 	return undef;
     }
     return undef unless $self->ShareExists($share);
-    if ($Config{$share}{_commentout}) {
-	$Config{$share}{_commentout} = 0;
+    if ($Config{$share}{_disabled}) {
+	delete $Config{$share}{_disabled};
 	y2debug("ShareEnable($share)");
 	return 1;
     }
@@ -478,8 +478,8 @@ sub ShareDisable {
 	return undef;
     }
     return undef unless $self->ShareExists($share);
-    unless ($Config{$share}{_commentout}) {
-	$Config{$share}{_commentout} = 1;
+    unless ($Config{$share}{_disabled}) {
+	$Config{$share}{_disabled} = 1;
 	y2debug("ShareDisable($share)");
 	return 1;
     }
@@ -502,7 +502,7 @@ sub ShareEnabled {
 	return undef;
     }
     return undef unless $self->ShareExists($share);
-    return !$Config{$share}{_commentout};
+    return $Config{$share}{_disabled}?0:1;
 }
 
 # return share

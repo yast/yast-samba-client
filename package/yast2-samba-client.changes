@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 17 10:15:34 CET 2005 - mlazar@suse.cz
+
+- internal key "_commentout" replaced by "_disabled"
+- run nmbstatus as user nobody
+
+-------------------------------------------------------------------
 Wed Feb 16 17:26:09 CET 2005 - mlazar@suse.cz
 
 - do not export undefined values
