@@ -24,7 +24,7 @@ include "samba-client/dialogs.ycp";
  * Whole configuration of samba-client
  * @return sequence result
  */
-global define symbol SambaClientSequence() ``{
+symbol SambaClientSequence() {
 
     map aliases = $[
 	"read"	: [ ``( ReadDialog() ), true ],
@@ -61,7 +61,7 @@ global define symbol SambaClientSequence() ``{
  * For use with autoinstallation.
  * @return sequence result
  */
-global define symbol SambaClientAutoSequence() ``{
+symbol SambaClientAutoSequence() {
     // translators: initialization dialog caption
     string caption = _("Samba Client Configuration");
     // translators: initialization dialog contents
