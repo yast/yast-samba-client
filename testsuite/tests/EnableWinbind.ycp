@@ -1,7 +1,9 @@
 {
 
-// test for Samba::EnableWinbind( boolean ) - enable/disable winbind service
-// $Id$
+/* test for Samba::EnableWinbind( boolean ) - enable/disable winbind service
+ $Id$
+ testedfiles: Samba.ycp, Service.ycp
+*/
 
     include "testsuite.ycp";
     

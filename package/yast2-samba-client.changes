@@ -1,10 +1,24 @@
 -------------------------------------------------------------------
+Wed Apr 21 11:10:31 CEST 2004 - visnov@suse.cz
+
+- really return password from dialog (#38996)
+- 2.9.15
+
+-------------------------------------------------------------------
+Mon Apr 19 09:13:25 CEST 2004 - visnov@suse.cz
+
+- don't stop nscd when enabling winbind (suggested by lmuelle@suse.de)
+- fix testsuite
+- 2.9.14 
+
+-------------------------------------------------------------------
 Tue Apr  6 10:14:52 CEST 2004 - visnov@suse.cz
 
 - stop nmbd temporarily for nmbstatus (#38452) 
 - 2.9.13
 
 -------------------------------------------------------------------
+>>>>>>> 1.40.4.3
 Fri Apr  2 16:21:48 CEST 2004 - visnov@suse.cz
 
 - YaST is GPL now
