@@ -198,7 +198,7 @@ try to join the domain without specifying user and password."),
 ];
 
 /* ensure samba package is installed */
-if( !Require::RequireAndConflictTarget( ["samba-client"], [], 
+if( !Require::RequireAndConflictTarget( Samba::required_packages, [], 
     // notification about package needed 1/2
     _("<p>To configure the Samba client, the <b>%1</b> package must be installed.</p>") +
     // notification about package needed 2/2
