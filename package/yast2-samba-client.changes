@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep  5 08:51:00 CEST 2003 - visnov@suse.de
+
+- merged in proofread texts
+- 2.8.5 
+
+-------------------------------------------------------------------
 Thu Sep  4 13:32:01 CEST 2003 - visnov@suse.de
 
 - restart nscd after starting winbind
