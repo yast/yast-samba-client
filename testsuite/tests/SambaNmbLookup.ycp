@@ -1,0 +1,40 @@
+{
+
+include "testsuite.ycp";
+    
+import "SambaNmbLookup";
+
+TESTSUITE_INIT([$[
+    "background": $[
+	"isrunning": false,
+	"newout": ["WORKGROUP\tGIZO","PDC\tGIZO","WORKGROUP\tGIRA","BDC\tGIRA","WORKGROUP\tWORKGROUP"],
+    ]
+], $[], $[
+    "background": $["run_output":true]
+]], nil);
+
+
+DUMP(SambaNmbLookup::Start());
+DUMP(!SambaNmbLookup::Available());
+
+DUMP(SambaNmbLookup::IsDomain("GIZO"));
+DUMP(SambaNmbLookup::IsDomain("GIRA"));
+DUMP(!SambaNmbLookup::IsDomain("test"));
+DUMP(!SambaNmbLookup::IsDomain("Workgroup"));
+
+DUMP(SambaNmbLookup::HasPDC("GIZO"));
+DUMP(!SambaNmbLookup::HasPDC("GIRA"));
+DUMP(!SambaNmbLookup::HasPDC("test"));
+DUMP(!SambaNmbLookup::HasPDC("Workgroup"));
+
+DUMP(!SambaNmbLookup::HasBDC("GIZO"));
+DUMP(SambaNmbLookup::HasBDC("GIRA"));
+DUMP(!SambaNmbLookup::HasBDC("test"));
+DUMP(!SambaNmbLookup::HasBDC("Workgroup"));
+
+DUMP(SambaNmbLookup::Available());
+DUMP(SambaNmbLookup::GetAvailableWorkgroups(nil));
+DUMP(SambaNmbLookup::GetAvailableWorkgroups(" (domain)"));
+
+}
+

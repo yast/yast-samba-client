@@ -21,7 +21,9 @@ import "CommandLine";
 import "Popup";
 import "Report";
 import "Package";
+
 import "Samba";
+import "SambaNetJoin";
 
 /**
  * Enable or disable winbind service (high-level)
@@ -35,7 +37,7 @@ boolean WinbindEnableHandler( map<string,string> options ) {
 	["enable", "disable" ] );
     if( command == nil ) return false;
 
-    return Samba::enableWinbind( command == "enable" );
+    return Samba::SetWinbind( command == "enable" );
 }
 
 /**
@@ -56,7 +58,7 @@ boolean DomainMemberHandler( map<string, any> options ) {
 	return false;
     }
     
-    boolean result = Samba::isDomainMember( domain );
+    boolean result = SambaNetJoin::Test(domain);
     if( result == nil ) {
 	// translators: error message for isdomainmember command line action 
 	Report::Error( _("Cannot test domain membership.") );
@@ -91,7 +93,7 @@ boolean JoinDomainHandler( map <string, any> options ) {
 	return false;
     }
     
-    string result = Samba::joinDomain( domain, (string) (options["user"]:nil), (string) (options["password"]:"") );
+    string result = SambaNetJoin::Join(domain, "member", (string)(options["user"]:nil), (string) (options["password"]:""));
     if( result == nil ) {
 	// translators: result message for joindomain command line action 
 	CommandLine::Print( sformat( _("Domain '%1' joined successfully."), domain ) );
@@ -111,7 +113,7 @@ boolean JoinDomainHandler( map <string, any> options ) {
 boolean ChangeConfiguration( map<string, any> options ) {
 	
     string value = (string) (options["workgroup"]:nil);
-    if( value != nil ) Samba::setWorkgroup(value);
+    if( value != nil ) Samba::SetWorkgroup(value);
 
     return true;
 }

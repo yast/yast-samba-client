@@ -15,59 +15,18 @@
 module "Samba";
 textdomain "samba-client";
 
-import "PamSettings";
 import "Progress";
 import "Report";
 import "Service";
 import "PackageSystem";
 import "Mode";
+import "Autologin";
 
-global block<boolean> AbortFunction = nil;
+import "SambaConfig";
+import "SambaNetJoin";
+import "SambaWinbind";
+import "SambaNmbLookup";
 
-/**
- * name of a workgroup for the host
- */
-global string workgroup = "WORKGROUP";
-
-global define boolean Modified();
-global define boolean isDomain( string workgroup );
-global define boolean isDomainMember( string domain );
-global define string joinDomain( string domain, string user, string passwd );
-global define list<string> availableWorkgroups();
-global define boolean WriteSettings();
-global define boolean enableWinbind( boolean on );
-global define void WriteWinbind( boolean on );
-global define void CheckNmbstatus();
-global boolean setDomainMembershipLevel( string level );
-
-/**
- * Abort function
- * @return blah blah lahjk
- */
-global define boolean Abort() ``{
-    if(AbortFunction != nil)
-	return eval(AbortFunction) == true;
-    return false;
-}
-
-/**
- * Progress::NextStage and Progress::Title combined into one function
- * @param title progressbar title
- */
-global define void ProgressNextStage(string title) ``{
-    Progress::NextStage();
-    Progress::Title(title);
-}
-
-//include "samba-client/routines.ycp";
-
-
-
-
-/**
- * list of required packages
- */
-global list<string> required_packages = ["samba-client"];
 
 /**
  * Data was modified?
@@ -85,101 +44,43 @@ global boolean globals_configured = false;
  */
 global boolean write_only = false;
 
-/** ================================ global data =============================*/
-
-/**
- * security level for the host
- */
-global string security = "user";
-
-/**
- * netbios name of the host
- */
-global string netbios_name = nil;
-
-/**
- * password server setting from smb.conf
- */
-global string password_server = nil;
-
 /**
  * Should be winbind enabled?
  */
-global boolean winbind = false;
+global boolean winbind_enabled = false;
 
-/**
- * UIDs used by winbind
- */
-global string winbind_uid = nil;
-
-/**
- * GIDs used by winbind
- */
-global string winbind_gid = nil;
-
-/**
- * is nmbstatus still running?
- */
-global boolean nmbstatus_running = false;
-
-/**
- * nmbstatus output
- */
-global map<string,any> nmbstatus_output = $[];
-
-global boolean nmbstatus_available = false;
-
-/**
- * Flag, if we should restart nmbd after finishing nmbstatus.
- * nmbd must be stopped, when doing nmbstatus, otherwise only
- * local host is shown.
- */
-boolean nmbd_was_running = false;
-
-/**
- * level of a domain membership when joining
- * possible values are "member", "bdc" and "pdc"
- */
-global string join_level = "member";
-
-/** ============================= end of global data ==========================*/
-
-/**
- * Path to the nmbstatus binary
- */
-string nmbstatus = "/usr/bin/nmbstatus";
-
-/** ============================= defaults ====================================*/
-
-/** ============================= end of defaults =============================*/
 
 /**
  * Data was modified?
  * @return true if modified
  */
-global define boolean Modified() ``{
+global boolean GetModified() {
     y2debug("modified=%1",modified);
-    return modified;
+    return modified || SambaConfig::GetModified();
 };
 
 /**
  * Read all samba-client settings
  * @return true on success
  */
-global define boolean Read() ``{
+global boolean Read() {
 
     /* Samba-client read dialog caption */
     string caption = _("Initializing Samba Client Configuration");
 
-    integer steps = 1;
+    integer steps = 2;
 
     // We do not set help text here, because it was set outside
     Progress::New( caption, " ", steps, [
-	    // translators: progress stage 1/1
+	    // translators: progress stage 1/2
 	    _("Read the global SAMBA settings"),
+	    // translators: progress stage 2/2
+	    _("Read the WINBIND status"),
 	], [
-	    // translators: progress step 1/1
+	    // translators: progress step 1/2
 	    _("Reading the global SAMBA settings..."),
+	    // translators: progress step 2/2
+	    _("Reading the WINBIND status..."),
 	    // translators: progress finished
 	    _("Finished")
 	],
@@ -188,71 +89,30 @@ global define boolean Read() ``{
 
     // read global settings
     Progress::NextStage();
+    SambaConfig::Read(false);
 
     // check installed packages
-    if (!Mode::test && !PackageSystem::CheckAndInstallPackagesInteractive(["samba-client"]))
-    {
-	return false;
-    }
-    
-    string value = "";
-    
-    value = (string) SCR::Read( .etc.smb.value.global."workgroup" );
-    if( value != nil ) workgroup = value;
-    value = (string) SCR::Read( .etc.smb.value.global."security" );
-    if( value != nil ) security = value;
-    value = (string) SCR::Read( .etc.smb.value.global."password server" );
-    if( value != nil ) password_server = value;
-    
-    winbind_uid = (string) SCR::Read( .etc.smb.value.global."idmap uid" );
-    if (winbind_uid == nil)
-    {
-	// backward compatibility
-	winbind_uid = (string) SCR::Read( .etc.smb.value.global."winbind uid" );
+    if (!PackageSystem::CheckAndInstallPackagesInteractive(["samba-client"])) {
+	y2warning("package samba-client not installed");
+        return false;
     }
 
-    winbind_gid = (string) SCR::Read( .etc.smb.value.global."idmap gid" );
-    if (winbind_gid == nil)
-    {
-	// backward compatibility
-	winbind_uid = (string) SCR::Read( .etc.smb.value.global."winbind gid" );
+    // read winbind status
+    Progress::NextStage();
+    winbind_enabled = SambaWinbind::IsEnabled();
+
+    // start nmbstatus in background
+    if (!Mode::test()) {
+	SambaNmbLookup::Start();
     }
     
-    winbind = Service::Enabled( "winbind" );
-    
+    Autologin::Read();
+
+    // finished
+    Progress::NextStage();
     globals_configured = true;
-    
-    if(Abort()) return false;
-    // translators: progress finished
-    ProgressNextStage(_("Finished"));
-    
-    // start nmbstatus
-    
-    // first, check if nmbd is running
-    if (Service::Status ("nmb") == 0)
-    {
-	nmbd_was_running = true;
-	
-	y2milestone ("Stopping nmbd for nmbstatus");
-	// FIXME: we should check, if stop did not fail
-	Service::Stop ("nmb");
-    }
-    
-    nmbstatus_running = (boolean) SCR::Execute(.background.run_output, nmbstatus);
-    if( ! nmbstatus_running ) {
-	y2error( "Cannot start nmbstatus" );
-	nmbstatus_available = false;
-	
-	// restore nmbd
-	if (nmbd_was_running)
-	{
-	    y2milestone ("Restarting nmbd for nmbstatus");
-	    Service::Start ("nmb");
-	    nmbd_was_running = false;
-	}
-    }
-
     modified = false;
+
     return true;
 }
 
@@ -260,26 +120,25 @@ global define boolean Read() ``{
  * Write all samba-client settings
  * @return true on success
  */
-global define boolean Write() ``{
+global boolean Write(boolean write_only) {
+    boolean ret = true;
 
     /* Samba-client read dialog caption */
     string caption = _("Saving Samba Client Configuration");
 
-    integer steps = 3;
-
     // We do not set help text here, because it was set outside
-    Progress::New(caption, " ", steps, [
+    Progress::New(caption, " ", 2, [
 	    // translators: write progress stage
 	    _("Write the settings"),
 	    // translators: write progress stage
-	    !winbind ? _("Disable SAMBA services") : 
+	    !winbind_enabled ? _("Disable SAMBA services") : 
 		// translators: write progress stage
 		_("Enable SAMBA services")
 	], [
 	    // translators: write progress step
 	    _("Writing the settings..."),
 	    // translators: write progress step
-	    !winbind ? _("Disabling SAMBA services...") 
+	    !winbind_enabled ? _("Disabling SAMBA services...") 
 		// translators: write progress step
 		: _("Enabling SAMBA services..."),
 	    // translators: write progress finished
@@ -287,50 +146,67 @@ global define boolean Write() ``{
 	],
 	""
     );
-    
-    // if nothing to write, quit (but show at least the progress bar :-)
-    if( ! modified ) return true;
 
     // write settings
-    if(Abort()) return false;
     Progress::NextStage();
     
-    WriteSettings();
+    // if nothing to write, quit (but show at least the progress bar :-)
+    if (!GetModified()) return true;
 
-    if( !SCR::Write( .etc.smb, nil ) ) {
+    if (!SambaConfig::Write(write_only)) {
 	// translators: error message
 	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/samba/smb.conf") );
+	ret = false;
     }
 
-    if(Abort()) return false;
-    Progress::NextStage ();
+    // winbind
+    Progress::NextStage();
+    if (winbind_enabled) {
+	if (!PackageSystem::Installed("samba-winbind")) {
+	    if (!Mode::test() && !PackageSystem::CheckAndInstallPackagesInteractive(["samba-winbind"])) {
+		ret = false;
+	    }
+	}
+	if (!SambaWinbind::AdjustService(true)) {
+	    // translators: error message
+	    Report::Error( _("Cannot start 'winbind' service."));
+	    ret = false;
+	}
+	if (!write_only && !SambaWinbind::StartStopNow(true)) {
+	    // translators: error message
+	    Report::Error(_("Cannot start 'winbind' daemon."));
+	    ret = false;
+	}
+    } else {
+	if (!SambaWinbind::AdjustService(false)) {
+	    // translators: error message
+	    Report::Error( _("Cannot stop 'winbind' service."));
+	    ret = false;
+	}
+	if (!write_only && !SambaWinbind::StartStopNow(false)) {
+	    // translators: error message
+	    Report::Error(_("Cannot stop 'winbind' daemon."));
+	    ret = false;
+	}
+    }
+    if (!SambaWinbind::AdjustNsswitch(winbind_enabled)) {
+	// translators: error message
+	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/nsswitch.conf"));
+	ret = false;
+    }
+    if (!SambaWinbind::AdjustPam(winbind_enabled)) {
+	// translators: error message
+	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/security/pam_unix2.conf"));
+	ret = false;
+    }
 
-    // winbind    
-    enableWinbind( winbind );
-    
-    if(Abort()) return false;
-    ProgressNextStage(_("Finished"));
+    Autologin::Write(write_only);	// see dialog.ycp
 
-    if(Abort()) return false;
-    return true;
-}
+    // finished    
+    Progress::NextStage();
+    modified = false;
 
-/**
- * Write all samba-client settings
- * @return true on success
- */
-global define boolean WriteSettings() ``{
-
-    // write global settings
-    SCR::Write( .etc.smb.value.global.workgroup, workgroup );
-    SCR::Write( .etc.smb.value.global.security, security );
-    if( password_server != nil && size(password_server) > 0 )
-	SCR::Write( .etc.smb.value.global."password server", password_server );
-    
-    // ensure "encrypt passwords = yes";
-    SCR::Write( .etc.smb.value.global."encrypt passwords" , "yes" );
-    
-    WriteWinbind(winbind);
+    return ret;
 }
 
 /**
@@ -339,19 +215,11 @@ global define boolean WriteSettings() ``{
  * @param settings The YCP structure to be imported.
  * @return boolean True on success
  */
-global define boolean Import (map settings) ``{
-
-    if (settings == $[] ) {
-		workgroup = "WORKGROUP";
-		winbind = false;
-		return true;
-	}
-    // read global settings
-    workgroup = settings["global","workgroup"]:"WORKGROUP";
-
-    winbind = settings["global","winbind"]:false;
-    
+global boolean Import (map settings) {
+    SambaConfig::GlobalSetStr("workgroup", settings["global","workgroup"]:"WORKGROUP");
+    winbind_enabled = settings["global","winbind"]:false;
     globals_configured = true;
+    modified = false;
 
     return true;
 }
@@ -361,11 +229,11 @@ global define boolean Import (map settings) ``{
  * (For use by autoinstallation.)
  * @return map Dumped settings (later acceptable by Import ())
  */
-global define map Export () ``{
+global map Export () {
 
     map globals = $[
-	"workgroup": workgroup,
-	"winbind" : winbind
+	"workgroup": SambaConfig::GlobalGetStr("workgroup", ""),
+	"winbind" : winbind_enabled,
     ];
     
     modified = false;
@@ -377,11 +245,12 @@ global define map Export () ``{
  * Create a textual summary and a list of unconfigured options
  * @return summary of the current configuration
  */
-global define string Summary() ``{
+global string Summary() {
     import "Summary";
     
     string summary = "";
-    string nc = Summary::NotConfigured ();
+    string nc = Summary::NotConfigured();
+    string workgroup = SambaConfig::GlobalGetStr("workgroup", "");
     
     // summary header
     summary = Summary::AddHeader(summary, _("Global Configuration"));
@@ -400,22 +269,23 @@ global define string Summary() ``{
  * Create shorter textual summary and a list of unconfigured options
  * @return summary of the current configuration
  */
-global define string ShortSummary() ``{
+global string ShortSummary() {
     import "Summary";
 
     string summary = "";
+    string workgroup = SambaConfig::GlobalGetStr("workgroup", "");
 
-    if( globals_configured ) {
+    if (globals_configured) {
 	// summary item: configured workgroup
 	summary = sformat(_("<b>Workgroup or Domain</b>: %1<br>"), workgroup) +
 	// summary item: authentication using winbind
 	sformat(_("<b>Authentication with SMB</b>: %1"),
 	    // translators: winbind status in summary
-	    winbind ? _("Yes")
+	    winbind_enabled ? _("Yes")
 	    // translators: winbind status in summary
 		: _("No"));
     } else {
-	summary = Summary::NotConfigured ();
+	summary = Summary::NotConfigured();
     }
     return summary;
 }
@@ -426,387 +296,41 @@ global define string ShortSummary() ``{
  *
  * @param group	a new workgroup
  */
-global define void setWorkgroup( string group ) ``{
-    if( workgroup != group ) {
-	workgroup = group;
+global void SetWorkgroup( string group ) {
+    SambaConfig::GlobalSetStr("workgroup", group);
+}
+
+/**
+ * Get a host workgroup
+ *
+ * @return string	a new workgroup
+ */
+global string GetWorkgroup() {
+    return SambaConfig::GlobalGetStr("workgroup", "");
+}
+
+
+/**
+ * Set a windind status
+ *
+ * @param group	a new winbind status
+ */
+global define void SetWinbind(boolean status) ``{
+    if (status != winbind_enabled) {
 	modified = true;
+	winbind_enabled = status;
     }
+    SambaWinbind::AdjustSambaConfig(status);
 }
 
 /**
- * Enable or disable winbind configuration.
+ * Get a winbind status
  *
- * @param status a new status
+ * @return booleand	a winbind status
  */
-global define void setWinbind( boolean status ) ``{
-    if( winbind != status ) {
-	winbind = status;
-	modified = true;
-    }
+global define boolean GetWinbind() ``{
+    return winbind_enabled;
 }
-
-/** 
- * Joins the host into a given domain. If user is provided, it will use
- * the user and password for joining. If the user is nil, joining will
- * be done anonymously.
- *
- * Attention: It will write the configuration for domain before settings the password
- *
- * @param domain	a name of a domain to be joined
- * @param user		username to be used for joining, or nil for anonymous
- * @param passwd	password for the user
- * @return string	an error message or nil if successful
- */
-global define string joinDomain( string domain, string user, string passwd ) ``{
-    if( user == "" || user == nil )
-    {
-	passwd = "";
-	user = "";
-    }
-    
-    security = "domain";
-    workgroup = domain;
-
-    // write the settings to the disk
-    WriteSettings();
-
-    // ensure writing of the settings
-    if( !SCR::Write( .etc.smb, nil ) ) {
-	// translators: error message
-	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/samba/smb.conf") );
-    }
-    
-    // set the actual password (-s means password on stdin)
-    string cmd = "net join " + join_level + " -w " + domain;
-
-    // always provide -U (#40439)    
-    // notice the single-quotes
-    cmd = cmd + " -U '" + user + "%" + passwd+"'";
-
-    map result = (map) SCR::Execute( .target.bash_output, cmd );
-    
-    y2debug( "net join result: %1", result );
-    
-        // check the exit code, return nil on success
-    if( result["exit"]:1 == 0 ) return nil;
-    
-    // otherwise return stderr
-    
-    // translators: Error message is unknown error happened when joining a domain
-    string res = result["stderr"]:_("Unable to join the domain.");
-    
-    return res == ""? _("Unable to join the domain.") : res;
-}
-
-/**
- * Check if this host is a member of a given domain.
- *
- * @param domain  a name of the domain to check
- * @return boolean  true if the host is a member, false if not, nil on error (not possible to find out)
- */
-global define boolean isDomainMember( string domain ) ``{
-
-    // FIXME: ADS
-    map res = (map) SCR::Execute (.target.bash_output, "LANG=C net rpc testjoin -w "+domain );
-    y2milestone ("Testing membership in domain %1: %2", domain, res["exit"]:-1 == 0 );
-    return ( res["exit"]:-1 == 0 );
-}
-
-/**
- * Ensure that nmbstatus already finished. Then parse its output into nmbstatus_output
- */
-global define void CheckNmbstatus() ``{
-    if( nmbstatus_running ) {
-
-	// better count slept time
-	integer wait = 1200;
-	
-	while( wait>0 && (boolean) SCR::Read( .background.isrunning ) ) {
-	    sleep( 100 );
-	    wait = wait -1;
-	}
-	
-	if( (boolean) SCR::Read( .background.isrunning ) ) {
-	    y2error( "Something went wrong, nmbstatus didn't finish in more that 2 minutes" );
-
-	    // better kill it
-	    SCR::Execute( .background.kill );
-	    nmbstatus_running = false;
-	    nmbstatus_output = $[];
-	    nmbstatus_available = false;
-	}
-	
-	// nmbstatus already finished, parse the output
-	list<string> output = (list<string>) SCR::Read( .background.newout );
-	
-	y2debug( "nmbstatus result: %1", output );
-	
-	nmbstatus_available = true;
-	nmbstatus_running = false;
-	nmbstatus_output = $[];
-	
-	string current_group = "";
-	foreach( string line, output, ``{
-	    list parts = splitstring( line, "\t" );
-
-	    y2debug( "line parts: %1", parts );
-	    
-	    if( parts[0]:nil == "WORKGROUP" ) {
-		current_group = parts[1]:"error";
-		nmbstatus_output[current_group] = $[];
-	    }
-	    else if( parts[0]:nil != nil ) {
-		nmbstatus_output[current_group, parts[0]:"error" ] = parts[1]:"error";
-	    } // skip empty lines
-	});
-
-	// restore nmbd
-	if (nmbd_was_running)
-	{
-	    y2milestone ("Restarting nmbd for nmbstatus");
-	    Service::Start ("nmb");
-	    nmbd_was_running = false;
-	}	
-    }
-}
-
-/**
- * Check if a given workgroup is a domain or not. Tests presence of PDC or BDC in the workgroup.
- * 
- * @param workgroup	the name of a workgroup to be tested
- * @return boolean	true if the workgroup is a domain
- */
-global define boolean isDomain( string workgroup ) ``{
-    
-    // ensure the data are up-to-date
-    CheckNmbstatus();
-    
-    // if there is PDC, return success
-    if( nmbstatus_output[ workgroup, "PDC" ]:nil != nil ) return true;
-    
-    // if PDC not found, try BDC
-    if( nmbstatus_output[ workgroup, "BDC" ]:nil != nil ) return true;
-
-    // a different error happened
-    return false;
-}
-
-/** 
- * Enable/disable and start/stop winbindd services.
- *
- * @param on the status of the winbind to be configured (true=enabled, false=disabled)
- * @return boolean true on success
-*/
-global define boolean enableWinbind( boolean on ) ``{
-    winbind = on;
-    modified = true;
-    
-    if (on) {
-	import "Autologin";
-	Autologin::Write (write_only);
-    }
-
-    // is samba-winbind needed?
-    if (!PackageSystem::Installed("samba-winbind") && on) {
-	if (!Mode::test && !PackageSystem::CheckAndInstallPackagesInteractive(["samba-winbind"])) {
-	    return false;
-	}
-    }
-    
-    // enable winbind service
-    if (PackageSystem::Installed("samba-winbind") && !Service::Adjust("winbind", on ? "enable" : "disable")) {
-	    // translators: error message
-	    Report::Error( on ? _("Cannot start winbind daemon.")
-		// translators: error message
-		: _("Cannot stop winbind daemon.") );
-	    return false;
-    }
-    
-
-    if( write_only ) return true;
-    
-    if( on ) {
-	// start the server
-	if( Service::Status( "winbind" ) != 0 ) {
-	    // the service does not run
-	    if( ! Service::Start( "winbind" ) ) {
-		// translators: error message
-		Report::Error( _("Cannot start 'winbind' service.") );
-	    }
-	}
-	else
-	{
-	    // the service is running, restart it
-	    if( ! Service::Restart( "winbind" ) ) {
-		// translators: error message
-		Report::Error( _("Cannot start 'winbind' service.") );	    
-	    }
-	}
-    } else {
-	// the service is running
-	if (PackageSystem::Installed("samba-winbind") && Service::Status("winbind") == 0) {
-	    if( ! Service::Stop( "winbind" ) ) {
-		// translators: error message
-		Report::Error( _("Cannot stop 'winbind' service.") );
-	    }
-	}
-    }
-
-    return true;
-}
-
-/** 
- * Write winbindd configuration. It modifies smb.conf and nsswitch.conf.
- *
- * @param on the status of the winbind to be configured (true=enabled, false=disabled)
-*/
-global define void WriteWinbind( boolean on ) ``{
-    if( on ) {
-	// if turning on and there is no values set, use default
-	if( winbind_uid == nil ) 
-	    SCR::Write( .etc.smb.value.global."idmap uid", "10000-20000" );
-	else
-	    SCR::Write( .etc.smb.value.global."idmap uid", winbind_uid );
-	if( winbind_gid == nil ) 
-	    SCR::Write( .etc.smb.value.global."idmap gid", "10000-20000" );
-	else
-	    SCR::Write( .etc.smb.value.global."idmap gid", winbind_gid );
-    }
-    
-    if( on ) {
-	SCR::Write( .etc.smb.value.global.security, "domain" );
-    }
-    
-    // change nsswitch
-    list<string> nsswitch_list = splitstring
-            ((string) SCR::Read(.etc.nsswitch_conf.passwd)," ");
-	    
-    if( on ) {
-	if( !contains( nsswitch_list, "winbind" ) ) 
-	    nsswitch_list = add( nsswitch_list, "winbind" );
-    }
-    else
-    {
-	if( contains( nsswitch_list, "winbind" ) )
-	    nsswitch_list = filter( string part, nsswitch_list, ``(part != "winbind" ) );
-    }
-    
-    SCR::Write(.etc.nsswitch_conf.passwd, mergestring( nsswitch_list, " " ) );
-    
-    nsswitch_list = splitstring
-            ((string) SCR::Read(.etc.nsswitch_conf.group), " ");
-
-    if( on ) {
-	if( !contains( nsswitch_list, "winbind" ) )
-	    nsswitch_list = add( nsswitch_list, "winbind" );
-    }
-    else
-    {
-	if( contains( nsswitch_list, "winbind" ) )
-	    nsswitch_list = filter( string part, nsswitch_list, ``(part != "winbind" ) );
-    }
-
-    SCR::Write(.etc.nsswitch_conf.group, mergestring( nsswitch_list, " " ) );
-
-    if( !SCR::Write(.etc.nsswitch_conf, nil ) )
-	// translators: error message
-	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/nsswitch.conf") );
-    
-    // change Pam configuration
-    
-    // auth
-    list call_module = filter( string value, PamSettings::GetValues( "pam_unix2", "auth" ), ``(
-      regexpmatch( value, "^call_modules=" )));
-      
-    y2debug( "Callmodule is %1", call_module );
-      
-    if( call_module == [] ) {
-	if( on ) {
-	    // add the option
-	    PamSettings::AddValue( "pam_unix2", "auth", "call_modules=winbind" );
-	}
-	// do nothing for off
-    } else {
-	// find out list of called modules
-	list<string> mods = splitstring( regexpsub( call_module[0]:"", "^call_modules=(.*)", "\\1" ), "," );
-	
-	if( on ) {
-	    // check, if present and add it if necessary
-	    mods = (list<string>) union( mods, [ "winbind" ] );
-	}
-	else
-	{
-	    // if present, remove it
-	    mods = filter( string mod, mods, ``( mod != "winbind" ) );
-	}
-	
-	// change the current value
-	PamSettings::RemoveValue( "pam_unix2", "auth", call_module[0]:"" );
-	if( size(mods) > 0 ) {
-	    PamSettings::AddValue( "pam_unix2", "auth", "call_modules="+mergestring( mods, "," ) );
-	}
-    }
-    
-    // account (the same as auth, but modules could be configured differently)
-    call_module = filter( string value, PamSettings::GetValues( "pam_unix2", "account" ), ``(
-      regexpmatch( value, "^call_modules=" )));
-      
-    if( call_module == [] ) {
-	if( on ) {
-	    // add the option
-	    PamSettings::AddValue( "pam_unix2", "account", "call_modules=winbind" );
-	}
-	// do nothing for off
-    } else {
-	// find out list of called modules
-	list<string> mods = splitstring( regexpsub( call_module[0]:"", "^call_modules=(.*)", "\\1" ), "," );
-	
-	if( on ) {
-	    // check, if present and add it if necessary
-	    mods = (list<string>) union( mods, [ "winbind" ] );
-	}
-	else
-	{
-	    // if present, remove it
-	    mods = filter( string mod, mods, ``( mod != "winbind" ) );
-	}
-	
-	// change the current value
-	PamSettings::RemoveValue( "pam_unix2", "account", call_module[0]:"" );
-	if( size(mods) > 0 ) {
-	    PamSettings::AddValue( "pam_unix2", "account", "call_modules="+mergestring( mods, "," ) );
-	}
-    }    
-}
-
-/**
- * Return a list of workgroups already existing in the lan.
- * @return list<string>  of found workgroups/domains
- */
-global define list<string> availableWorkgroups() ``{
-    
-    CheckNmbstatus();
-
-    // TODO: inform user about problems
-    
-    return maplist( string group, any data, nmbstatus_output, ``( group + (isDomain (group) ? _(" (domain)") : "") ) );
-}
-
-
-/**
- * Return a map of workgroups already existing in the lan.
- * The value of the map is boolean indicating a domain.
- * @return map<string, boolean>  of found workgroups/domains
- */
-global define map<string, boolean> PreprocessAvailableWorkgroups() ``{
-    
-    CheckNmbstatus();
-
-    // TODO: inform user about problems
-    
-    return mapmap( string group, any data, nmbstatus_output, ``( $[ group : isDomain (group)] ) );
-}
-
 
 /**
  * Return required packages for auto-installation
@@ -814,27 +338,8 @@ global define map<string, boolean> PreprocessAvailableWorkgroups() ``{
  */
 global define map AutoPackages() ``{
 	return ($["install": ["samba-client", "samba-winbind"], "remove": []]);
-
 }
 
-
-/**
- * Set the level of the domain membership used for joining.
- * 
- * @param level		"member", "bdc" or "pdc"
- * @return boolean	false, if the level is not correct value, otherwise true
- */
-global boolean setDomainMembershipLevel( string level )
-{
-    if ( level != "member" && level != "bdc" && level != "pdc" )
-    {
-	return false;
-    }
-    
-    join_level = level;
-    modified = true;
-    return true;
-}
 
 /* EOF */
 }

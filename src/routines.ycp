@@ -11,58 +11,16 @@
 
 textdomain "samba-client";
 
-import "Label";
 import "Mode";
+import "Label";
+import "Stage";
 import "Popup";
 import "Progress";
+
 import "Samba";
+import "SambaNetJoin";
+import "SambaNmbLookup";
 
-/**
- * Check for pending Abort press
- * @return true if pending abort
- */
-define boolean PollAbort() ``{
-    return UI::PollInput() == `abort;
-}
-
-/**
- * Progress::NextStage and Progress::Title combined into one function
- * @param title progressbar title
- */
-define void ProgressNextStage(string title) ``{
-    Progress::NextStage();
-    Progress::Title(title);
-}
-
-/**
- * Allow user to type in a password in a popup.
- *
- * @param text	a text to be displayed above the password text entry
- * @return string entered password or nil on cancel
- */
-define string passwordPopup( string text ) ``{
-    UI::OpenDialog(
-    	    `VBox( 
-    		`Password(`id(`passwd), text),
-    		`HBox( 
-		    `PushButton(`id(`ok), `opt(`default), Label::OKButton() ), 
-		    `PushButton(`id(`cancel), Label::CancelButton() ) 
-		)
-    	    )
-        );
-    
-    any ret = UI::UserInput();
-
-    string passwd = nil;
-    if (ret == `ok)
-    {
-	passwd = (string) UI::QueryWidget(`id(`passwd), `Value);
-    }
-
-    UI::CloseDialog();
-    
-    return passwd;
-}
 
 /**
  * Allow user to type in a user/password pair in a popup.
@@ -104,9 +62,9 @@ define map<string, string> passwordUserPopup( string message, string defaultuser
  * @return true if abort is confirmed
  */
 define boolean ReallyAbort() ``{
-    return Mode::cont ?
+    return Stage::cont() ?
 	Popup::ConfirmAbort (`incomplete) :
-	(!Samba::Modified() || Popup::ReallyAbort(true));
+	(!Samba::GetModified() || Popup::ReallyAbort(true));
 }
 
 /**
@@ -116,7 +74,8 @@ define boolean ReallyAbort() ``{
  */
 define term WorkgroupWidget() ``{
     // text entry label
-    return `HBox( `TextEntry( `id(`workgroup), _("&Domain or Workgroup:"), Samba::workgroup ),
+    return `HBox( `TextEntry( `id(`workgroup), _("&Domain or Workgroup:"), 
+		    Samba::GetWorkgroup() ),
                 `VBox(
                     `Label(""),
 		    // push button label
@@ -124,16 +83,6 @@ define term WorkgroupWidget() ``{
                 )
             );
 }
-
-/*
- * Do not repeat the last test of domain/workgroup
- */
-string lastCheckedDomain = nil;
-
-/*
- * Do not repeat the last test of domain/workgroup
- */
-symbol lastCheckedDomainResult = nil;
 
 /**
  * Check, if the workgroup is a domain or a workgroup. Uses caching to avoid long checks of a workgroup members.
@@ -145,22 +94,16 @@ symbol lastCheckedDomainResult = nil;
 define symbol CheckWorkgroup( string workgroup ) ``{
     
     // for autoyast, skip testing
-    if( Mode::config ) return `workgroup;
+    if( Mode::config() ) return `workgroup;
     
     symbol ret = nil;
-    // cached
-    if( lastCheckedDomain == workgroup ) return lastCheckedDomainResult;
 	    
     // translators: progress information dialog text
     UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
     
-    if(  Samba::isDomain(workgroup) || !Samba::nmbstatus_available ) {
+    if(  SambaNmbLookup::IsDomain(workgroup) || !SambaNmbLookup::Available() ) {
 	// handle domain joining
-	boolean res = Samba::isDomainMember( workgroup );
-		
-	// caching
-	lastCheckedDomain = workgroup;
-	lastCheckedDomainResult = `domain;
+	boolean res = SambaNetJoin::Test(workgroup);
 		
 	// we the host is already in domain, continue
 	if( res == true ) ret = `joined_domain;
@@ -176,21 +119,22 @@ define symbol CheckWorkgroup( string workgroup ) ``{
     
     return ret;
 }
-	
+
 /**
  * Allow to join a domain. Uses result of @ref CheckWorkgroup to inform the user about the status.
  *
  * @param workgroup	the workgroup to be joined
  * @param status	domain status returned by CheckWorkgroup
- * @return boolean	true on successful join (workgroup is always successful),
- *			false on error or user cancel
+ * @return symbol		`ok on successful join (workgroup is always successful),
+ *			`fail on error or user cancel
+ *			`nojoin if user don't want to join
  */
-define boolean AskJoinDomain( string workgroup, symbol status ) ``{
+define symbol AskJoinDomain( string workgroup, symbol status ) ``{
 
     // for autoyast, skip testing
-    if( Mode::config ) return true;
+    if( Mode::config() ) return `ok;
     
-    if( status == `workgroup || status == `joined_domain ) return true;
+    if( status == `workgroup || status == `joined_domain ) return `ok;
     
     boolean res = false;
     
@@ -200,51 +144,38 @@ define boolean AskJoinDomain( string workgroup, symbol status ) ``{
 	    
 	    // translators: popup question, the domain status cannot be found out, ask user what to do
 	    // %1 is the domain name
-	    res = Popup::YesNo( sformat( _("Cannot automatically determine if this host
-is a member of the domain '%1'.
-
-Join the domain '%1'?
-"), workgroup  ) );
-
+	    res = Popup::YesNo(sformat( _("Cannot automatically determine if this host\nis a member of the domain '%1'.")
+		+ "\n\n" + _("Join the domain '%1'?") + "\n", workgroup));
     } else if( status == `not_joined_domain ) {
 	// translators: popup question, The workgroup is a domain in fact and the machine is not a member, ask user what to do.
 	// %1 is the domain name
-	res = Popup::YesNo( sformat( _("This host is not a member 
-of the domain '%1'.
-
-Join the domain '%1'?
-"), workgroup  ) );
+	res = Popup::YesNo(sformat(_("This host is not a member\nof the domain '%1'.") + "\n\n"
+	    + _("Join the domain '%1'?") + "\n", workgroup));
     }
 
-    // try to join the domain
-    if( res ) {
-	// change the dialog result back to next
-	symbol ret = `next;
-	// translators: popup to fill in the domain joining info
-	// %1 is the domain name
-	map<string, string> passwd = passwordUserPopup( sformat( _("Enter the user and the password
-for joining the domain '%1'.
+    if (!res) {
+	return `nojoin;
+    }
+    
 
-To join the domain anonymously, leave the 
-text entries empty.
-"), workgroup ), "Administrator" );
-	// cancelled the domain joining
-	if( passwd == nil ) return false;
+    // translators: popup to fill in the domain joining info; %1 is the domain name
+    map<string, string> passwd = passwordUserPopup(sformat(
+	_("Enter the user and the password\nfor joining the domain '%1'.") + "\n\n"
+	+ _("To join the domain anonymously, leave the\ntext entries empty.") + "\n", workgroup), "Administrator");
+
+    // cancelled the domain joining
+    if( passwd == nil ) return `fail;
 		    
-	// try to join the domain
-	string error = Samba::joinDomain( workgroup, passwd["user"]:nil, passwd["password"]:"" );
-        if(  error != nil )
-        {
-    	    Popup::Error( error );
-	    return false;
-	}
-	// Translators: Information popup, %1 is the name of the domain
-	else Popup::Message( sformat( _("Domain '%1' joined successfully."), Samba::workgroup )) ;
-	
-	res = true;
+    // try to join the domain
+    string error = SambaNetJoin::Join(workgroup, "member", passwd["user"]:nil, passwd["password"]:"" );
+    if (error != nil) {
+	Popup::Error(error);
+	return `fail;
     }
-
-    return res;
+    
+    // Translators: Information popup, %1 is the name of the domain
+    Popup::Message(sformat(_("Domain '%1' joined successfully."), Samba::GetWorkgroup()));
+    return `ok;
 }
 
 /**
@@ -253,7 +184,7 @@ text entries empty.
  * @return string chosen workgroup or nil if cancelled
  */
 define string BrowseWorkgroups() ``{
-   list<string> groups = Samba::availableWorkgroups();
+   list<string> groups = SambaNmbLookup::GetAvailableWorkgroups(_(" (domain)"));
 
     if( groups == nil ) return nil;
 
