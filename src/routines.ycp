@@ -69,7 +69,7 @@ define string passwordPopup( string text ) ``{
  *
  * @param message	a text to be displayed above the password text entry
  * @param defaultuser 	a pre-filled user name
- * @return map		$["user": string, "password": string] with information
+ * @return map<string, string>		$["user": string, "password": string] with information
  *			provided by the user or nil on cancel
  */
 define map<string, string> passwordUserPopup( string message, string defaultuser ) ``{

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 10 16:35:32 CEST 2004 - mlazar@suse.cz
+
+- samba-winbind installed only when need
+
+-------------------------------------------------------------------
 Thu Sep  9 14:24:49 CEST 2004 - mlazar@suse.cz
 
 - Required replaced by PackageSystem (see bug 30872)

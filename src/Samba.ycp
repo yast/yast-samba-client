@@ -67,7 +67,7 @@ global define void ProgressNextStage(string title) ``{
 /**
  * list of required packages
  */
-global list<string> required_packages = ["samba-client", "samba-winbind"];
+global list<string> required_packages = ["samba-client"];
 
 /**
  * Data was modified?
@@ -190,7 +190,7 @@ global define boolean Read() ``{
     Progress::NextStage();
 
     // check installed packages
-    if (!Mode::test && !PackageSystem::CheckAndInstallPackagesInteractive(required_packages))
+    if (!Mode::test && !PackageSystem::CheckAndInstallPackagesInteractive(["samba-client"]))
     {
 	return false;
     }
@@ -598,25 +598,30 @@ global define boolean isDomain( string workgroup ) ``{
  * @return boolean true on success
 */
 global define boolean enableWinbind( boolean on ) ``{
-    // enable winbind service
-    if( ! Service::Adjust( "winbind", on ? "enable": "disable" ) )
-    {
-	// translators: error message
-	Report::Error( on ? _("Cannot start winbind daemon.")
-	    // translators: error message
-	    : _("Cannot stop winbind daemon.") );
-	return false;
-    }
-    
     winbind = on;
-    
     modified = true;
     
-    if (on)
-    {
+    if (on) {
 	import "Autologin";
 	Autologin::Write (write_only);
     }
+
+    // is samba-winbind needed?
+    if (!PackageSystem::Installed("samba-winbind") && on) {
+	if (!Mode::test && !PackageSystem::CheckAndInstallPackagesInteractive(["samba-winbind"])) {
+	    return false;
+	}
+    }
+    
+    // enable winbind service
+    if (PackageSystem::Installed("samba-winbind") && !Service::Adjust("winbind", on ? "enable" : "disable")) {
+	    // translators: error message
+	    Report::Error( on ? _("Cannot start winbind daemon.")
+		// translators: error message
+		: _("Cannot stop winbind daemon.") );
+	    return false;
+    }
+    
 
     if( write_only ) return true;
     
@@ -639,7 +644,7 @@ global define boolean enableWinbind( boolean on ) ``{
 	}
     } else {
 	// the service is running
-	if( Service::Status( "winbind" ) == 0 ) {
+	if (PackageSystem::Installed("samba-winbind") && Service::Status("winbind") == 0) {
 	    if( ! Service::Stop( "winbind" ) ) {
 		// translators: error message
 		Report::Error( _("Cannot stop 'winbind' service.") );
@@ -776,7 +781,7 @@ global define void WriteWinbind( boolean on ) ``{
 
 /**
  * Return a list of workgroups already existing in the lan.
- * @return list  of found workgroups/domains
+ * @return list<string>  of found workgroups/domains
  */
 global define list<string> availableWorkgroups() ``{
     
@@ -791,7 +796,7 @@ global define list<string> availableWorkgroups() ``{
 /**
  * Return a map of workgroups already existing in the lan.
  * The value of the map is boolean indicating a domain.
- * @return map  of found workgroups/domains
+ * @return map<string, boolean>  of found workgroups/domains
  */
 global define map<string, boolean> PreprocessAvailableWorkgroups() ``{
     
@@ -808,7 +813,7 @@ global define map<string, boolean> PreprocessAvailableWorkgroups() ``{
  * @return map of packages to be installed and to be removed
  */
 global define map AutoPackages() ``{
-	return ($["install": required_packages, "remove": []]);
+	return ($["install": ["samba-client", "samba-winbind"], "remove": []]);
 
 }
 
