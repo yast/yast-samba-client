@@ -2,7 +2,7 @@
 # neededforbuild yast2-devel-packages samba yast2-pam
 
 @HEADER@
-Requires:	yast2
+Requires:	yast2 yast2-pam
 
 BuildArchitectures:	noarch
 
