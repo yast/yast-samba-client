@@ -144,13 +144,13 @@ define symbol AskJoinDomain( string workgroup, symbol status ) ``{
 	    
 	    // translators: popup question, the domain status cannot be found out, ask user what to do
 	    // %1 is the domain name
-	    res = Popup::YesNo(sformat( _("Cannot automatically determine if this host\nis a member of the domain '%1'.")
-		+ "\n\n" + _("Join the domain '%1'?") + "\n", workgroup));
+	    res = Popup::YesNo(sformat(_("Cannot automatically determine if this host\nis a member of the domain '%1'."), workgroup)
+		+ "\n\n" + sformat(_("Join the domain '%1'?"), workgroup) + "\n");
     } else if( status == `not_joined_domain ) {
 	// translators: popup question, The workgroup is a domain in fact and the machine is not a member, ask user what to do.
 	// %1 is the domain name
-	res = Popup::YesNo(sformat(_("This host is not a member\nof the domain '%1'.") + "\n\n"
-	    + _("Join the domain '%1'?") + "\n", workgroup));
+	res = Popup::YesNo(sformat(_("This host is not a member\nof the domain '%1'."), workgroup)
+	    + "\n\n" + sformat(_("Join the domain '%1'?"), workgroup) + "\n");
     }
 
     if (!res) {
@@ -159,9 +159,9 @@ define symbol AskJoinDomain( string workgroup, symbol status ) ``{
     
 
     // translators: popup to fill in the domain joining info; %1 is the domain name
-    map<string, string> passwd = passwordUserPopup(sformat(
-	_("Enter the user and the password\nfor joining the domain '%1'.") + "\n\n"
-	+ _("To join the domain anonymously, leave the\ntext entries empty.") + "\n", workgroup), "Administrator");
+    map<string, string> passwd = passwordUserPopup(sformat(_("Enter the user and the password\nfor joining the domain '%1'."), workgroup)
+	+ "\n\n" 
+	+ _("To join the domain anonymously, leave the\ntext entries empty.") + "\n", "Administrator");
 
     // cancelled the domain joining
     if( passwd == nil ) return `fail;
