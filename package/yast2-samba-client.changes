@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep  2 13:15:23 CEST 2003 - visnov@suse.de
+
+- try harder to stop temporary winbind 
+
+-------------------------------------------------------------------
 Tue Sep  2 12:24:20 CEST 2003 - visnov@suse.de
 
 - fix syntax errors
