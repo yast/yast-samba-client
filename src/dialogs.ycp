@@ -52,8 +52,8 @@ global define symbol WorkgroupDialog () ``{
 	    else continue;
 	}
         else if(ret == `next || ret == `advanced ) {
-	    Samba::setWorkgroup( UI::QueryWidget( `id( `workgroup ), `Value ) );
-	    Samba::setWinbind( UI::QueryWidget( `id( `winbind ), `Value ) );
+	    Samba::setWorkgroup( (string) UI::QueryWidget( `id( `workgroup ), `Value ) );
+	    Samba::setWinbind( (boolean) UI::QueryWidget(`id( `winbind ), `Value ) );
 	    
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup( Samba::workgroup );
@@ -106,7 +106,7 @@ for Linux authentication.
     Wizard::RestoreNextButton();
     Wizard::RestoreBackButton();
     
-    return ret;
+    return (symbol) ret;
 }
 
 /* EOF */

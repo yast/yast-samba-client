@@ -22,7 +22,43 @@ import "Summary";
 import "Runlevel";
 import "Autologin";
 
-include "samba-client/routines.ycp";
+global block<boolean> AbortFunction = nil;
+
+/**
+ * name of a workgroup for the host
+ */
+global string workgroup = "WORKGROUP";
+
+global define boolean Modified();
+global define boolean isDomain( string workgroup );
+global define boolean isDomainMember( string domain );
+global define string joinDomain( string domain, string user, string passwd );
+global define list<string> availableWorkgroups();
+global define boolean WriteSettings();
+global define boolean enableWinbind( boolean on );
+global define void WriteWinbind( boolean on );
+global define void CheckNmbstatus();
+
+/**
+ * Abort function
+ * @return blah blah lahjk
+ */
+global define boolean Abort() ``{
+    if(AbortFunction != nil)
+	return eval(AbortFunction) == true;
+    return false;
+}
+
+/**
+ * Progress::NextStage and Progress::Title combined into one function
+ * @param title progressbar title
+ */
+global define void ProgressNextStage(string title) ``{
+    Progress::NextStage();
+    Progress::Title(title);
+}
+
+//include "samba-client/routines.ycp";
 
 
 
@@ -30,9 +66,7 @@ include "samba-client/routines.ycp";
 /**
  * list of required packages
  */
-global list required_packages = ["samba-client"];
-
-global block AbortFunction = nil;
+global list<string> required_packages = ["samba-client"];
 
 /**
  * Data was modified?
@@ -51,11 +85,6 @@ global boolean globals_configured = false;
 global boolean write_only = false;
 
 /** ================================ global data =============================*/
-
-/**
- * name of a workgroup for the host
- */
-global string workgroup = "WORKGROUP";
 
 /**
  * security level for the host
@@ -146,24 +175,24 @@ global define boolean Read() ``{
     
     string value = "";
     
-    value = SCR::Read( .etc.smb.value.global."workgroup" );
+    value = (string) SCR::Read( .etc.smb.value.global."workgroup" );
     if( value != nil ) workgroup = value;
-    value = SCR::Read( .etc.smb.value.global."security" );
+    value = (string) SCR::Read( .etc.smb.value.global."security" );
     if( value != nil ) security = value;
-    value = SCR::Read( .etc.smb.value.global."password server" );
+    value = (string) SCR::Read( .etc.smb.value.global."password server" );
     if( value != nil ) password_server = value;
-    value = SCR::Read( .etc.smb.value.global."netbios name" );
+    value = (string) SCR::Read( .etc.smb.value.global."netbios name" );
     if( value != nil ) workgroup = value;
     else {
 	// ask hostname
-	map res = SCR::Execute( .target.bash_output, "/bin/hostname" );
+	map res = (map) SCR::Execute( .target.bash_output, "/bin/hostname" );
 	if( res["exit"]:-1 != 0 ) netbios_name = "localhost";
 	else netbios_name = deletechars( res["stdout"]:"localhost", "\n\t " );
 	y2debug( "Netbios name: %1", netbios_name );
     }
     
-    winbind_uid = SCR::Read( .etc.smb.value.global."winbind uid" );
-    winbind_gid = SCR::Read( .etc.smb.value.global."winbind gid" );
+    winbind_uid = (string) SCR::Read( .etc.smb.value.global."winbind uid" );
+    winbind_gid = (string) SCR::Read( .etc.smb.value.global."winbind gid" );
     
     winbind = Runlevel::ServiceEnabled( "winbind" );
     
@@ -174,7 +203,7 @@ global define boolean Read() ``{
     ProgressNextStage(_("Finished"));
     
     // start nmbstatus
-    nmbstatus_running = SCR::Execute(.background.run_output, nmbstatus);
+    nmbstatus_running = (boolean) SCR::Execute(.background.run_output, nmbstatus);
     if( ! nmbstatus_running ) {
 	y2error( "Cannot start nmbstatus" );
     }
@@ -404,7 +433,7 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
 	cmd = cmd + " -U " + user + "%" + passwd;
     }
     
-    map result = SCR::Execute( .target.bash_output, cmd );
+    map result = (map) SCR::Execute( .target.bash_output, cmd );
     
     y2debug( "smbpasswd -j result: %1", result );
     
@@ -428,7 +457,7 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
 global define boolean isDomainMember( string domain ) ``{
     
     if( Runlevel::ServiceStatus( "winbind" ) == 0 && SCR::Read( .etc.smb.value.global.workgroup ) == domain ) {
-	map res = SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
+	map res = (map) SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
 	y2error( "wbinfo -t : %1", res );
 	if( res["exit"]:-1 != 0 ) return nil;
 	return res["stdout"]:"" == "Secret is good\n";
@@ -442,14 +471,14 @@ global define boolean isDomainMember( string domain ) ``{
 	boolean winbindd_ran = Runlevel::ServiceStatus( "winbind" ) == 0;
 	if( winbindd_ran ) Runlevel::RunInitScript( "winbind", "stop" );
 	
-	string tmpsmbconf = SCR::Read( .target.tmpdir ) + "/smb.conf" ;
+	string tmpsmbconf = (string) SCR::Read( .target.tmpdir ) + "/smb.conf" ;
 	SCR::Write( .target.string, tmpsmbconf, "[global]\nwinbind uid = 10000-20000
 winbind gid = 10000-20000\nworkgroup = "+domain+"\nsecurity=domain\n" );
 	SCR::Execute( .background.run_output, "/usr/sbin/winbindd -s "+tmpsmbconf );
 	// sleep a bit
 	sleep( 1000 );
 	// do the test
-	map res = SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
+	map res = (map) SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
 	y2debug( "wbinfo -t : %1", res );
 	// quit winbind
 	Runlevel::RunInitScript( "winbind", "stop" );
@@ -472,12 +501,12 @@ global define void CheckNmbstatus() ``{
 	// better count slept time
 	integer wait = 1200;
 	
-	while( wait>0 && SCR::Read( .background.isrunning ) ) {
+	while( wait>0 && (boolean) SCR::Read( .background.isrunning ) ) {
 	    sleep( 100 );
 	    wait = wait -1;
 	}
 	
-	if( SCR::Read( .background.isrunning ) ) {
+	if( (boolean) SCR::Read( .background.isrunning ) ) {
 	    y2error( "Something went wrong, nmbstatus didn't finish in more that 2 minutes" );
 
 	    // better kill it
@@ -487,7 +516,7 @@ global define void CheckNmbstatus() ``{
 	}
 	
 	// nmbstatus already finished, parse the output
-	list output = SCR::Read( .background.newout );
+	list output = (list) SCR::Read( .background.newout );
 	
 	y2debug( "nmbstatus result: %1", output );
 	
@@ -609,8 +638,8 @@ global define void WriteWinbind( boolean on ) ``{
     }
     
     // change nsswitch
-    list nsswitch_list = splitstring
-            (SCR::Read(.etc.nsswitch_conf.passwd)," ");
+    list<string> nsswitch_list = splitstring
+            ((string) SCR::Read(.etc.nsswitch_conf.passwd)," ");
 	    
     if( on ) {
 	if( !contains( nsswitch_list, "winbind" ) ) 
@@ -625,7 +654,7 @@ global define void WriteWinbind( boolean on ) ``{
     SCR::Write(.etc.nsswitch_conf.passwd, mergestring( nsswitch_list, " " ) );
     
     nsswitch_list = splitstring
-            (SCR::Read(.etc.nsswitch_conf.group), " ");
+            ((string) SCR::Read(.etc.nsswitch_conf.group), " ");
 
     if( on ) {
 	if( !contains( nsswitch_list, "winbind" ) )
@@ -659,11 +688,11 @@ global define void WriteWinbind( boolean on ) ``{
 	// do nothing for off
     } else {
 	// find out list of called modules
-	list mods = splitstring( regexpsub( call_module[0]:"", "^call_modules=(.*)", "\\1" ), "," );
+	list<string> mods = splitstring( regexpsub( call_module[0]:"", "^call_modules=(.*)", "\\1" ), "," );
 	
 	if( on ) {
 	    // check, if present and add it if necessary
-	    mods = union( mods, [ "winbind" ] );
+	    mods = (list<string>) union( mods, [ "winbind" ] );
 	}
 	else
 	{
@@ -690,11 +719,11 @@ global define void WriteWinbind( boolean on ) ``{
 	// do nothing for off
     } else {
 	// find out list of called modules
-	list mods = splitstring( regexpsub( call_module[0]:"", "^call_modules=(.*)", "\\1" ), "," );
+	list<string> mods = splitstring( regexpsub( call_module[0]:"", "^call_modules=(.*)", "\\1" ), "," );
 	
 	if( on ) {
 	    // check, if present and add it if necessary
-	    mods = union( mods, [ "winbind" ] );
+	    mods = (list<string>) union( mods, [ "winbind" ] );
 	}
 	else
 	{
@@ -714,13 +743,13 @@ global define void WriteWinbind( boolean on ) ``{
  * Return a list of workgroups already existing in the lan.
  * @return list  of found workgroups/domains
  */
-global define list availableWorkgroups() ``{
+global define list<string> availableWorkgroups() ``{
     
     CheckNmbstatus();
 
     // TODO: inform user about problems
     
-    return maplist( string group, any data, nmbstatus_output, ``( group ) );
+    return (list<string>) maplist( string group, any data, nmbstatus_output, ``( group ) );
 }
 
 
