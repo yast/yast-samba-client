@@ -624,6 +624,7 @@ global define boolean enableWinbind( boolean on ) ``{
 	    if( ! Service::Restart( "winbind" ) ) {
 		// translators: error message
 		Report::Error( _("Cannot start 'winbind' service.") );	    
+	    }
 	}
 
 	// stop nscd daemon	
