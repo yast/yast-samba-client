@@ -6,6 +6,14 @@
     include "testsuite.ycp";
     
     import "Samba";
+
+    TESTSUITE_INIT([
+	$[ "init" : $[ "scripts" : $[ "exists" : true, "runlevel" : $[] ] ] ]
+    ], nil);
+
+    // Export is in autoyast only
+    import "Mode";
+    Mode::config = true;
     
     Samba::setWorkgroup( "testing" );
     Samba::setWinbind( true );

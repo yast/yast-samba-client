@@ -18,9 +18,7 @@ textdomain "samba-client";
 import "PamSettings";
 import "Progress";
 import "Report";
-import "Summary";
-import "Runlevel";
-import "Autologin";
+import "Service";
 
 global block<boolean> AbortFunction = nil;
 
@@ -38,7 +36,7 @@ global define boolean WriteSettings();
 global define boolean enableWinbind( boolean on );
 global define void WriteWinbind( boolean on );
 global define void CheckNmbstatus();
-global boolean voidSetDomainMembershipLevel( string level );
+global boolean setDomainMembershipLevel( string level );
 
 /**
  * Abort function
@@ -214,7 +212,7 @@ global define boolean Read() ``{
 	winbind_uid = (string) SCR::Read( .etc.smb.value.global."winbind gid" );
     }
     
-    winbind = Runlevel::ServiceEnabled( "winbind" );
+    winbind = Service::Enabled( "winbind" );
     
     globals_configured = true;
     
@@ -355,6 +353,7 @@ global define map Export () ``{
  * @return summary of the current configuration
  */
 global define string Summary() ``{
+    import "Summary";
     
     string summary = "";
     string nc = Summary::NotConfigured ();
@@ -377,6 +376,7 @@ global define string Summary() ``{
  * @return summary of the current configuration
  */
 global define string ShortSummary() ``{
+    import "Summary";
 
     string summary = "";
 
@@ -415,6 +415,21 @@ global define void setWorkgroup( string group ) ``{
  */
 global define void setWinbind( boolean status ) ``{
     if( winbind != status ) {
+	import "Popup";
+	import "Mode";
+
+	// check the nscd status first, if enabling
+	if ( !Mode::config && status && Service::Enabled ("nscd") && ! Popup::ContinueCancel (
+	    _("The service 'nscd' is enabled,
+But the service 'winbind' used for
+the SMB authentication does not work
+with 'nscd' enabled.
+The 'nscd' service will be disabled.") ) )
+	{
+	    // don't enable winbind
+	    return;
+	}
+	
 	winbind = status;
 	modified = true;
     }
@@ -563,7 +578,7 @@ global define boolean isDomain( string workgroup ) ``{
 */
 global define boolean enableWinbind( boolean on ) ``{
     // enable winbind service
-    if( ! Runlevel::ServiceAdjust( "winbind", on ? "enable": "disable" ) )
+    if( ! Service::Adjust( "winbind", on ? "enable": "disable" ) )
     {
 	// translators: error message
 	Report::Error( on ? _("Cannot start winbind daemon.")
@@ -572,33 +587,47 @@ global define boolean enableWinbind( boolean on ) ``{
 	return false;
     }
     
+    // disable nscd service, if needed
+    if( on && ! Service::Disable ("nscd") )
+    {
+	// translators: error message
+	Report::Error( _("Cannot stop nscd daemon."));
+	return false;
+    }
+    
     winbind = on;
     
     modified = true;
     
     if (on)
+    {
+	import "Autologin";
 	Autologin::Write (write_only);
+    }
 
     if( write_only ) return true;
     
     if( on ) {
 	// start the server
-	if( Runlevel::ServiceStatus( "winbind" ) != 0 ) {
+	if( Service::Status( "winbind" ) != 0 ) {
 	    // the service does not run
-	    if( Runlevel::RunInitScript( "winbind", "start" ) != 0 ) {
+	    if( ! Service::Start( "winbind" ) ) {
 		// translators: error message
 		Report::Error( _("Cannot start 'winbind' service.") );
 	    }
 	}
-	
-	// restart nscd daemon
-	if( Runlevel::ServiceStatus( "nscd" ) == 0 ) {
-	    Runlevel::RunInitScript( "nscd", "restart" );
+
+	// stop nscd daemon	
+	if( Service::Status( "nscd" ) == 0 ) {
+	    if ( ! Service::Stop ( "nscd" ) ){
+		// translators: error message
+		Report::Error( _("Cannot stop 'nscd' service.") );
+	    }
 	}
     } else {
 	// the service is running
-	if( Runlevel::ServiceStatus( "winbind" ) == 0 ) {
-	    if( Runlevel::RunInitScript( "winbind", "stop" ) != 0 ) {
+	if( Service::Status( "winbind" ) == 0 ) {
+	    if( ! Service::Stop( "winbind" ) ) {
 		// translators: error message
 		Report::Error( _("Cannot stop 'winbind' service.") );
 	    }
@@ -742,7 +771,7 @@ global define list<string> availableWorkgroups() ``{
 
     // TODO: inform user about problems
     
-    return (list<string>) maplist( string group, any data, nmbstatus_output, ``( group ) );
+    return (list<string>) maplist( string group, any data, nmbstatus_output, ``( group + (isDomain (group) ? _(" (domain)") : "") ) );
 }
 
 
@@ -762,7 +791,7 @@ global define map AutoPackages() ``{
  * @param level		"member", "bdc" or "pdc"
  * @return boolean	false, if the level is not correct value, otherwise true
  */
-global boolean voidSetDomainMembershipLevel( string level )
+global boolean setDomainMembershipLevel( string level )
 {
     if ( level != "member" && level != "bdc" && level != "pdc" )
     {

@@ -262,6 +262,11 @@ define string BrowseWorkgroups() ``{
 
     any ret = UI::UserInput();
     string sel = (string) UI::QueryWidget( `id(`selection), `CurrentItem );
+    if ( sel != nil && issubstring (sel, _(" (domain)") ) )
+    {
+	integer pos = findfirstof (sel, _(" (domain)") );
+	sel = substring (sel, 0, pos);
+    }
     UI::CloseDialog();
     
     return ret == `ok ? sel : nil;
