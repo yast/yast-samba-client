@@ -46,6 +46,10 @@ y2debug("param=%1", param);
 if(func == "Summary") {
     ret = Samba::Summary();
 }
+/* ShortSummary is used by Users module*/
+else if(func == "ShortSummary") {
+    ret = Samba::ShortSummary();
+}
 /* Reset configuration */
 else if (func == "Reset") {
     Samba::Import($[]);
