@@ -52,8 +52,13 @@ define string passwordPopup( string text ) ``{
         );
     
     any ret = UI::UserInput();
-    
-    string passwd = ret == `ok ? (string) UI::QueryWidget(`id(`passwd), `Value) : nil;
+
+    string passwd = nil;
+    if (ret == `ok)
+    {
+	string passwd = (string) UI::QueryWidget(`id(`passwd), `Value);
+    }
+
     UI::CloseDialog();
     
     return passwd;
