@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Mon Feb  9 10:53:03 CET 2004 - visnov@suse.cz
+
+- use "idmap uid/gid" instead of "winbind uid/gid"
+- use "net join" instead of "smbpasswd -j" 
+- use "net testjoin" instead of "wbinfo -t"
+- allow domain joining if nmbstatus not found
+- fix #33583: can't join domain with special chars in Administrator-pwd
+- drop y2cc
+- 2.9.3
+
+-------------------------------------------------------------------
 Fri Jan 30 08:39:22 CET 2004 - visnov@suse.cz
 
 - remove "global" keyword

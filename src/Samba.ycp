@@ -38,6 +38,7 @@ global define boolean WriteSettings();
 global define boolean enableWinbind( boolean on );
 global define void WriteWinbind( boolean on );
 global define void CheckNmbstatus();
+global boolean voidSetDomainMembershipLevel( string level );
 
 /**
  * Abort function
@@ -126,6 +127,14 @@ global boolean nmbstatus_running = false;
  */
 global map nmbstatus_output = $[];
 
+global boolean nmbstatus_available = false;
+
+/**
+ * level of a domain membership when joining
+ * possible values are "member", "bdc" and "pdc"
+ */
+global string join_level = "member";
+
 /** ============================= end of global data ==========================*/
 
 /**
@@ -191,8 +200,19 @@ global define boolean Read() ``{
 	y2debug( "Netbios name: %1", netbios_name );
     }
     
-    winbind_uid = (string) SCR::Read( .etc.smb.value.global."winbind uid" );
-    winbind_gid = (string) SCR::Read( .etc.smb.value.global."winbind gid" );
+    winbind_uid = (string) SCR::Read( .etc.smb.value.global."idmap uid" );
+    if (winbind_uid == nil)
+    {
+	// backward compatibility
+	winbind_uid = (string) SCR::Read( .etc.smb.value.global."winbind uid" );
+    }
+
+    winbind_gid = (string) SCR::Read( .etc.smb.value.global."idmap gid" );
+    if (winbind_gid == nil)
+    {
+	// backward compatibility
+	winbind_uid = (string) SCR::Read( .etc.smb.value.global."winbind gid" );
+    }
     
     winbind = Runlevel::ServiceEnabled( "winbind" );
     
@@ -206,6 +226,7 @@ global define boolean Read() ``{
     nmbstatus_running = (boolean) SCR::Execute(.background.run_output, nmbstatus);
     if( ! nmbstatus_running ) {
 	y2error( "Cannot start nmbstatus" );
+	nmbstatus_available = false;
     }
 
     modified = false;
@@ -427,15 +448,16 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
     }
     
     // set the actual password (-s means password on stdin)
-    string cmd = "smbpasswd -j " + domain;
+    string cmd = "net join " + join_level + " -w " + domain;
     
     if( user != nil ) {
-	cmd = cmd + " -U " + user + "%" + passwd;
+	// notice the single-quotes
+	cmd = cmd + " -U '" + user + "%" + passwd+"'";
     }
-    
+
     map result = (map) SCR::Execute( .target.bash_output, cmd );
     
-    y2debug( "smbpasswd -j result: %1", result );
+    y2debug( "net join result: %1", result );
     
         // check the exit code, return nil on success
     if( result["exit"]:1 == 0 ) return nil;
@@ -449,47 +471,17 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
 }
 
 /**
- * Check if this host is a member of a given domain. TODO: this does not work correctly now
+ * Check if this host is a member of a given domain.
  *
  * @param domain  a name of the domain to check
  * @return boolean  true if the host is a member, false if not, nil on error (not possible to find out)
  */
 global define boolean isDomainMember( string domain ) ``{
-    
-    if( Runlevel::ServiceStatus( "winbind" ) == 0 && SCR::Read( .etc.smb.value.global.workgroup ) == domain ) {
-	map res = (map) SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
-	y2error( "wbinfo -t : %1", res );
-	if( res["exit"]:-1 != 0 ) return nil;
-	return res["stdout"]:"" == "Secret is good\n";
-    }
-    else 
-    {
-	// finish nmbstatus run, since background agent supports only a single process
-	CheckNmbstatus();
-	
-	// if winbindd already runs, but for different domain, stop it
-	boolean winbindd_ran = Runlevel::ServiceStatus( "winbind" ) == 0;
-	if( winbindd_ran ) Runlevel::RunInitScript( "winbind", "stop" );
-	
-	string tmpsmbconf = (string) SCR::Read( .target.tmpdir ) + "/smb.conf" ;
-	SCR::Write( .target.string, tmpsmbconf, "[global]\nwinbind uid = 10000-20000
-winbind gid = 10000-20000\nworkgroup = "+domain+"\nsecurity=domain\n" );
-	SCR::Execute( .background.run_output, "/usr/sbin/winbindd -s "+tmpsmbconf );
-	// sleep a bit
-	sleep( 1000 );
-	// do the test
-	map res = (map) SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
-	y2debug( "wbinfo -t : %1", res );
-	// quit winbind
-	Runlevel::RunInitScript( "winbind", "stop" );
-	y2debug( "Killing winbind: %1", SCR::Execute( .background.kill ) );
-	
-	// if winbindd ran before our tests, start it again
-	if( winbindd_ran ) Runlevel::RunInitScript( "winbind", "restart" );
-	
-	if( res["exit"]:-1 != 0 ) return nil;
-	return res["stdout"]:"" == "Secret is good\n";
-    }
+
+    // FIXME: ADS
+    map res = (map) SCR::Execute (.target.bash_output, "LANG=C net rpc testjoin -w "+domain );
+    y2milestone ("Testing membership in domain %1: %2", domain, res["exit"]:-1 == 0 );
+    return ( res["exit"]:-1 == 0 );
 }
 
 /**
@@ -513,6 +505,7 @@ global define void CheckNmbstatus() ``{
 	    SCR::Execute( .background.kill );
 	    nmbstatus_running = false;
 	    nmbstatus_output = $[];
+	    nmbstatus_available = false;
 	}
 	
 	// nmbstatus already finished, parse the output
@@ -624,13 +617,13 @@ global define void WriteWinbind( boolean on ) ``{
     if( on ) {
 	// if turning on and there is no values set, use default
 	if( winbind_uid == nil ) 
-	    SCR::Write( .etc.smb.value.global."winbind uid", "10000-20000" );
+	    SCR::Write( .etc.smb.value.global."idmap uid", "10000-20000" );
 	else
-	    SCR::Write( .etc.smb.value.global."winbind uid", winbind_uid );
+	    SCR::Write( .etc.smb.value.global."idmap uid", winbind_uid );
 	if( winbind_gid == nil ) 
-	    SCR::Write( .etc.smb.value.global."winbind gid", "10000-20000" );
+	    SCR::Write( .etc.smb.value.global."idmap gid", "10000-20000" );
 	else
-	    SCR::Write( .etc.smb.value.global."winbind gid", winbind_gid );
+	    SCR::Write( .etc.smb.value.global."idmap gid", winbind_gid );
     }
     
     if( on ) {
@@ -763,6 +756,23 @@ global define map AutoPackages() ``{
 }
 
 
+/**
+ * Set the level of the domain membership used for joining.
+ * 
+ * @param level		"member", "bdc" or "pdc"
+ * @return boolean	false, if the level is not correct value, otherwise true
+ */
+global boolean voidSetDomainMembershipLevel( string level )
+{
+    if ( level != "member" && level != "bdc" && level != "pdc" )
+    {
+	return false;
+    }
+    
+    join_level = level;
+    modified = true;
+    return true;
+}
 
 /* EOF */
 }
