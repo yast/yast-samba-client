@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 19 14:49:59 CEST 2004 - mlazar@suse.cz
+
+- Fixed return value for CommandLine::Run()
+
+-------------------------------------------------------------------
 Wed Aug 18 15:19:56 CEST 2004 - mlazar@suse.cz
 
 - Fixed Back button for installation sequence

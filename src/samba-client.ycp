@@ -123,7 +123,7 @@ y2milestone ("Samba-client module started");
 include "samba-client/wizards.ycp";
 
 /* main ui function */
-boolean ret = nil;
+any ret = nil;
 
 /* the command line description map */
 map cmdline = $[
@@ -213,7 +213,7 @@ without installing the package.</p>"), "samba-client" ) );
 without installing the required packages.") );
     }
 
-    return false;
+    return (any)false;
 }
 
 ret = CommandLine::Run( cmdline );
