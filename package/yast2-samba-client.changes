@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar  4 14:24:34 CET 2004 - visnov@suse.cz
+
+- also install samba-winbind (#35343) 
+
+-------------------------------------------------------------------
 Mon Mar  1 13:40:30 CET 2004 - visnov@suse.cz
 
 - merged back proofread texts
