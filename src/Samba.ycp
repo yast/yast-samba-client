@@ -422,12 +422,12 @@ global define boolean isDomain( string workgroup ) ``{
     // if there is PDC, return success
     if( res == 0 ) return true;
     
-    // FIXME: if PDC not found, try BDC
-/*    if( res == 1 ) {
+    // if PDC not found, try BDC
+    if( res == 1 ) {
 	res = SCR::Execute( .target.bash, nmbstatus + " --quiet --bdc --workgroup " + workgroup );
 	return res == 0 ;
     }
-*/    
+    
     // a different error happened
     return false;
 }
