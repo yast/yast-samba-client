@@ -1,0 +1,19 @@
+{
+
+include "testsuite.ycp";
+    
+import "SambaConfig";
+import "SambaNetJoin";
+
+TESTSUITE_INIT([], nil);
+
+
+DUMP(!SambaNetJoin::Test("domain"));
+DUMP(SambaNetJoin::Join("domain","member","user","passwd"));
+
+SambaConfig::GlobalSetStr("netbios name", "test");
+DUMP(!SambaNetJoin::Test("domain"));
+DUMP(SambaNetJoin::Join("domain","member","user","passwd"));
+
+}
+

@@ -19,7 +19,11 @@ desktop_DATA =			\
 	samba-client.desktop
 
 module_DATA =			\
-	Samba.ycp
+	Samba.ycp		\
+	SambaNetJoin.pm		\
+	SambaWinbind.pm		\
+	SambaNmbLookup.pm	\
+	SambaConfig.pm
 
 samba-client:
 	ln -sf . samba-client

@@ -23,7 +23,7 @@ include "samba-client/routines.ycp";
  * @return true if data was modified
  */
 boolean Modified() {
-    return Samba::Modified();
+    return Samba::GetModified();
 }
 
 /**
@@ -32,7 +32,6 @@ boolean Modified() {
  */
 symbol ReadDialog() {
     Wizard::RestoreHelp(HELPS["read"]:"");
-    Samba::AbortFunction = ``{ return PollAbort();};
     boolean ret = Samba::Read();
     return ret ? `next : `abort;
 }
@@ -43,8 +42,7 @@ symbol ReadDialog() {
  */
 symbol WriteDialog() {
     Wizard::RestoreHelp(HELPS["write"]:"");
-    Samba::AbortFunction = ``{ return PollAbort();};
-    boolean ret = Samba::Write();
+    boolean ret = Samba::Write(false);
     return ret ? `next : `abort;
 }
 

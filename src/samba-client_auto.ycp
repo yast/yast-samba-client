@@ -84,8 +84,7 @@ else if (func == "Read") {
 else if (func == "Write") {
     import "Progress";
     Progress::off();
-    Samba::write_only = true;
-    ret = Samba::Write();
+    ret = Samba::Write(true);
     Progress::on();
 }
 
@@ -94,7 +93,7 @@ else if (func == "Write") {
  * return boolean
  */
 else if (func == "GetModified") {
-    ret = Samba::modified;
+    ret = Samba::GetModified();
 }
 
 /**

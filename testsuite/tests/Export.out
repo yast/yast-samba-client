@@ -1,2 +1,0 @@
-Return	$["global":$["winbind":true, "workgroup":"testing"]]
-Return	$["global":$["winbind":false, "workgroup":"othertesting"]]

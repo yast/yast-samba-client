@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Nov  8 18:29:46 CET 2004 - mlazar@suse.cz
+
+- 2.11.0
+- Samba.ycp transformed to perl and splited to SambaConfig.pm,
+  SambaNetJoin.pm, SambaNmbLookup.pm and SambawWinbind.pm
+- adapted testsuite
+
+-------------------------------------------------------------------
 Mon Sep 13 18:36:07 CEST 2004 - mlazar@suse.cz
 
 - 2.10.5 

@@ -1,0 +1,27 @@
+{
+
+include "testsuite.ycp";
+    
+import "SambaWinbind";
+import "SambaConfig";
+
+TESTSUITE_INIT([], nil);
+
+
+DUMP(!SambaWinbind::IsEnabled());
+SambaWinbind::AdjustSambaConfig(true);
+DUMP(SambaConfig::GlobalGetMap());
+
+SambaWinbind::AdjustNsswitch(true);
+SambaWinbind::AdjustPam(true);
+SambaWinbind::AdjustService(true);
+
+SambaWinbind::AdjustNsswitch(false);
+SambaWinbind::AdjustPam(false);
+SambaWinbind::AdjustService(false);
+
+SambaWinbind::StartStopNow(true);
+SambaWinbind::StartStopNow(false);
+
+}
+

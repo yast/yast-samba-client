@@ -1,0 +1,120 @@
+Dump	true
+Dump	[]
+Dump	*** [test] A
+Dump	[]
+Dump	true
+Dump	true
+Dump	true
+Dump	*** [test] B
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	*** [test] C
+Dump	["guest ok", "os level", "read only", "path"]
+Dump	$["guest ok":"Yes", "os level":"1", "path":"test1", "read only":"No"]
+Dump	true
+Dump	*** [test] D
+Dump	test1
+Dump	true
+Dump	1
+Dump	Yes
+Dump	nil
+Dump	*** [test] E
+Dump	true
+Dump	true
+Dump	true
+Dump	*** [homes] A
+Dump	[]
+Dump	true
+Dump	true
+Dump	true
+Dump	*** [homes] B
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	*** [homes] C
+Dump	["guest ok", "os level", "read only", "path"]
+Dump	$["guest ok":"Yes", "os level":"3", "path":"homes1", "read only":"No"]
+Dump	true
+Dump	*** [homes] D
+Dump	homes1
+Dump	true
+Dump	3
+Dump	Yes
+Dump	nil
+Dump	*** [homes] E
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	$["guest ok":"No", "os level":"4", "path":"homes2", "read only":"Yes"]
+Dump	*** [homes] F
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	*** [global] A
+Dump	[]
+Dump	true
+Dump	true
+Dump	true
+Dump	*** [global] B
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	*** [global] C
+Dump	["guest ok", "os level", "read only", "path"]
+Dump	$["guest ok":"Yes", "os level":"8", "path":"global1", "read only":"No"]
+Dump	true
+Dump	*** [global] D
+Dump	global1
+Dump	true
+Dump	8
+Dump	Yes
+Dump	nil
+Dump	*** [global] E
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	$["guest ok":"No", "os level":"9", "path":"global2", "read only":"Yes"]
+Dump	*** [global] F
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	true
+Dump	*** global
+Dump	true
+Dump	["test", "homes"]
+Dump	true
+Dump	["homes"]
+Dump	true
+Write	.etc.smb.value.global."guest ok" "No" true
+Write	.etc.smb.value_type.global."guest ok" 0 true
+Write	.etc.smb.value.global."os level" "9" true
+Write	.etc.smb.value_type.global."os level" 0 true
+Write	.etc.smb.value.global."read only" "Yes" true
+Write	.etc.smb.value_type.global."read only" 0 true
+Write	.etc.smb.value.global.path "global2" true
+Write	.etc.smb.value_type.global.path 0 true
+Write	.etc.smb.section_type.global 0 true
+Write	.etc.smb.value.homes."guest ok" "No" true
+Write	.etc.smb.value_type.homes."guest ok" 0 true
+Write	.etc.smb.value.homes."os level" "4" true
+Write	.etc.smb.value_type.homes."os level" 0 true
+Write	.etc.smb.value.homes."read only" "Yes" true
+Write	.etc.smb.value_type.homes."read only" 0 true
+Write	.etc.smb.value.homes.path "homes2" true
+Write	.etc.smb.value_type.homes.path 0 true
+Write	.etc.smb.section_type.homes 0 true
+Write	.etc.smb.section_comment.homes "\n" true
+Write	.etc.smb nil true
+Dump	true
+Dump	true
