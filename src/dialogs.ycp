@@ -34,7 +34,7 @@ symbol WorkgroupDialog () {
 	`Frame( _("Membership"), `VBox(
 	    WorkgroupWidget(),
 	    // checkbox label to enable winbind
-	    `Left(`CheckBox( `id( `winbind ), _("Also &Use SMB Information for Linux Authentication"), Samba::winbind ) )
+	    `Left(`CheckBox( `id( `winbind ), _("Also &Use SMB Information for Linux Authentication"), Mode::cont ? true : Samba::winbind) )
 	) ) ) ),
 	HELPS["WorkgroupDialog"]:"", Label::BackButton(),
 	    Mode::cont ? Label::NextButton() : Label::FinishButton()
@@ -43,6 +43,8 @@ symbol WorkgroupDialog () {
     if (!Mode::cont)
     {
 	Wizard::HideBackButton();
+    } else {
+	UI::ChangeWidget(`id(`winbind), `Enabled, false);
     }
 
     any ret = nil;

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug 30 17:07:59 CEST 2004 - mlazar@suse.cz
+
+- 2.10.3
+- fixed Bug 44284 - Samba authentication allows to disable the authentication
+
+-------------------------------------------------------------------
 Thu Aug 19 14:49:59 CEST 2004 - mlazar@suse.cz
 
 - Fixed return value for CommandLine::Run()
