@@ -104,7 +104,9 @@ define map<string, string> passwordUserPopup( string message, string defaultuser
  * @return true if abort is confirmed
  */
 define boolean ReallyAbort() ``{
-    return !Samba::Modified() || Popup::ReallyAbort(true);
+    return Mode::cont ?
+	Popup::ConfirmAbort (`incomplete) :
+	(!Samba::Modified() || Popup::ReallyAbort(true));
 }
 
 /**
