@@ -13,5 +13,5 @@
 .sysconfig.samba
 
 `ag_ini(
-  SysConfigFile("/etc/sysconfig/samba")
+  `SysConfigFile("/etc/sysconfig/samba")
 )
