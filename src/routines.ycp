@@ -85,8 +85,8 @@ define map<string, string> passwordUserPopup( string message, string defaultuser
     any ret = UI::UserInput();
     
     map<string, string> result = ret == `ok ? $[ 
-	"user":UI::QueryWidget(`id(`user), `Value),
-	"password":UI::QueryWidget(`id(`passwd), `Value) ] 
+	"user":(string)UI::QueryWidget(`id(`user), `Value),
+	"password":(string)UI::QueryWidget(`id(`passwd), `Value) ] 
     : nil;
 
     UI::CloseDialog();
