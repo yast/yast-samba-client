@@ -1,0 +1,24 @@
+{
+
+// test for Samba::setWorkgroup
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+    
+    Samba::setWorkgroup( "testing" );
+    DUMP(Samba::workgroup);
+    DUMP(Samba::modified);
+    
+    Samba::modified = false;
+    Samba::setWorkgroup( "testing" );
+    DUMP(Samba::workgroup);
+    // this time modified should not be set
+    DUMP(Samba::modified);
+
+    Samba::setWorkgroup( "nexttesting" );
+    DUMP(Samba::workgroup);
+    // modified again
+    DUMP(Samba::modified);
+}

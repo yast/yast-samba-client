@@ -1,0 +1,19 @@
+{
+
+// test for Samba::Export - autoyast
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+    
+    Samba::setWorkgroup( "testing" );
+    Samba::setWinbind( true );
+    
+    TEST( ``(Samba::Export() ), [], nil );
+
+    Samba::setWorkgroup( "othertesting" );
+    Samba::setWinbind( false );
+    
+    TEST( ``(Samba::Export() ), [], nil );
+}

@@ -1,0 +1,38 @@
+Read	.etc.nsswitch_conf.passwd "compat ldap"
+Write	.etc.nsswitch_conf.passwd "compat ldap" true
+Read	.etc.nsswitch_conf.group "compat ldap"
+Write	.etc.nsswitch_conf.group "compat ldap" true
+Write	.etc.nsswitch_conf nil true
+Write	.pam.all.account.pam_unix2 "-call_module=winbind" true
+Write	.pam.all.auth.pam_unix2 "-call_module=winbind" true
+Return	nil
+Read	.etc.nsswitch_conf.passwd "compat ldap winbind"
+Write	.etc.nsswitch_conf.passwd "compat ldap" true
+Read	.etc.nsswitch_conf.group "compat ldap winbind"
+Write	.etc.nsswitch_conf.group "compat ldap" true
+Write	.etc.nsswitch_conf nil true
+Write	.pam.all.account.pam_unix2 "-call_module=winbind" true
+Write	.pam.all.auth.pam_unix2 "-call_module=winbind" true
+Return	nil
+Write	.etc.smb.value.global."winbind uid" "10000-20000" true
+Write	.etc.smb.value.global."winbind gid" "10000-20000" true
+Write	.etc.smb.value.global.security "domain" true
+Read	.etc.nsswitch_conf.passwd "compat ldap"
+Write	.etc.nsswitch_conf.passwd "compat ldap winbind" true
+Read	.etc.nsswitch_conf.group "compat ldap"
+Write	.etc.nsswitch_conf.group "compat ldap winbind" true
+Write	.etc.nsswitch_conf nil true
+Write	.pam.all.account.pam_unix2 "+call_module=winbind" true
+Write	.pam.all.auth.pam_unix2 "+call_module=winbind" true
+Return	nil
+Write	.etc.smb.value.global."winbind uid" "30000-39999" true
+Write	.etc.smb.value.global."winbind gid" "30000-39999" true
+Write	.etc.smb.value.global.security "domain" true
+Read	.etc.nsswitch_conf.passwd "compat ldap"
+Write	.etc.nsswitch_conf.passwd "compat ldap winbind" true
+Read	.etc.nsswitch_conf.group "compat ldap"
+Write	.etc.nsswitch_conf.group "compat ldap winbind" true
+Write	.etc.nsswitch_conf nil true
+Write	.pam.all.account.pam_unix2 "+call_module=winbind" true
+Write	.pam.all.auth.pam_unix2 "+call_module=winbind" true
+Return	nil

@@ -1,0 +1,19 @@
+{
+
+// test for Samba::setWorkgroup
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+    
+    include "samba-client/routines.ycp";
+    
+    TEST( ``( AskJoinDomain( "testing", `workgroup ) ), [], nil );
+
+    TEST( ``( AskJoinDomain( "testing", `joined_domain ) ), [], nil );
+
+    TEST( ``( AskJoinDomain( "testing", `not_joined_domain ) ), [], nil );
+    
+    TEST( ``( AskJoinDomain( "testing", `domain ) ), [], nil );
+}

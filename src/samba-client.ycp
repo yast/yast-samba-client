@@ -17,7 +17,10 @@
 
 textdomain "samba-client";
 
+import "CommandLine";
+import "Report";
 import "Require";
+import "Samba";
 
 include "commandline/commandline.ycp";
 

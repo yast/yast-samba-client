@@ -1,0 +1,5 @@
+Execute	.target.bash "/usr/bin/nmbstatus --quiet --pdc --workgroup MYDOMAIN" 0
+Return	true
+Execute	.target.bash "/usr/bin/nmbstatus --quiet --pdc --workgroup MYDOMAIN" 1
+Execute	.target.bash "/usr/bin/nmbstatus --quiet --bdc --workgroup MYDOMAIN" 1
+Return	false

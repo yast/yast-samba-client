@@ -1,0 +1,32 @@
+{
+
+// test for BrowseWorkgroups() popup
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+    
+    include "samba-client/routines.ycp";
+
+    TEST( ``( BrowseWorkgroups() ), [ $[], $[], 
+	$[ 
+	    "target" : $[ "bash_output" : 
+		$[ 
+		    "exit": 0,
+		    "stdout" : "WORKGROUP	DEBIAN_FANS
+LMB	BRAHMA
+MEMBERS	BRAHMA
+
+WORKGROUP	TUX-NET
+LMB	VALKYRIE
+MEMBERS	VALKYRIE
+
+",
+		    "stderr" : "Found 10 hosts. Collecting additional information. Please wait.
+..........
+"
+		]
+	] ] 
+    ], nil );
+}

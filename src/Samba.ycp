@@ -83,7 +83,7 @@ global string winbind_gid = nil;
 /**
  * Path to the nmbstatus binary
  */
-string nmbstatus = "/usr/sbin/nmbstatus";
+string nmbstatus = "/usr/bin/nmbstatus";
 
 /** ============================= defaults ====================================*/
 
@@ -284,11 +284,11 @@ global define string Summary() ``{
 /**
  * Set a host workgroup
  *
- * @param workgroup	a new workgroup
+ * @param group	a new workgroup
  */
-global define void setWorkgroup( string workgroup ) ``{
-    if( Samba::workgroup != workgroup ) {
-	Samba::workgroup = workgroup;
+global define void setWorkgroup( string group ) ``{
+    if( workgroup != group ) {
+	workgroup = group;
 	modified = true;
     }
 }
@@ -299,8 +299,8 @@ global define void setWorkgroup( string workgroup ) ``{
  * @param status a new status
  */
 global define void setWinbind( boolean status ) ``{
-    if( Samba::winbind != status ) {
-	Samba::winbind = status;
+    if( winbind != status ) {
+	winbind = status;
 	modified = true;
     }
 }
@@ -325,10 +325,6 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
 
     // write the settings to the disk
     WriteSettings();
-    // FIXME:
-    WriteSAMBackend();
-    // FIXME:
-    ReloadSettings();
     
     // set the actual password (-s means password on stdin)
     string cmd = "smbpasswd -s -j " + domain;
@@ -360,7 +356,8 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
  * @return boolean  true if the host is a member, false if not, nil on error (not possible to find out)
  */
 global define boolean isDomainMember( string domain ) ``{
-    if( Runlevel::ServiceStatus( "winbind" ) == 0 ) {
+    
+    if( Runlevel::ServiceStatus( "winbind" ) == 0 && SCR::Read( .etc.smb.value.global.workgroup ) == domain ) {
 	map res = SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
 	y2error( "wbinfo -t : %1", res );
 	if( res["exit"]:-1 != 0 ) return nil;
@@ -368,6 +365,10 @@ global define boolean isDomainMember( string domain ) ``{
     }
     else 
     {
+	// if winbindd already runs, but for different domain, stop it
+	boolean winbindd_ran = Runlevel::ServiceStatus( "winbind" ) == 0;
+	if( winbindd_ran ) Runlevel::RunInitScript( "winbind", "stop" );
+	
 	string tmpsmbconf = SCR::Read( .target.tmpdir ) + "/smb.conf" ;
 	SCR::Write( .target.string, tmpsmbconf, "[global]\nwinbind uid = 10000-20000
 winbind gid = 10000-20000\nworkgroup = "+domain+"\nsecurity=domain\n" );
@@ -376,9 +377,13 @@ winbind gid = 10000-20000\nworkgroup = "+domain+"\nsecurity=domain\n" );
 	sleep( 1000 );
 	// do the test
 	map res = SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
-	y2error( "wbinfo -t : %1", res );
+	y2debug( "wbinfo -t : %1", res );
 	// quit winbind
 	SCR::Execute( .background.kill );
+	
+	// if winbindd ran before our tests, start it again
+	if( winbindd_ran ) Runlevel::RunInitScript( "winbind", "restart" );
+	
 	if( res["exit"]:-1 != 0 ) return nil;
 	return res["stdout"]:"" == "Secret is good\n";
     }
@@ -450,12 +455,19 @@ global define boolean enableWinbind( boolean on ) ``{
 global define void WriteWinbind( boolean on ) ``{
     if( on ) {
 	// if turning on and there is no values set, use default
-	if( winbind_uid == nil ) winbind_uid = "10000-20000";
-	if( winbind_gid == nil ) winbind_gid = "10000-20000";
+	if( winbind_uid == nil ) 
+	    SCR::Write( .etc.smb.value.global."winbind uid", "10000-20000" );
+	else
+	    SCR::Write( .etc.smb.value.global."winbind uid", winbind_uid );
+	if( winbind_gid == nil ) 
+	    SCR::Write( .etc.smb.value.global."winbind gid", "10000-20000" );
+	else
+	    SCR::Write( .etc.smb.value.global."winbind gid", winbind_gid );
     }
     
-    SCR::Write( .etc.smb.global."winbind uid", winbind_uid );
-    SCR::Write( .etc.smb.global."winbind gid", winbind_gid );
+    if( on ) {
+	SCR::Write( .etc.smb.value.global.security, "domain" );
+    }
     
     // change nsswitch
     list nsswitch_list = splitstring
@@ -491,9 +503,10 @@ global define void WriteWinbind( boolean on ) ``{
     if( !SCR::Write(.etc.nsswitch_conf, nil ) )
 	Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/nsswitch.conf") );
     
-    // change pam.d/login
-    
-    Pam::UpdatePAMLoginFor(on ? [ $["service":"winbind", "control": "sufficient" ] ] : [], ["login"] );
+    // change Pam configuration
+    string call_module = on ? "+call_module=winbind" : "-call_module=winbind" ;
+    SCR::Write(.pam.all.account.pam_unix2, call_module );
+    SCR::Write(.pam.all.auth.pam_unix2, call_module);
 
     // TODO: add: account sufficient /lib/security/pam_winbind.so
 }
@@ -506,6 +519,7 @@ global define list availableWorkgroups() ``{
     map ret = SCR::Execute( .target.bash_output, nmbstatus );
     if( ret["exit"]:-1 != 0 ) {
 	Report::Error( _("Cannot get a list of already existing workgroups.") );
+	y2debug( "%1", ret );
 	return nil;
     }
     list lines = splitstring( ret["stdout"]:"", "\n" );

@@ -13,6 +13,7 @@ textdomain "samba-client";
 import "Samba";
 import "Label";
 import "Popup";
+import "Wizard";
 
 include "samba-client/helps.ycp";
 include "samba-client/routines.ycp";
@@ -29,7 +30,7 @@ global define symbol WorkgroupDialog () ``{
     Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
 	`Frame( _("Membership"), `VBox(
 	    WorkgroupWidget(),
-	    `Left(`CheckBox( `id( `winbind ), _("Use SMB information also for Linux authentication" ), Samba::winbind ) )
+	    `Left(`CheckBox( `id( `winbind ), _("&Use SMB information also for Linux authentication" ), Samba::winbind ) )
 	) ) ) ), 
 	HELPS["WorkgroupDialog"]:"", Label::BackButton(), Label::FinishButton() 
     );
@@ -50,7 +51,8 @@ global define symbol WorkgroupDialog () ``{
 	    Samba::setWorkgroup( UI::QueryWidget( `id( `workgroup ), `Value ) );
 	    Samba::setWinbind( UI::QueryWidget( `id( `winbind ), `Value ) );
 	    
-	    CheckWorkgroup( Samba::workgroup );
+	    // for domain ask to join
+	    AskJoinDomain( Samba::workgroup, CheckWorkgroup( Samba::workgroup ) );
 	    
             break;
         }

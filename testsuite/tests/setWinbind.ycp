@@ -1,0 +1,24 @@
+{
+
+// test for Samba::setWinbind
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+    
+    Samba::setWinbind( true );
+    DUMP(Samba::winbind);
+    DUMP(Samba::modified);
+    
+    Samba::modified = false;
+    Samba::setWinbind( true );
+    DUMP(Samba::winbind);
+    // this time modified should not be set
+    DUMP(Samba::modified);
+
+    Samba::setWinbind( false );
+    DUMP(Samba::winbind);
+    // modified again
+    DUMP(Samba::modified);
+}

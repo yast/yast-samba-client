@@ -1,0 +1,37 @@
+{
+
+// test for Samba::WriteWinbind() write Winbind configuration
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+
+    Samba::setWorkgroup( "testing" );
+
+    // disable winbind, but it was not enabled
+    Samba::setWinbind(false);
+    TEST( ``(Samba::WriteSettings()), [
+	// read map
+	$[ 
+	    "etc": $[ "nsswitch_conf" : $[
+		"passwd" : "compat ldap", 
+		"group"  : "compat ldap"
+	    ] ]
+	]
+    ], nil );
+
+    Samba::setWorkgroup( "othertesting" );
+
+    // enable winbind    
+    Samba::setWinbind(true);
+    TEST( ``(Samba::WriteSettings()) , [
+	// read map
+	$[ 
+	    "etc": $[ "nsswitch_conf" : $[
+		"passwd" : "compat ldap", 
+		"group"  : "compat ldap"
+	    ] ]
+	]
+    ], nil );
+}

@@ -1,0 +1,24 @@
+{
+
+// test for Samba::isDomain(domain)
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+
+    // reasonable result, is not domain
+    TEST( ``( Samba::isDomain("MYDOMAIN") ), [ $[], $[], 
+	$[ 
+	    "target" : $[ "bash" : 0 ]
+	]
+    ], nil );
+
+    // reasonable result, is not domain
+    TEST( ``( Samba::isDomain("MYDOMAIN") ), [ $[], $[], 
+	$[ 
+	    "target" : $[ "bash" : 1 ]
+	]
+    ], nil );
+
+}

@@ -11,6 +11,11 @@
 
 textdomain "samba-client";
 
+import "Label";
+import "Popup";
+import "Progress";
+import "Samba";
+
 /**
  * Abort function
  * @return blah blah lahjk
@@ -66,8 +71,8 @@ global define map passwordUserPopup( string message, string defaultuser ) ``{
     UI::OpenDialog(
     	    `VBox( 
 		`Label( message ),
-		`TextEntry(`id(`user), _("User name:"), defaultuser ),
-    		`Password(`id(`passwd), _("Password:") ),
+		`TextEntry(`id(`user), _("&User name:"), defaultuser ),
+    		`Password(`id(`passwd), _("&Password:") ),
     		`HBox( 
 		    `PushButton(`id(`ok), `opt(`default), Label::OKButton() ), 
 		    `PushButton(`id(`cancel), Label::CancelButton() ) 
@@ -110,10 +115,10 @@ global define void ProgressNextStage(string title) ``{
  * @return term the widget term
  */
 global define term WorkgroupWidget() ``{
-    return `HBox( `TextEntry( `id(`workgroup), _("Domain or workgroup"), Samba::workgroup ),
+    return `HBox( `TextEntry( `id(`workgroup), _("&Domain or workgroup"), Samba::workgroup ),
                 `VBox(
                     `Label(""),
-                    `PushButton( `id(`browse), _("Browse") )
+                    `PushButton( `id(`browse), _("&Browse") )
                 )
             );
 }
@@ -129,11 +134,11 @@ global string lastCheckedDomain = nil;
 global symbol lastCheckedDomainResult = nil;
 
 /**
- * Check, if the workgroup is a domain or a workgroup. If it is a domain,
- * offer to join the domain. Uses caching to avoid long checks of a workgroup members.
+ * Check, if the workgroup is a domain or a workgroup. Uses caching to avoid long checks of a workgroup members.
  *
  * @param workgroup	the workgroup to be checked
- * @return symbol	type of the workgroup: `domain, `workgroup or nil if error
+ * @return symbol	type of the workgroup: `joined_domain, `not_joined_domain, `workgroup or `domain if 
+ * 			it is a domain, but the status is not known
  */
 global define symbol CheckWorkgroup( string workgroup ) ``{
     symbol ret = nil;
@@ -146,53 +151,75 @@ global define symbol CheckWorkgroup( string workgroup ) ``{
 	// handle domain joining
 	boolean res = Samba::isDomainMember( workgroup );
 		
-	UI::CloseDialog();
-		
 	// caching
 	lastCheckedDomain = workgroup;
 	lastCheckedDomainResult = `domain;
 		
 	// we the host is already in domain, continue
-	if( res ) return `domain;
-		
-	// allow to join the domain
-	if( res == nil ) {
-	    ret = Popup::YesNo( sformat( _("Cannot automatically determine, if this host
+	if( res ) ret = `joined_domain;
+	else if( res != nil ) ret = `not_joined_domain;
+	else ret = `domain;
+    } else {
+	ret = `workgroup;
+    }
+    
+    UI::CloseDialog();
+    
+    return ret;
+}
+	
+/**
+ * Allow to join a domain. Uses result of @ref CheckWorkgroup to inform the user about the status.
+ *
+ * @param workgroup	the workgroup to be joined
+ * @param status	domain status returned by CheckWorkgroup
+ * @return boolean	true on successful join (workgroup is always successful),
+ *			false on error or user cancel
+ */
+global define boolean AskJoinDomain( string workgroup, symbol status ) ``{
+
+    if( status == `workgroup || status == `joined_domain ) return true;
+    
+    boolean res = false;
+    
+    // allow to join the domain
+    if( status == `domain ) {	
+	// we don't know the domain status
+	    res = Popup::YesNo( sformat( _("Cannot automatically determine, if this host
 is a member of the domain '%1'.\n
 Do you want to join the domain '%1'?"), workgroup  ) );
-	} else {
-	    if( Popup::YesNo( sformat( _("This host is not a member 
+
+    } else if( status == `not_joined_domain ) {
+	res = Popup::YesNo( sformat( _("This host is not a member 
 of the domain '%1'.\n
-Do you want to join the domain '%1'?"), workgroup  ) ) ) ret = `yes;
-	    else ret = `no;
-	}
-		
-	if( ret == `yes ) {
-	    // change the dialog result back to next
-	    ret = `next;
-	    map passwd = passwordUserPopup( sformat( _("Enter the user and the password
+Do you want to join the domain '%1'?"), workgroup  ) );
+    }
+
+    // try to join the domain
+    if( res ) {
+	// change the dialog result back to next
+	symbol ret = `next;
+	map passwd = passwordUserPopup( sformat( _("Enter the user and the password
 for joining the domain '%1'.\n
 To join the domain anonymously leave the 
 text entries empty."), workgroup ), "Administrator" );
-	    // cancelled the domain joining
-	    if( passwd == nil ) return nil;
+	// cancelled the domain joining
+	if( passwd == nil ) return false;
 		    
-	    // try to join the domain
-	    string error = Samba::joinDomain( workgroup, passwd["user"]:nil, passwd["password"]:"" );
-	    if(  error != nil )
-	    {
-		Popup::Error( error );
-		return nil;
-	    }
-	    // Translators: Information popup, %1 is the name of the domain
-	    else Popup::Message( sformat( _("Domain '%1' was successfully joined."), Samba::workgroup )) ;
+	// try to join the domain
+	string error = Samba::joinDomain( workgroup, passwd["user"]:nil, passwd["password"]:"" );
+        if(  error != nil )
+        {
+    	    Popup::Error( error );
+	    return false;
 	}
-    } else {
-	UI::CloseDialog();
-	return `workgroup;
+	// Translators: Information popup, %1 is the name of the domain
+	else Popup::Message( sformat( _("Domain '%1' was successfully joined."), Samba::workgroup )) ;
+	
+	res = true;
     }
-    
-    return `domain;
+
+    return res;
 }
 
 /**
@@ -207,14 +234,14 @@ global define string BrowseWorkgroups() ``{
 
     // let the user choose a workgroup
     UI::OpenDialog( `VBox(
-        `SelectionBox( `id(`selection), _("Existing workgroups:"), groups ),
+        `SelectionBox( `id(`selection), _("Existing &workgroups:"), groups ),
         `HBox(
             `PushButton( `id(`ok), Label::OKButton() ),
             `PushButton( `id(`cancel), Label::CancelButton() )
         )
     ) );
 
-    ret = UI::UserInput();
+    symbol ret = UI::UserInput();
     string sel = UI::QueryWidget( `id(`selection), `CurrentItem );
     UI::CloseDialog();
     

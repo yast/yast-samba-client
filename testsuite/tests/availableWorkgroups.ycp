@@ -1,0 +1,43 @@
+{
+
+// test for Samba::availableWorkgroups(), list of found existing workgroups
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+
+    // command not found    
+    TEST( ``( Samba::availableWorkgroups() ), [ $[], $[], 
+	$[ 
+	    "target" : $[ "bash_output" : 
+		$[ 
+		    "exit": -1,
+		    "stdout" : "",
+		    "stderr" : "bash: /usr/bin/nmbstatus : command not found"
+		]
+	] ] 
+    ], nil );
+
+    // reasonable result    
+    TEST( ``( Samba::availableWorkgroups() ), [ $[], $[], 
+	$[ 
+	    "target" : $[ "bash_output" : 
+		$[ 
+		    "exit": 0,
+		    "stdout" : "WORKGROUP	DEBIAN_FANS
+LMB	BRAHMA
+MEMBERS	BRAHMA
+
+WORKGROUP	TUX-NET
+LMB	VALKYRIE
+MEMBERS	VALKYRIE
+
+",
+		    "stderr" : "Found 10 hosts. Collecting additional information. Please wait.
+..........
+"
+		]
+	] ] 
+    ], nil );
+}

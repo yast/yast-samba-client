@@ -1,0 +1,25 @@
+{
+
+// test for Samba::Import() - autoyast
+// $Id$
+
+    include "testsuite.ycp";
+    
+    import "Samba";
+
+    DUMP( Samba::workgroup );
+    DUMP( Samba::winbind );
+    DUMP( Samba::winbind_uid );
+    DUMP( Samba::winbind_gid );
+    DUMP( Samba::security );
+    DUMP( Samba::modified );
+    
+    TEST( ``( Samba::Import( $["global":$["winbind":true, "workgroup":"testing"]] ) ), [], nil );
+    
+    DUMP( Samba::workgroup );
+    DUMP( Samba::winbind );
+    DUMP( Samba::winbind_uid );
+    DUMP( Samba::winbind_gid );
+    DUMP( Samba::security );
+    DUMP( Samba::modified );
+}

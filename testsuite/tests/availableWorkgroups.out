@@ -1,0 +1,5 @@
+Execute	.target.bash_output "/usr/bin/nmbstatus" $["exit":-1, "stderr":"bash: /usr/bin/nmbstatus : command not found", "stdout":""]
+Log	Cannot get a list of already existing workgroups.
+Return	nil
+Execute	.target.bash_output "/usr/bin/nmbstatus" $["exit":0, "stderr":"Found 10 hosts. Collecting additional information. Please wait.\n..........\n", "stdout":"WORKGROUP\tDEBIAN_FANS\nLMB\tBRAHMA\nMEMBERS\tBRAHMA\n\nWORKGROUP\tTUX-NET\nLMB\tVALKYRIE\nMEMBERS\tVALKYRIE\n\n"]
+Return	["DEBIAN_FANS", "TUX-NET"]
