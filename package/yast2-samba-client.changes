@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 21 10:16:51 CET 2005 - mlazar@suse.cz
+
+- 2.11.1
+
+-------------------------------------------------------------------
 Wed Dec 29 15:16:29 CET 2004 - mlazar@suse.cz
 
 - fixed setting undefined values in SambaConfig.pm
