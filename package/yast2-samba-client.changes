@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 25 16:08:30 CEST 2003 - visnov@suse.de
+
+- 2.8.3
+
+-------------------------------------------------------------------
 Thu Aug 21 14:57:09 CEST 2003 - visnov@suse.de
 
 - show error dialog if required packages are not installed before quit
