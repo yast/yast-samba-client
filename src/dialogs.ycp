@@ -67,7 +67,7 @@ using SMB for Linux authentication."), Samba::workgroup ) );
 		continue;
 	    }
 
-	    boolean in_domain = AskJoinDomain( Samba::workgroup, workgroup_typ );
+	    boolean in_domain = AskJoinDomain( Samba::workgroup, workgroup_type );
 	    
 	    // if we should start winbind, but it cannot work - not a domain, not joined
 	    if( Samba::winbind && ! in_domain )

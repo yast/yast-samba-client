@@ -378,13 +378,12 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
     WriteSettings();
     
     // set the actual password (-s means password on stdin)
-    string cmd = "smbpasswd -s -j " + domain;
+    string cmd = "smbpasswd -j " + domain;
     
     if( user != nil ) {
-	string passwddir = SCR::Read( .target.tmpdir );
-	SCR::Write( .target.string, passwddir+"/domain" , passwd+"\n"+passwd+"\n" );
-	cmd = cmd+" < "+passwddir+"/domain";
+	cmd = cmd + " -U " + user + "%" + passwd;
     }
+    
     map result = SCR::Execute( .target.bash_output, cmd );
     
     y2debug( "smbpasswd -j result: %1", result );
