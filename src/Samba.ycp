@@ -123,7 +123,7 @@ global boolean nmbstatus_running = false;
 /**
  * nmbstatus output
  */
-global map nmbstatus_output = $[];
+global map<string,any> nmbstatus_output = $[];
 
 global boolean nmbstatus_available = false;
 
@@ -421,10 +421,11 @@ global define void setWinbind( boolean status ) ``{
 	// check the nscd status first, if enabling
 	if ( !Mode::config && status && Service::Enabled ("nscd") && ! Popup::ContinueCancel (
 	    _("The service 'nscd' is enabled,
-But the service 'winbind' used for
+but the service 'winbind' used for
 the SMB authentication does not work
 with 'nscd' enabled.
-The 'nscd' service will be disabled.") ) )
+The 'nscd' service will be disabled.
+") ) )
 	{
 	    // don't enable winbind
 	    return;
@@ -524,7 +525,7 @@ global define void CheckNmbstatus() ``{
 	}
 	
 	// nmbstatus already finished, parse the output
-	list output = (list) SCR::Read( .background.newout );
+	list<string> output = (list<string>) SCR::Read( .background.newout );
 	
 	y2debug( "nmbstatus result: %1", output );
 	
@@ -771,7 +772,7 @@ global define list<string> availableWorkgroups() ``{
 
     // TODO: inform user about problems
     
-    return (list<string>) maplist( string group, any data, nmbstatus_output, ``( group + (isDomain (group) ? _(" (domain)") : "") ) );
+    return maplist( string group, any data, nmbstatus_output, ``( group + (isDomain (group) ? _(" (domain)") : "") ) );
 }
 
 

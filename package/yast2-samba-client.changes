@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Mar  1 13:40:30 CET 2004 - visnov@suse.cz
+
+- merged back proofread texts
+- use Sequencer
+- fix types
+- 2.9.5
+
+-------------------------------------------------------------------
 Wed Feb 18 15:08:05 CET 2004 - jsuchome@suse.cz
 
 - added possibility to call ShortSummary function from auto-client
