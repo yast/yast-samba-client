@@ -27,7 +27,7 @@ symbol SambaClientSequence() {
 
     map aliases = $[
 	"read"	: [ ``( ReadDialog() ), true ],
-	"main"	:   ``( WorkgroupDialog() ),
+	"main"	:   ``( MembershipDialog() ),
 	"write"	: [ ``( WriteDialog() ), true ]
     ];
 
@@ -72,7 +72,7 @@ symbol SambaClientAutoSequence() {
     Wizard::SetContentsButtons(caption, contents, "",
 	    Label::BackButton(), Label::NextButton());
 
-    any ret = WorkgroupDialog();
+    any ret = MembershipDialog();
 
     UI::CloseDialog();
     if( ret != `abort ) {

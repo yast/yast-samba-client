@@ -67,23 +67,6 @@ define boolean ReallyAbort() ``{
 }
 
 /**
- * Return a complex widget for setting a workgroup or domain. Contains Browse button.
- *
- * @return term the widget term
- */
-define term WorkgroupWidget() ``{
-    // text entry label
-    return `HBox( `TextEntry( `id(`workgroup), _("&Domain or Workgroup:"), 
-		    Samba::GetWorkgroup() ),
-                `VBox(
-                    `Label(""),
-		    // push button label
-                    `PushButton( `id(`browse), _("&Browse") )
-                )
-            );
-}
-
-/**
  * Check, if the workgroup is a domain or a workgroup. Uses caching to avoid long checks of a workgroup members.
  *
  * @param workgroup	the workgroup to be checked
@@ -118,6 +101,30 @@ define symbol CheckWorkgroup( string workgroup ) ``{
     
     return ret;
 }
+
+
+define symbol JoinDomain(string workgroup)
+{
+    // translators: popup to fill in the domain joining info; %1 is the domain name
+    map<string, string> passwd = passwordUserPopup(sformat(_("Enter the user and the password\nfor joining the domain '%1'."), workgroup)
+	+ "\n\n" 
+	+ _("To join the domain anonymously, leave the\ntext entries empty.") + "\n", "Administrator");
+
+    // cancelled the domain joining
+    if( passwd == nil ) return `fail;
+		    
+    // try to join the domain
+    string error = SambaNetJoin::Join(workgroup, "member", passwd["user"]:nil, passwd["password"]:"" );
+    if (error != nil) {
+	Popup::Error(error);
+	return `fail;
+    }
+    
+    // Translators: Information popup, %1 is the name of the domain
+    Popup::Message(sformat(_("Domain '%1' joined successfully."), Samba::GetWorkgroup()));
+    return `ok;
+}
+
 
 /**
  * Allow to join a domain. Uses result of @ref CheckWorkgroup to inform the user about the status.
@@ -156,41 +163,30 @@ define symbol AskJoinDomain( string workgroup, symbol status ) ``{
 	return `nojoin;
     }
     
-
-    // translators: popup to fill in the domain joining info; %1 is the domain name
-    map<string, string> passwd = passwordUserPopup(sformat(_("Enter the user and the password\nfor joining the domain '%1'."), workgroup)
-	+ "\n\n" 
-	+ _("To join the domain anonymously, leave the\ntext entries empty.") + "\n", "Administrator");
-
-    // cancelled the domain joining
-    if( passwd == nil ) return `fail;
-		    
-    // try to join the domain
-    string error = SambaNetJoin::Join(workgroup, "member", passwd["user"]:nil, passwd["password"]:"" );
-    if (error != nil) {
-	Popup::Error(error);
-	return `fail;
-    }
-    
-    // Translators: Information popup, %1 is the name of the domain
-    Popup::Message(sformat(_("Domain '%1' joined successfully."), Samba::GetWorkgroup()));
-    return `ok;
+    return JoinDomain(workgroup);
 }
+    
 
 /**
  * Show a selection popup to select a workgroup from the ones existing on LAN.
  *
  * @return string chosen workgroup or nil if cancelled
  */
-define string BrowseWorkgroups() ``{
-   list<string> groups = SambaNmbLookup::GetAvailableWorkgroups(_(" (domain)"));
+define string BrowseNeighbours(boolean domains_only) ``{
+    list<string> groups = nil;
+    
+    if (domains_only) {
+	groups = SambaNmbLookup::GetAvailableDomains();
+    } else {
+	groups = SambaNmbLookup::GetAvailableNeighbours(_(" (domain)"));
+    }
 
     if( groups == nil ) return nil;
 
     // let the user choose a workgroup
     UI::OpenDialog( `VBox(
-	// selection box label
-        `SelectionBox( `id(`selection), _("Existing &Workgroups:"), groups ),
+	// translators: selection box label
+        `SelectionBox(`id(`selection), (domains_only ? _("&Existing Domains:") : _("&Existing Neighbours:")), groups),
         `HBox(
             `PushButton( `id(`ok), Label::OKButton() ),
             `PushButton( `id(`cancel), Label::CancelButton() )
