@@ -12,6 +12,7 @@
 textdomain "samba-client";
 
 import "Label";
+import "Mode";
 import "Popup";
 import "Progress";
 import "Samba";
@@ -145,6 +146,10 @@ global symbol lastCheckedDomainResult = nil;
  * 			it is a domain, but the status is not known
  */
 global define symbol CheckWorkgroup( string workgroup ) ``{
+    
+    // for autoyast, skip testing
+    if( Mode::config ) return `workgroup;
+    
     symbol ret = nil;
     // cached
     if( lastCheckedDomain == workgroup ) return lastCheckedDomainResult;
@@ -183,6 +188,9 @@ global define symbol CheckWorkgroup( string workgroup ) ``{
  */
 global define boolean AskJoinDomain( string workgroup, symbol status ) ``{
 
+    // for autoyast, skip testing
+    if( Mode::config ) return true;
+    
     if( status == `workgroup || status == `joined_domain ) return true;
     
     boolean res = false;
