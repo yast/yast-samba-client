@@ -545,6 +545,11 @@ global define boolean enableWinbind( boolean on ) ``{
 		Report::Error( _("Cannot start 'winbind' service.") );
 	    }
 	}
+	
+	// restart nscd daemon
+	if( Runlevel::ServiceStatus( "nscd" ) == 0 ) {
+	    Runlevel::RunInitScript( "nscd", "restart" );
+	}
     } else {
 	// the service is running
 	if( Runlevel::ServiceStatus( "winbind" ) == 0 ) {
