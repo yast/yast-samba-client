@@ -15,11 +15,11 @@
 module "Samba";
 textdomain "samba-client";
 
+import "PamSettings";
 import "Progress";
 import "Report";
 import "Summary";
 import "Runlevel";
-import "PamSettings";
 
 include "samba-client/routines.ycp";
 
@@ -422,12 +422,12 @@ global define boolean isDomain( string workgroup ) ``{
     // if there is PDC, return success
     if( res == 0 ) return true;
     
-    // if PDC not found, try BDC
-    if( res == 1 ) {
+    // FIXME: if PDC not found, try BDC
+/*    if( res == 1 ) {
 	res = SCR::Execute( .target.bash, nmbstatus + " --quiet --bdc --workgroup " + workgroup );
 	return res == 0 ;
     }
-    
+*/    
     // a different error happened
     return false;
 }
@@ -445,6 +445,10 @@ global define boolean enableWinbind( boolean on ) ``{
 	Report::Error( on ? _("Cannot start winbindd daemon."): _("Cannot stop winbindd daemon.") );
 	return false;
     }
+    
+    winbind = on;
+    
+    modified = true;
     
     if( write_only ) return true;
     
@@ -523,22 +527,72 @@ global define void WriteWinbind( boolean on ) ``{
 
     if( !SCR::Write(.etc.nsswitch_conf, nil ) )
 	Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/nsswitch.conf") );
-
+    
     // change Pam configuration
-    foreach (`type, [ "account", "auth" ], ``{
-	if (on)
-	    PamSettings::AddValue ("pam_unix2", type, "call_module=winbind");
+    
+    // auth
+    list call_module = filter( string value, PamSettings::GetValues( "pam_unix2", "auth" ), ``(
+      regexpmatch( value, "^call_modules=" )));
+      
+    y2debug( "Callmodule is %1", call_module );
+      
+    if( call_module == [] ) {
+	if( on ) {
+	    // add the option
+	    PamSettings::AddValue( "pam_unix2", "auth", "call_modules=winbind" );
+	}
+	// do nothing for off
+    } else {
+	// find out list of called modules
+	list mods = splitstring( regexpsub( call_module[0]:"", "^call_modules=(.*)", "\\1" ), "," );
+	
+	if( on ) {
+	    // check, if present and add it if necessary
+	    mods = union( mods, [ "winbind" ] );
+	}
 	else
-	    PamSettings::RemoveValue ("pam_unix2", type, "call_module=winbind");
-    });
-    /*
-    string call_module = on ? "+call_module=winbind" : "-call_module=winbind" ;
-    SCR::Write(.pam.all.account.pam_unix2, call_module );
-    SCR::Write(.pam.all.auth.pam_unix2, call_module);
-    */
-
-    // TODO: add: account sufficient /lib/security/pam_winbind.so
-    // -- why is this necessary?
+	{
+	    // if present, remove it
+	    mods = filter( string mod, mods, ``( mod != "winbind" ) );
+	}
+	
+	// change the current value
+	PamSettings::RemoveValue( "pam_unix2", "auth", call_module[0]:"" );
+	if( size(mods) > 0 ) {
+	    PamSettings::AddValue( "pam_unix2", "auth", "call_modules="+mergestring( mods, "," ) );
+	}
+    }
+    
+    // account (the same as auth, but modules could be configured differently)
+    call_module = filter( string value, PamSettings::GetValues( "pam_unix2", "account" ), ``(
+      regexpmatch( value, "^call_modules=" )));
+      
+    if( call_module == [] ) {
+	if( on ) {
+	    // add the option
+	    PamSettings::AddValue( "pam_unix2", "account", "call_modules=winbind" );
+	}
+	// do nothing for off
+    } else {
+	// find out list of called modules
+	list mods = splitstring( regexpsub( call_module[0]:"", "^call_modules=(.*)", "\\1" ), "," );
+	
+	if( on ) {
+	    // check, if present and add it if necessary
+	    mods = union( mods, [ "winbind" ] );
+	}
+	else
+	{
+	    // if present, remove it
+	    mods = filter( string mod, mods, ``( mod != "winbind" ) );
+	}
+	
+	// change the current value
+	PamSettings::RemoveValue( "pam_unix2", "account", call_module[0]:"" );
+	if( size(mods) > 0 ) {
+	    PamSettings::AddValue( "pam_unix2", "account", "call_modules="+mergestring( mods, "," ) );
+	}
+    }    
 }
 
 /**

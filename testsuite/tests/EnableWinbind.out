@@ -6,8 +6,8 @@ Execute	.target.bash_output "/sbin/insserv -d /etc/init.d/winbind" $["exit":0]
 Read	.init.scripts.exists "winbind" true
 Execute	.target.bash "/etc/init.d/winbind status" $["TERM":"raw"] 0
 Return	true
-Dump	false
-Dump	false
+Dump	true
+Dump	true
 Dump	user
 Read	.init.scripts.exists "winbind" true
 Read	.init.scripts.exists "winbind" true
@@ -17,6 +17,6 @@ Read	.init.scripts.exists "winbind" true
 Execute	.target.bash "/etc/init.d/winbind status" $["TERM":"raw"] 0
 Execute	.target.bash "/etc/init.d/winbind stop" $["TERM":"raw"] 0
 Return	true
-Dump	false
+Dump	true
 Dump	false
 Dump	user

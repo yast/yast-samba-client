@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 28 17:17:22 CEST 2003 - visnov@suse.de
+
+- support for call_modules option in pam_unix2.conf
+- 2.8.1
+
+-------------------------------------------------------------------
 Thu May 29 14:54:23 2003 - visnov@suse.cz
 
 - initial version
