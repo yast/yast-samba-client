@@ -432,7 +432,8 @@ winbind gid = 10000-20000\nworkgroup = "+domain+"\nsecurity=domain\n" );
 	map res = SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
 	y2debug( "wbinfo -t : %1", res );
 	// quit winbind
-	SCR::Execute( .background.kill );
+	Runlevel::RunInitScript( "winbind", "stop" );
+	y2debug( "Killing winbind: %1", SCR::Execute( .background.kill ) );
 	
 	// if winbindd ran before our tests, start it again
 	if( winbindd_ran ) Runlevel::RunInitScript( "winbind", "restart" );
