@@ -15,7 +15,6 @@ import "Mode";
 import "Label";
 import "Stage";
 import "Popup";
-import "Progress";
 
 import "Samba";
 import "SambaNetJoin";
