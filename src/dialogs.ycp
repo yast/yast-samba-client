@@ -76,8 +76,9 @@ using SMB for Linux authentication."), Samba::workgroup ) );
 		Popup::Error( _("Host must be a member of a domain
 for Linux authentication using SMB.
 
-Join a domain or disable using SMB 
-for Linux authentication.") );
+Join a domain or disable use of SMB 
+for Linux authentication.
+") );
 		continue;
 	    }
 	    
