@@ -1,4 +1,4 @@
-# File:	modules/SambaNmbLookup.pm
+#7 File:	modules/SambaNmbLookup.pm
 # Package:	Configuration of samba-client
 # Summary:	Data for configuration of samba-client, input and output functions.
 # Authors:	Stanislav Visnovsky <visnov@suse.cz>
@@ -66,7 +66,12 @@ sub Start {
     }
     
     # start nmbstatus
-    $Nmbstatus_running = SCR->Execute(".background.run_output", NMBSTATUS_EXE);
+    my $out = SCR->Execute(".target.bash_output", "/usr/bin/id --user");
+    if ($out->{stdout} == 0) {
+	$Nmbstatus_running = SCR->Execute(".background.run_output", "su nobody -c " . NMBSTATUS_EXE);
+    } else {
+	$Nmbstatus_running = SCR->Execute(".background.run_output", NMBSTATUS_EXE);
+    }
     if(!$Nmbstatus_running) {
         y2error("Cannot start nmbstatus");
         $Nmbstatus_available = 0;
