@@ -47,6 +47,7 @@ symbol SambaClientSequence() {
 	]
     ];
 
+    Wizard::SetDesktopIcon("samba-client");
     Wizard::CreateDialog();
 
     any ret = Sequencer::Run(aliases, sequence);
