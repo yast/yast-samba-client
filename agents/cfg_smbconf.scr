@@ -3,7 +3,7 @@
 .etc.smb
 
 `ag_ini(
-  IniAgent("/etc/samba/smb.conf",
+  `IniAgent("/etc/samba/smb.conf",
     $[
       "options" : [ "no_nested_sections", "ignore_case",
                     "line_can_continue"
