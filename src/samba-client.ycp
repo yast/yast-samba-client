@@ -20,7 +20,7 @@ textdomain "samba-client";
 import "CommandLine";
 import "Popup";
 import "Report";
-import "Require";
+import "Package";
 import "Samba";
 
 /**
@@ -194,27 +194,6 @@ try to join the domain without specifying user and password."),
 	"configure"	: [ "workgroup" ]
     ]
 ];
-
-/* ensure samba package is installed */
-if( !Require::RequireAndConflictTarget( Samba::required_packages, [], 
-    // notification about package needed 1/2
-    _("<p>To configure the Samba client, the <b>%1</b> package must be installed.</p>") +
-    // notification about package needed 2/2
-    _("<p>Do you want to install it now?</p>")) )
-{
-    if( !Require::IsPackageAvailable( "samba-client" ) ) {
-        // translators: error popup before aborting the module
-        Popup::Error( sformat( _("<p>The package <b>%1</b> is not available.<br>
-YaST2 cannot continue the configuration
-without installing the package.</p>"), "samba-client" ) );
-    } else {
-        // translators: error popup before aborting the module
-        Popup::Error( _("YaST2 cannot continue the configuration
-without installing the required packages.") );
-    }
-
-    return (any)false;
-}
 
 ret = CommandLine::Run( cmdline );
 

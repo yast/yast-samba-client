@@ -19,6 +19,8 @@ import "PamSettings";
 import "Progress";
 import "Report";
 import "Service";
+import "PackageSystem";
+import "Mode";
 
 global block<boolean> AbortFunction = nil;
 
@@ -186,6 +188,12 @@ global define boolean Read() ``{
 
     // read global settings
     Progress::NextStage();
+
+    // check installed packages
+    if (!Mode::test && !PackageSystem::CheckAndInstallPackagesInteractive(required_packages))
+    {
+	return false;
+    }
     
     string value = "";
     
