@@ -75,7 +75,6 @@ symbol SambaClientAutoSequence() {
     any ret = WorkgroupDialog();
 
     UI::CloseDialog();
-    
     if( ret != `abort ) {
 	Samba::globals_configured = true;
     }

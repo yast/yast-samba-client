@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb 16 14:45:58 CET 2005 - mlazar@suse.cz
+
+- 2.11.3
+- internal values are not exported (see bug #50736)
+- fixed importing/exporting unconfigured data
+
+-------------------------------------------------------------------
 Thu Jan 27 08:29:14 CET 2005 - mlazar@suse.cz
 
 - 2.11.2
