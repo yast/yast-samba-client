@@ -25,14 +25,14 @@ include "samba-client/routines.ycp";
 global define symbol WorkgroupDialog () ``{
 
     /* Samba-client workgroup dialog caption */
-    string caption = _("SAMBA workgroup");
+    string caption = _("SAMBA Workgroup");
     
     Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
 	// frame label
 	`Frame( _("Membership"), `VBox(
 	    WorkgroupWidget(),
 	    // checkbox label to enable winbind
-	    `Left(`CheckBox( `id( `winbind ), _("&Use SMB information also for Linux authentication" ), Samba::winbind ) )
+	    `Left(`CheckBox( `id( `winbind ), _("Also &Use SMB Information for Linux Authentication"), Samba::winbind ) )
 	) ) ) ), 
 	HELPS["WorkgroupDialog"]:"", Label::BackButton(), Label::FinishButton() 
     );

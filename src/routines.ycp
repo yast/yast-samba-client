@@ -119,7 +119,7 @@ global define void ProgressNextStage(string title) ``{
  */
 global define term WorkgroupWidget() ``{
     // text entry label
-    return `HBox( `TextEntry( `id(`workgroup), _("&Domain or workgroup"), Samba::workgroup ),
+    return `HBox( `TextEntry( `id(`workgroup), _("&Domain or Workgroup"), Samba::workgroup ),
                 `VBox(
                     `Label(""),
 		    // push button label
@@ -201,16 +201,20 @@ global define boolean AskJoinDomain( string workgroup, symbol status ) ``{
 	    
 	    // translators: popup question, the domain status cannot be found out, ask user what to do
 	    // %1 is the domain name
-	    res = Popup::YesNo( sformat( _("Cannot automatically determine, if this host
-is a member of the domain '%1'.\n
-Do you want to join the domain '%1'?"), workgroup  ) );
+	    res = Popup::YesNo( sformat( _("Cannot automatically determine if this host
+is a member of the domain '%1'.
+
+Join the domain '%1'?
+"), workgroup  ) );
 
     } else if( status == `not_joined_domain ) {
 	// translators: popup question, The workgroup is a domain in fact and the machine is not a member, ask user what to do.
 	// %1 is the domain name
 	res = Popup::YesNo( sformat( _("This host is not a member 
-of the domain '%1'.\n
-Do you want to join the domain '%1'?"), workgroup  ) );
+of the domain '%1'.
+
+Join the domain '%1'?
+"), workgroup  ) );
     }
 
     // try to join the domain
@@ -220,9 +224,11 @@ Do you want to join the domain '%1'?"), workgroup  ) );
 	// translators: popup to fill in the domain joining info
 	// %1 is the domain name
 	map passwd = passwordUserPopup( sformat( _("Enter the user and the password
-for joining the domain '%1'.\n
-To join the domain anonymously leave the 
-text entries empty."), workgroup ), "Administrator" );
+for joining the domain '%1'.
+
+To join the domain anonymously, leave the 
+text entries empty.
+"), workgroup ), "Administrator" );
 	// cancelled the domain joining
 	if( passwd == nil ) return false;
 		    
@@ -234,7 +240,7 @@ text entries empty."), workgroup ), "Administrator" );
 	    return false;
 	}
 	// Translators: Information popup, %1 is the name of the domain
-	else Popup::Message( sformat( _("Domain '%1' was successfully joined."), Samba::workgroup )) ;
+	else Popup::Message( sformat( _("Domain '%1' joined successfully."), Samba::workgroup )) ;
 	
 	res = true;
     }
@@ -255,7 +261,7 @@ global define string BrowseWorkgroups() ``{
     // let the user choose a workgroup
     UI::OpenDialog( `VBox(
 	// selection box label
-        `SelectionBox( `id(`selection), _("Existing &workgroups:"), groups ),
+        `SelectionBox( `id(`selection), _("Existing &Workgroups:"), groups ),
         `HBox(
             `PushButton( `id(`ok), Label::OKButton() ),
             `PushButton( `id(`cancel), Label::CancelButton() )
