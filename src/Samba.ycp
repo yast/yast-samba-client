@@ -188,15 +188,6 @@ global define boolean Read() ``{
     if( value != nil ) security = value;
     value = (string) SCR::Read( .etc.smb.value.global."password server" );
     if( value != nil ) password_server = value;
-    value = (string) SCR::Read( .etc.smb.value.global."netbios name" );
-    if( value != nil ) workgroup = value;
-    else {
-	// ask hostname
-	map res = (map) SCR::Execute( .target.bash_output, "/bin/hostname" );
-	if( res["exit"]:-1 != 0 ) netbios_name = "localhost";
-	else netbios_name = deletechars( res["stdout"]:"localhost", "\n\t " );
-	y2debug( "Netbios name: %1", netbios_name );
-    }
     
     winbind_uid = (string) SCR::Read( .etc.smb.value.global."idmap uid" );
     if (winbind_uid == nil)
