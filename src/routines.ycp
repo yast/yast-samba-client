@@ -86,7 +86,7 @@ global define map passwordUserPopup( string message, string defaultuser ) ``{
     symbol ret = UI::UserInput();
     
     map result = ret == `ok ? $[ 
-	"user":UI::QueryWidget(`id(`passwd), `Value),
+	"user":UI::QueryWidget(`id(`user), `Value),
 	"password":UI::QueryWidget(`id(`passwd), `Value) ] 
     : nil;
 
@@ -174,6 +174,8 @@ global define symbol CheckWorkgroup( string workgroup ) ``{
     }
     
     UI::CloseDialog();
+    
+    y2debug( "Check workgroup result: %1", ret );
     
     return ret;
 }

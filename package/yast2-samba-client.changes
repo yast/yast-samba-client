@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep  2 12:24:20 CEST 2003 - visnov@suse.de
+
+- fix syntax errors
+- fix domain joining (pass user instead of password)
+
+-------------------------------------------------------------------
 Tue Sep  2 10:26:09 CEST 2003 - visnov@suse.de
 
 - do not start winbind if host not in a domain
