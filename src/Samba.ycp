@@ -125,7 +125,7 @@ global define boolean Read() ``{
 	    _("Read the global SAMBA settings"),
 	], [
 	    // translators: progress step 1/1
-	    _("Reading the global SAMBA settings"),
+	    _("Reading the global SAMBA settings..."),
 	    // translators: progress finished
 	    _("Finished")
 	],
@@ -197,9 +197,9 @@ global define boolean Write() ``{
 	    // translators: write progress step
 	    _("Writing the settings..."),
 	    // translators: write progress step
-	    !winbind ? _("Disabling SAMBA services") 
+	    !winbind ? _("Disabling SAMBA services...") 
 		// translators: write progress step
-		: _("Enabling SAMBA services"),
+		: _("Enabling SAMBA services..."),
 	    // translators: write progress finished
 	    _("Finished")
 	],
