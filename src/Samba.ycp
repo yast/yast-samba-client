@@ -29,7 +29,7 @@ include "samba-client/routines.ycp";
 /**
  * list of required packages
  */
-global list required_packages = ["samba"];
+global list required_packages = ["samba-client"];
 
 global block AbortFunction = nil;
 
