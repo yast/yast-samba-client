@@ -7,7 +7,7 @@
  * $Id$
  *
  * Representation of the configuration of samba-client.
- * Input and output routines.
+ * Input and output routines. 
  */
 
 {
