@@ -24,7 +24,7 @@ include "samba-client/routines.ycp";
  * SAMBA workgroup dialog
  * @return dialog result
  */
-global define symbol WorkgroupDialog () ``{
+symbol WorkgroupDialog () {
 
     /* Samba-client workgroup dialog caption */
     string caption = _("SAMBA Workgroup");

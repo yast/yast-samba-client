@@ -31,7 +31,7 @@ include "commandline/commandline.ycp";
  * @param options  a list of parameters passed as args
  * @return boolean true on success
  */
-global define boolean WinbindEnableHandler( map options ) ``{
+boolean WinbindEnableHandler( map options ) {
     // check the "command" to be present exactly once
     string command = CommandLine::UniqueOption( options, 
 	["enable", "disable" ] );
@@ -46,7 +46,7 @@ global define boolean WinbindEnableHandler( map options ) ``{
  * @param options  a list of parameters passed as args
  * @return boolean true on success
  */
-global define boolean DomainMemberHandler( map<string, any> options ) ``{
+boolean DomainMemberHandler( map<string, any> options ) {
 
     string domain = (string) (options["domain"]:nil);
     
@@ -82,7 +82,7 @@ global define boolean DomainMemberHandler( map<string, any> options ) ``{
  * @param options  a list of parameters passed as args
  * @return boolean true on success
  */
-global define boolean JoinDomainHandler( map <string, any> options ) ``{
+boolean JoinDomainHandler( map <string, any> options ) {
     string domain = (string) (options["domain"]:nil);
     
     // validate the options
@@ -110,7 +110,7 @@ global define boolean JoinDomainHandler( map <string, any> options ) ``{
  * @param options  a list of parameters passed as args
  * @return boolean true on success
  */
-global define boolean ChangeConfiguration( map<string, any> options ) ``{
+boolean ChangeConfiguration( map<string, any> options ) {
 	
     string value = (string) (options["workgroup"]:nil);
     if( value != nil ) Samba::setWorkgroup(value);
@@ -133,9 +133,9 @@ map cmdline = $[
     // translators: command line help text for Samba client module
     "help" 		: _("Samba client configuration module.
 See Samba documentation for details."),
-    "guihandler" 	: ``(SambaClientSequence()),
-    "initialize"	: ``(Samba::Read()),
-    "finish"		: ``(Samba::Write()),
+    "guihandler" 	: SambaClientSequence,
+    "initialize"	: Samba::Read,
+    "finish"		: Samba::Write,
     "actions"		: $[
 	"winbind" :$[
 	    "handler"	: WinbindEnableHandler,

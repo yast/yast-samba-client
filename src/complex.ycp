@@ -23,7 +23,7 @@ include "samba-client/routines.ycp";
  * Return a modification status
  * @return true if data was modified
  */
-global define boolean Modified() ``{
+boolean Modified() {
     return Samba::Modified();
 }
 
@@ -31,7 +31,7 @@ global define boolean Modified() ``{
  * Read settings dialog
  * @return `abort if aborted and `next otherwise
  */
-global define symbol ReadDialog() ``{
+symbol ReadDialog() {
     Wizard::RestoreHelp(HELPS["read"]:"");
     Samba::AbortFunction = ``{ return PollAbort();};
     boolean ret = Samba::Read();
@@ -42,7 +42,7 @@ global define symbol ReadDialog() ``{
  * Write settings dialog
  * @return `abort if aborted and `next otherwise
  */
-global define symbol WriteDialog() ``{
+symbol WriteDialog() {
     Wizard::RestoreHelp(HELPS["write"]:"");
     Samba::AbortFunction = ``{ return PollAbort();};
     boolean ret = Samba::Write();

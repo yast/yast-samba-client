@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 30 08:39:22 CET 2004 - visnov@suse.cz
+
+- remove "global" keyword
+- fix command line support
+
+-------------------------------------------------------------------
 Fri Jan 30 08:11:35 CET 2004 - visnov@suse.cz
 
 - first version for the new interpreter
