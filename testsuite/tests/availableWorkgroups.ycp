@@ -7,37 +7,24 @@
     
     import "Samba";
 
-    // command not found    
-    TEST( ``( Samba::availableWorkgroups() ), [ $[], $[], 
-	$[ 
-	    "target" : $[ "bash_output" : 
-		$[ 
-		    "exit": -1,
-		    "stdout" : "",
-		    "stderr" : "bash: /usr/bin/nmbstatus : command not found"
-		]
-	] ] 
-    ], nil );
+    Samba::nmbstatus_running = false;
+    Samba::nmbstatus_output = $[
+        "DEBIAN_FANS" : $[
+            "LMB": "BRAHMA",
+            "MEMBERS": "BRAHMA"
+        ],
+        "FAXSERVER" : $[
+            "LMB":      "TEST1",
+            "MEMBERS":  "TEST1"
+        ],
+        "MYDOMAIN" : $[
+            "PDC" : "SUSIK",
+            "DMB" : "SUSIK",
+            "LMB" : "SUSIK",
+            "MEMBERS" : "SUSIK"
+        ]
+    ];
 
     // reasonable result    
-    TEST( ``( Samba::availableWorkgroups() ), [ $[], $[], 
-	$[ 
-	    "target" : $[ "bash_output" : 
-		$[ 
-		    "exit": 0,
-		    "stdout" : "WORKGROUP	DEBIAN_FANS
-LMB	BRAHMA
-MEMBERS	BRAHMA
-
-WORKGROUP	TUX-NET
-LMB	VALKYRIE
-MEMBERS	VALKYRIE
-
-",
-		    "stderr" : "Found 10 hosts. Collecting additional information. Please wait.
-..........
-"
-		]
-	] ] 
-    ], nil );
+    TEST( ``( Samba::availableWorkgroups() ), [], nil );
 }

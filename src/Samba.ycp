@@ -78,6 +78,16 @@ global string winbind_uid = nil;
  */
 global string winbind_gid = nil;
 
+/**
+ * is nmbstatus still running?
+ */
+global boolean nmbstatus_running = false;
+
+/**
+ * nmbstatus output
+ */
+global map nmbstatus_output = $[];
+
 /** ============================= end of global data ==========================*/
 
 /**
@@ -153,6 +163,12 @@ global define boolean Read() ``{
     if(Abort()) return false;
     // translators: progress finished
     ProgressNextStage(_("Finished"));
+    
+    // start nmbstatus
+    nmbstatus_running = SCR::Execute(.background.run_output, nmbstatus);
+    if( ! nmbstatus_running ) {
+	y2error( "Cannot start nmbstatus" );
+    }
 
     modified = false;
     return true;
@@ -400,6 +416,9 @@ global define boolean isDomainMember( string domain ) ``{
     }
     else 
     {
+	// finish nmbstatus run, since background agent supports only a single process
+	CheckNmbstatus();
+	
 	// if winbindd already runs, but for different domain, stop it
 	boolean winbindd_ran = Runlevel::ServiceStatus( "winbind" ) == 0;
 	if( winbindd_ran ) Runlevel::RunInitScript( "winbind", "stop" );
@@ -425,23 +444,71 @@ winbind gid = 10000-20000\nworkgroup = "+domain+"\nsecurity=domain\n" );
 }
 
 /**
+ * Ensure that nmbstatus already finished. Then parse its output into nmbstatus_output
+ */
+global define void CheckNmbstatus() ``{
+    if( nmbstatus_running ) {
+
+	// better count slept time
+	integer wait = 1200;
+	
+	while( wait>0 && SCR::Read( .background.isrunning ) ) {
+	    sleep( 100 );
+	    wait = wait -1;
+	}
+	
+	if( SCR::Read( .background.isrunning ) ) {
+	    y2error( "Something went wrong, nmbstatus didn't finish in more that 2 minutes" );
+
+	    // better kill it
+	    SCR::Execute( .background.kill );
+	    nmbstatus_running = false;
+	    nmbstatus_output = $[];
+	}
+	
+	// nmbstatus already finished, parse the output
+	list output = SCR::Read( .background.newout );
+	
+	y2debug( "nmbstatus result: %1", output );
+	
+	nmbstatus_running = false;
+	nmbstatus_output = $[];
+	
+	string current_group = "";
+	foreach( string line, output, ``{
+	    list parts = splitstring( line, "\t" );
+
+	    y2debug( "line parts: %1", parts );
+	    
+	    if( parts[0]:nil == "WORKGROUP" ) {
+		current_group = parts[1]:"error";
+		nmbstatus_output[current_group] = $[];
+	    }
+	    else if( parts[0]:nil != nil ) {
+		nmbstatus_output[current_group, parts[0]:"error" ] = parts[1]:"error";
+	    } // skip empty lines
+	});
+	
+    }
+}
+
+/**
  * Check if a given workgroup is a domain or not. Tests presence of PDC or BDC in the workgroup.
  * 
  * @param workgroup	the name of a workgroup to be tested
  * @return boolean	true if the workgroup is a domain
  */
 global define boolean isDomain( string workgroup ) ``{
-    integer res = SCR::Execute( .target.bash, nmbstatus + " --quiet --pdc --workgroup " + workgroup );
+    
+    // ensure the data are up-to-date
+    CheckNmbstatus();
     
     // if there is PDC, return success
-    if( res == 0 ) return true;
+    if( nmbstatus_output[ workgroup, "PDC" ]:nil != nil ) return true;
     
     // if PDC not found, try BDC
-    if( res == 1 ) {
-	res = SCR::Execute( .target.bash, nmbstatus + " --quiet --bdc --workgroup " + workgroup );
-	return res == 0 ;
-    }
-    
+    if( nmbstatus_output[ workgroup, "BDC" ]:nil != nil ) return true;
+
     // a different error happened
     return false;
 }
@@ -620,26 +687,12 @@ global define void WriteWinbind( boolean on ) ``{
  * @return list  of found workgroups/domains
  */
 global define list availableWorkgroups() ``{
-    map ret = SCR::Execute( .target.bash_output, nmbstatus );
-    if( ret["exit"]:-1 != 0 ) {
-	// translators: error message
-	Report::Error( _("Cannot get a list of already existing workgroups.") );
-	y2debug( "%1", ret );
-	return nil;
-    }
-    list lines = splitstring( ret["stdout"]:"", "\n" );
     
-    list result = [];
+    CheckNmbstatus();
+
+    // TODO: inform user about problems
     
-    foreach( string line, lines, ``{
-	list cols = splitstring( line, "\t" );
-	if( cols != [] && cols[0]:"" == "WORKGROUP" ) {
-	    // translators: internal error occured, should not happen
-	    result = add( result, cols[1]:_("Internal error") );
-	}
-    });
-    
-    return result;
+    return maplist( string group, any data, nmbstatus_output, ``( group ) );
 }
 				    
 /* EOF */
