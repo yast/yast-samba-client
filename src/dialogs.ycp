@@ -28,24 +28,27 @@ symbol WorkgroupDialog () {
 
     /* Samba-client workgroup dialog caption */
     string caption = _("SAMBA Workgroup");
-    
+
     Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
 	// frame label
 	`Frame( _("Membership"), `VBox(
 	    WorkgroupWidget(),
 	    // checkbox label to enable winbind
 	    `Left(`CheckBox( `id( `winbind ), _("Also &Use SMB Information for Linux Authentication"), Samba::winbind ) )
-	) ) ) ), 
-	HELPS["WorkgroupDialog"]:"", Label::BackButton(), Label::FinishButton() 
+	) ) ) ),
+	HELPS["WorkgroupDialog"]:"", Label::BackButton(),
+	    Mode::cont ? Label::NextButton() : Label::FinishButton()
     );
-    
-    Wizard::HideBackButton();
-    
+
+    if (!Mode::cont)
+    {
+	Wizard::HideBackButton();
+    }
+
     any ret = nil;
     while(true) {
 
 	ret = UI::UserInput();
-	
 	/* abort? */
 	if(ret == `abort || ret == `cancel) {
 	    if(ReallyAbort()) break;
@@ -54,12 +57,11 @@ symbol WorkgroupDialog () {
         else if(ret == `next || ret == `advanced ) {
 	    Samba::setWorkgroup( (string) UI::QueryWidget( `id( `workgroup ), `Value ) );
 	    Samba::setWinbind( (boolean) UI::QueryWidget(`id( `winbind ), `Value ) );
-	    
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup( Samba::workgroup );
-	    
+
 	    if( Mode::config ) break;
-	    
+
 	    if( Samba::winbind && workgroup_type == `workgroup ) {
 		// translators: error message, winbind cannot provide user information taken from a workgroup, must be a domain
 		// %1 is the workgroup name
