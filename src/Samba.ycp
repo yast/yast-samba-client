@@ -450,7 +450,11 @@ global define void setWinbind( boolean status ) ``{
  * @return string	an error message or nil if successful
  */
 global define string joinDomain( string domain, string user, string passwd ) ``{
-    if( user == "" ) user = nil;
+    if( user == "" || user == nil )
+    {
+	passwd = "";
+	user = "";
+    }
     
     security = "domain";
     workgroup = domain;
@@ -466,11 +470,10 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
     
     // set the actual password (-s means password on stdin)
     string cmd = "net join " + join_level + " -w " + domain;
-    
-    if( user != nil ) {
-	// notice the single-quotes
-	cmd = cmd + " -U '" + user + "%" + passwd+"'";
-    }
+
+    // always provide -U (#40439)    
+    // notice the single-quotes
+    cmd = cmd + " -U '" + user + "%" + passwd+"'";
 
     map result = (map) SCR::Execute( .target.bash_output, cmd );
     

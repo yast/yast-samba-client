@@ -1,8 +1,20 @@
+Thu May 13 09:07:58 CEST 2004 - visnov@suse.cz
+
+- always provide user/password when joining domain (#40439)
+- 2.9.17
+
+-------------------------------------------------------------------
+Tue Apr 27 11:07:58 CEST 2004 - visnov@suse.cz
+
+- enhance API for the new UI 
+- 2.9.16
+
 -------------------------------------------------------------------
 Wed Apr 21 11:10:31 CEST 2004 - visnov@suse.cz
 
 - really return password from dialog (#38996)
 - 2.9.15
+ 
 
 -------------------------------------------------------------------
 Mon Apr 19 09:13:25 CEST 2004 - visnov@suse.cz
@@ -18,7 +30,6 @@ Tue Apr  6 10:14:52 CEST 2004 - visnov@suse.cz
 - 2.9.13
 
 -------------------------------------------------------------------
->>>>>>> 1.40.4.3
 Fri Apr  2 16:21:48 CEST 2004 - visnov@suse.cz
 
 - YaST is GPL now

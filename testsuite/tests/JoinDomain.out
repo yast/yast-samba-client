@@ -11,7 +11,7 @@ Read	.etc.security.v."pam_unix2"."auth" nil
 Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."account" nil
 Write	.etc.smb nil true
-Execute	.target.bash_output "net join member -w testing" $["exit":0, "stderr":"", "stdout":"Joined the domain"]
+Execute	.target.bash_output "net join member -w testing -U '%'" $["exit":0, "stderr":"", "stdout":"Joined the domain"]
 Return	nil
 Write	.etc.smb.value.global.workgroup "testing" true
 Write	.etc.smb.value.global.security "domain" true
