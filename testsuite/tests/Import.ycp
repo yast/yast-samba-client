@@ -2,6 +2,7 @@
 
 // test for Samba::Import() - autoyast
 // $Id$
+// testedfiles:Samba.ycp
 
     include "testsuite.ycp";
     

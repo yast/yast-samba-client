@@ -2,6 +2,7 @@
 
 // test for Samba::availableWorkgroups(), list of found existing workgroups
 // $Id$
+// testedfiles:Samba.ycp
 
     include "testsuite.ycp";
     
