@@ -3,11 +3,17 @@ Read	.init.scripts.exists "winbind" true
 Read	.init.scripts.runlevel "winbind" nil
 Read	.init.scripts.comment "winbind" nil
 Execute	.target.bash_output "/sbin/insserv -d /etc/init.d/winbind" $["exit":0]
+Read	.init.scripts.exists "nscd" true
+Read	.init.scripts.exists "nscd" true
+Read	.init.scripts.exists "nscd" true
+Read	.init.scripts.runlevel "nscd" nil
+Read	.init.scripts.comment "nscd" nil
 Read	.init.scripts.exists "winbind" true
 Execute	.target.bash "/etc/init.d/winbind status" $["TERM":"raw"] 0
 Read	.init.scripts.exists "nscd" true
 Execute	.target.bash "/etc/init.d/nscd status" $["TERM":"raw"] 0
-Execute	.target.bash "/etc/init.d/nscd restart" $["TERM":"raw"] 0
+Read	.init.scripts.exists "nscd" true
+Execute	.target.bash "/etc/init.d/nscd stop" $["TERM":"raw"] 0
 Return	true
 Dump	true
 Dump	true
@@ -18,6 +24,7 @@ Read	.init.scripts.runlevel "winbind" nil
 Read	.init.scripts.comment "winbind" nil
 Read	.init.scripts.exists "winbind" true
 Execute	.target.bash "/etc/init.d/winbind status" $["TERM":"raw"] 0
+Read	.init.scripts.exists "winbind" true
 Execute	.target.bash "/etc/init.d/winbind stop" $["TERM":"raw"] 0
 Return	true
 Dump	true

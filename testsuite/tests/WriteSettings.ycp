@@ -17,7 +17,8 @@
 	    "etc": $[ "nsswitch_conf" : $[
 		"passwd" : "compat ldap", 
 		"group"  : "compat ldap"
-	    ] ]
+	    ] ],
+    	    "init" : $[ "scripts" : $[ "exists" : true, "runlevel" : $[] ] ]
 	]
     ], nil );
 

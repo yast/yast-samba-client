@@ -6,6 +6,10 @@
     include "testsuite.ycp";
     
     import "Samba";
+
+    TESTSUITE_INIT([
+        $[ "init" : $[ "scripts" : $[ "exists" : true, "runlevel" : $[] ] ] ]
+    ], nil);
     
     Samba::setWinbind( true );
     DUMP(Samba::winbind);

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb  9 16:19:28 CET 2004 - visnov@suse.cz
+
+- disable nscd if winbind should be activated
+- show "domain" flag in the list of available domains 
+
+-------------------------------------------------------------------
 Mon Feb  9 10:53:03 CET 2004 - visnov@suse.cz
 
 - use "idmap uid/gid" instead of "winbind uid/gid"
