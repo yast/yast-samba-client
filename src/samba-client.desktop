@@ -20,5 +20,5 @@ X-SuSE-YaST-AutoInstClonable=true
 Icon=samba-client
 Exec=/sbin/yast2 samba-client 
 
-Name=Samba client
+Name=Samba Client
 GenericName=Configure Samba client
