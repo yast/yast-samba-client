@@ -49,7 +49,7 @@ global define symbol SambaClientSequence() ``{
     ];
 
     // translators: initialization dialog caption
-    string caption = _("Samba client configuration");
+    string caption = _("Samba Client Configuration");
     // translators: initialization dialog contents
     term contents = `Label(_("Initializing ..."));
 
@@ -70,7 +70,7 @@ global define symbol SambaClientSequence() ``{
  */
 global define symbol SambaClientAutoSequence() ``{
     // translators: initialization dialog caption
-    string caption = _("Samba client configuration");
+    string caption = _("Samba Client Configuration");
     // translators: initialization dialog contents
     term contents = `Label(_("Initializing ..."));
 

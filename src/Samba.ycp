@@ -115,7 +115,7 @@ global define boolean Modified() ``{
 global define boolean Read() ``{
 
     /* Samba-client read dialog caption */
-    string caption = _("Initializing samba-client configuration");
+    string caption = _("Initializing Samba Client Configuration");
 
     integer steps = 1;
 
@@ -181,7 +181,7 @@ global define boolean Read() ``{
 global define boolean Write() ``{
 
     /* Samba-client read dialog caption */
-    string caption = _("Saving Samba client configuration");
+    string caption = _("Saving Samba Client Configuration");
 
     integer steps = 3;
 
@@ -217,7 +217,7 @@ global define boolean Write() ``{
 
     if( !SCR::Write( .etc.smb, nil ) ) {
 	// translators: error message
-	Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/samba/smb.conf") );
+	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/samba/smb.conf") );
     }
 
     if(Abort()) return false;
@@ -296,11 +296,11 @@ global define string Summary() ``{
     string nc = Summary::NotConfigured ();
     
     // summary header
-    summary = Summary::AddHeader(summary, _("Global configuration"));
+    summary = Summary::AddHeader(summary, _("Global Configuration"));
     
     if( globals_configured ) {
 	// autoyast summary item: configured workgroup 
-	summary = Summary::AddLine(summary, sformat(_("Workgroup/Domain: %1"), workgroup ) );
+	summary = Summary::AddLine(summary, sformat(_("Workgroup or Domain: %1"), workgroup ) );
     } else {
 	summary = Summary::AddLine(summary, nc );
     }
@@ -318,7 +318,7 @@ global define string ShortSummary() ``{
 
     if( globals_configured ) {
 	// summary item: configured workgroup
-	summary = sformat(_("<b>Workgroup/Domain</b>: %1<br>"), workgroup) +
+	summary = sformat(_("<b>Workgroup or Domain</b>: %1<br>"), workgroup) +
 	// summary item: authentication using winbind
 	sformat(_("<b>Authentication with SMB</b>: %1"),
 	    // translators: winbind status in summary
@@ -613,7 +613,7 @@ global define void WriteWinbind( boolean on ) ``{
 
     if( !SCR::Write(.etc.nsswitch_conf, nil ) )
 	// translators: error message
-	Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/nsswitch.conf") );
+	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/nsswitch.conf") );
     
     // change Pam configuration
     

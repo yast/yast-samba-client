@@ -53,7 +53,7 @@ global define boolean DomainMemberHandler( map options ) ``{
     if( domain == nil ) {
 	// user must provide the domain name to be tested
 	// error message for isdomainmember command line action 
-	Report::Error( sformat( _("You must specify the name of a domain.") ) );
+	Report::Error( sformat( _("Specify the name of a domain.") ) );
 	return false;
     }
     
@@ -88,14 +88,14 @@ global define boolean JoinDomainHandler( map options ) ``{
     if( domain == nil ) {
 	// must provide the domain name to be joined
 	// error message for joindomain command line action 
-	Report::Error( sformat( _("You must specify the name of a domain.") ) );
+	Report::Error( sformat( _("Specify the name of a domain.") ) );
 	return false;
     }
     
     string result = Samba::joinDomain( domain, options["user"]:nil, options["password"]:"" );
     if( result == nil ) {
 	// translators: result message for joindomain command line action 
-	CommandLine::Print( sformat( _("Domain '%1' was successfully joined."), domain ) );
+	CommandLine::Print( sformat( _("Domain '%1' joined successfully."), domain ) );
 	return true;
     } else {
 	Report::Error( result );
@@ -144,7 +144,7 @@ See Samba documentation for details."),
 	"isdomainmember": $[
 	    "handler"	: ``(DomainMemberHandler()),
 	    // translators: command line help text for isdomainmember action
-	    "help"	: _("Check, if this machine is a member of a domain")
+	    "help"	: _("Check if this machine is a member of a domain")
 	],
 	"joindomain"	: $[
 	    "handler"	: ``(JoinDomainHandler()),
