@@ -54,7 +54,32 @@ global define symbol WorkgroupDialog () ``{
 	    Samba::setWinbind( UI::QueryWidget( `id( `winbind ), `Value ) );
 	    
 	    // for domain ask to join
-	    AskJoinDomain( Samba::workgroup, CheckWorkgroup( Samba::workgroup ) );
+	    symbol workgroup_type = CheckWorkgroup( Samba::workgroup );
+	    
+	    if( Samba::winbind && workgroup_type == `workgroup ) {
+		// translators: error message, winbind cannot provide user information taken from a workgroup, must be a domain
+		// %1 is the workgroup name
+		Popup::Error( sformat( _("Cannot use the workgroup 
+'%1' for Linux authentication.
+
+Enter name of a domain or disable
+using SMB for Linux authentication."), Samba::workgroup ) );
+		continue;
+	    }
+
+	    boolean in_domain = AskJoinDomain( Samba::workgroup, workgroup_typ );
+	    
+	    // if we should start winbind, but it cannot work - not a domain, not joined
+	    if( Samba::winbind && ! in_domain )
+	    {
+		// translators: error message, winbind cannot provide user information if the host is not in a domain
+		Popup::Error( _("Host must be a member of a domain
+for Linux authentication using SMB.
+
+Join a domain or disable using SMB 
+for Linux authentication.") );
+		continue;
+	    }
 	    
             break;
         }
