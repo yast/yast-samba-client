@@ -53,7 +53,7 @@ global define symbol SambaClientSequence() ``{
     any ret = WizardSequencer(aliases, sequence);
 
     UI::CloseDialog();
-    return ret;
+    return (symbol) ret;
 }
 
 /**
@@ -77,10 +77,10 @@ global define symbol SambaClientAutoSequence() ``{
     
     if( ret != `abort ) {
 	Samba::globals_configured = true;
-	Samba::shares_configured = true;
+	SambaServer::shares_configured = true;
     }
     
-    return ret;
+    return (symbol) ret;
 }
 
 /* EOF */

@@ -18,21 +18,20 @@ import "Progress";
 import "Samba";
 
 /**
- * Abort function
- * @return blah blah lahjk
- */
-global define boolean Abort() ``{
-    if(AbortFunction != nil)
-	return eval(AbortFunction) == true;
-    return false;
-}
-
-/**
  * Check for pending Abort press
  * @return true if pending abort
  */
 global define boolean PollAbort() ``{
     return UI::PollInput() == `abort;
+}
+
+/**
+ * Progress::NextStage and Progress::Title combined into one function
+ * @param title progressbar title
+ */
+global define void ProgressNextStage(string title) ``{
+    Progress::NextStage();
+    Progress::Title(title);
 }
 
 /**
@@ -52,9 +51,9 @@ global define string passwordPopup( string text ) ``{
     	    )
         );
     
-    symbol ret = UI::UserInput();
+    any ret = UI::UserInput();
     
-    string passwd = ret == `ok ? UI::QueryWidget(`id(`passwd), `Value) : nil;
+    string passwd = ret == `ok ? (string) UI::QueryWidget(`id(`passwd), `Value) : nil;
     UI::CloseDialog();
     
     return passwd;
@@ -68,7 +67,7 @@ global define string passwordPopup( string text ) ``{
  * @return map		$["user": string, "password": string] with information
  *			provided by the user or nil on cancel
  */
-global define map passwordUserPopup( string message, string defaultuser ) ``{
+global define map<string, string> passwordUserPopup( string message, string defaultuser ) ``{
     UI::OpenDialog(
     	    `VBox( 
 		`Label( message ),
@@ -83,9 +82,9 @@ global define map passwordUserPopup( string message, string defaultuser ) ``{
     	    )
         );
     
-    symbol ret = UI::UserInput();
+    any ret = UI::UserInput();
     
-    map result = ret == `ok ? $[ 
+    map<string, string> result = ret == `ok ? $[ 
 	"user":UI::QueryWidget(`id(`user), `Value),
 	"password":UI::QueryWidget(`id(`passwd), `Value) ] 
     : nil;
@@ -100,16 +99,7 @@ global define map passwordUserPopup( string message, string defaultuser ) ``{
  * @return true if abort is confirmed
  */
 global define boolean ReallyAbort() ``{
-    return !Modified() || Popup::ReallyAbort(true);
-}
-
-/**
- * Progress::NextStage and Progress::Title combined into one function
- * @param title progressbar title
- */
-global define void ProgressNextStage(string title) ``{
-    Progress::NextStage();
-    Progress::Title(title);
+    return !Samba::Modified() || Popup::ReallyAbort(true);
 }
 
 /**
@@ -225,7 +215,7 @@ Join the domain '%1'?
 	symbol ret = `next;
 	// translators: popup to fill in the domain joining info
 	// %1 is the domain name
-	map passwd = passwordUserPopup( sformat( _("Enter the user and the password
+	map<string, string> passwd = passwordUserPopup( sformat( _("Enter the user and the password
 for joining the domain '%1'.
 
 To join the domain anonymously, leave the 
@@ -256,7 +246,7 @@ text entries empty.
  * @return string chosen workgroup or nil if cancelled
  */
 global define string BrowseWorkgroups() ``{
-   list groups = Samba::availableWorkgroups();
+   list<string> groups = Samba::availableWorkgroups();
 
     if( groups == nil ) return nil;
 
@@ -270,8 +260,8 @@ global define string BrowseWorkgroups() ``{
         )
     ) );
 
-    symbol ret = UI::UserInput();
-    string sel = UI::QueryWidget( `id(`selection), `CurrentItem );
+    any ret = UI::UserInput();
+    string sel = (string) UI::QueryWidget( `id(`selection), `CurrentItem );
     UI::CloseDialog();
     
     return ret == `ok ? sel : nil;

@@ -46,9 +46,9 @@ global define boolean WinbindEnableHandler( map options ) ``{
  * @param options  a list of parameters passed as args
  * @return boolean true on success
  */
-global define boolean DomainMemberHandler( map options ) ``{
+global define boolean DomainMemberHandler( map<string, any> options ) ``{
 
-    string domain = options["domain"]:nil;
+    string domain = (string) (options["domain"]:nil);
     
     // validate the options
     if( domain == nil ) {
@@ -82,8 +82,8 @@ global define boolean DomainMemberHandler( map options ) ``{
  * @param options  a list of parameters passed as args
  * @return boolean true on success
  */
-global define boolean JoinDomainHandler( map options ) ``{
-    string domain = options["domain"]:nil;
+global define boolean JoinDomainHandler( map <string, any> options ) ``{
+    string domain = (string) (options["domain"]:nil);
     
     // validate the options
     if( domain == nil ) {
@@ -93,7 +93,7 @@ global define boolean JoinDomainHandler( map options ) ``{
 	return false;
     }
     
-    string result = Samba::joinDomain( domain, options["user"]:nil, options["password"]:"" );
+    string result = Samba::joinDomain( domain, (string) (options["user"]:nil), (string) (options["password"]:"") );
     if( result == nil ) {
 	// translators: result message for joindomain command line action 
 	CommandLine::Print( sformat( _("Domain '%1' joined successfully."), domain ) );
@@ -110,9 +110,9 @@ global define boolean JoinDomainHandler( map options ) ``{
  * @param options  a list of parameters passed as args
  * @return boolean true on success
  */
-global define boolean ChangeConfiguration( map options ) ``{
+global define boolean ChangeConfiguration( map<string, any> options ) ``{
 	
-    string value = options["workgroup"]:nil;
+    string value = (string) (options["workgroup"]:nil);
     if( value != nil ) Samba::setWorkgroup(value);
 
     return true;
@@ -125,7 +125,7 @@ y2milestone ("Samba-client module started");
 include "samba-client/wizards.ycp";
 
 /* main ui function */
-any ret = nil;
+boolean ret = nil;
 
 /* the command line description map */
 map cmdline = $[
@@ -138,22 +138,22 @@ See Samba documentation for details."),
     "finish"		: ``(Samba::Write()),
     "actions"		: $[
 	"winbind" :$[
-	    "handler"	: ``(WinbindEnableHandler()),
+	    "handler"	: WinbindEnableHandler,
 	    // translators: command line help text for winbind action
 	    "help"	: _("Enable or disable the Winbind services (winbindd)")
 	],
 	"isdomainmember": $[
-	    "handler"	: ``(DomainMemberHandler()),
+	    "handler"	: DomainMemberHandler,
 	    // translators: command line help text for isdomainmember action
 	    "help"	: _("Check if this machine is a member of a domain")
 	],
 	"joindomain"	: $[
-	    "handler"	: ``(JoinDomainHandler()),
+	    "handler"	: JoinDomainHandler,
 	    // translators: command line help text for joindomain action
 	    "help"	: _("Join this machine into a domain")
 	],
 	"configure"	: $[
-	    "handler"	: ``(ChangeConfiguration()),
+	    "handler"	: ChangeConfiguration,
 	    // translators: command line help text for configure action
 	    "help"	: _("Change the global settings of Samba")
 	]
