@@ -19,7 +19,6 @@ import "Progress";
 import "Report";
 import "Summary";
 import "Runlevel";
-import "Pam";
 
 include "samba-client/routines.ycp";
 
@@ -294,7 +293,7 @@ global define string ShortSummary() ``{
 	summary = sformat(_("<b>Workgroup/Domain</b>: %1<br>"), workgroup) +
 	// summary item: an option is turned on
 	sformat(_("<b>Authentication with SMB</b>: %1"),
-	    deletechars (winbind ? Label::YesButton(): Label::NoButton(),"&"));
+	    winbind ? _("Yes"): _("No"));
     } else {
 	summary = Summary::NotConfigured ();
     }
