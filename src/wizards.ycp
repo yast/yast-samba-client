@@ -77,7 +77,6 @@ global define symbol SambaClientAutoSequence() ``{
     
     if( ret != `abort ) {
 	Samba::globals_configured = true;
-	SambaServer::shares_configured = true;
     }
     
     return (symbol) ret;
