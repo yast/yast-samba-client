@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 10 02:22:25 CET 2004 - sh@suse.de
+
+- V 2.9.7
+- Fixed OpenDialog() / SetIcon() sequence 
+
+-------------------------------------------------------------------
 Mon Mar  8 16:35:59 CET 2004 - visnov@suse.cz
 
 - add yast2-installation to NFB
