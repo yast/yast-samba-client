@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar  4 10:53:12 CET 2005 - mlazar@suse.cz
+
+- 2.12.1
+- ycp tests replaced (and extended) with perl tests
+
+-------------------------------------------------------------------
 Fri Mar  4 10:37:22 CET 2005 - mlazar@suse.cz
 
 - SambaConfig.pm:

@@ -1,47 +1,44 @@
-Read	.target.tmpdir nil
-Log	Failed to set temporary directory: nil
-Execute	.target.bash "rpm -q samba-winbind" 0
-Read	.init.scripts.exists "winbind" nil
-Log	Service winbind does not exist.
-Dump	true
-Dump	$["idmap gid":"10000-20000", "idmap uid":"10000-20000"]
-Read	.etc.nsswitch_conf."passwd" nil
-Write	.etc.nsswitch_conf."passwd" "winbind" true
-Read	.etc.nsswitch_conf."group" nil
-Write	.etc.nsswitch_conf."group" "winbind" true
-Write	.etc.nsswitch_conf nil true
-Dir	.etc.security.section: []
-Read	.etc.security.v."pam_unix2"."auth" nil
-Dir	.etc.security.section: []
-Write	.etc.security.v."pam_unix2"."auth" "call_modules=winbind" true
-Dir	.etc.security.section: []
-Read	.etc.security.v."pam_unix2"."account" nil
-Dir	.etc.security.section: []
-Write	.etc.security.v."pam_unix2"."account" "call_modules=winbind" true
-Execute	.target.bash "rpm -q samba-winbind" 0
-Read	.init.scripts.exists "winbind" nil
-Log	Service winbind does not exist.
-Read	.etc.nsswitch_conf."passwd" nil
-Write	.etc.nsswitch_conf."passwd" nil true
-Read	.etc.nsswitch_conf."group" nil
-Write	.etc.nsswitch_conf."group" nil true
-Write	.etc.nsswitch_conf nil true
-Dir	.etc.security.section: []
-Read	.etc.security.v."pam_unix2"."auth" nil
-Dir	.etc.security.section: []
-Write	.etc.security.v."pam_unix2"."auth" "" true
-Dir	.etc.security.section: []
-Read	.etc.security.v."pam_unix2"."account" nil
-Dir	.etc.security.section: []
-Write	.etc.security.v."pam_unix2"."account" "" true
-Execute	.target.bash "rpm -q samba-winbind" 0
-Read	.init.scripts.exists "winbind" nil
-Log	Service winbind does not exist.
-Execute	.target.bash "rpm -q samba-winbind" 0
-Read	.init.scripts.exists "winbind" nil
-Log	Service winbind does not exist.
-Read	.init.scripts.exists "winbind" nil
-Log	Service winbind does not exist.
-Execute	.target.bash "rpm -q samba-winbind" 0
-Read	.init.scripts.exists "winbind" nil
-Log	Service winbind does not exist.
+$VAR1 = 1;
+$VAR1 = 1;
+$VAR1 = 1;
+
+SambaConfig: [global]
+SambaConfig: _modified = 1
+SambaConfig: idmap gid = 10000-20000
+SambaConfig: idmap uid = 10000-20000
+
+Nsswitch::WriteDB(passwd, [files,nis])
+Nsswitch::WriteDB(group, [files,ldap,nis])
+Nsswitch::WriteDB(passwd, [files,winbind,nis])
+Nsswitch::WriteDB(group, [files,ldap,nis,winbind])
+PamSettings::SetValues(pam_unix2, auth, 'md5 nullok call_modules=files,nis')
+PamSettings::SetValues(pam_unix2, account, 'md5 nullok call_modules=files,ldap,nis')
+PamSettings::SetValues(pam_unix2, auth, 'md5 nullok call_modules=files,winbind,nis')
+PamSettings::SetValues(pam_unix2, account, 'md5 nullok call_modules=files,ldap,nis,winbind')
+PamSettings::SetValues(pam_unix2, auth, 'md5 nullok')
+PamSettings::SetValues(pam_unix2, account, '')
+PamSettings::SetValues(pam_unix2, auth, 'md5 nullok call_modules=winbind')
+PamSettings::SetValues(pam_unix2, account, 'call_modules=winbind')
+PamSettings::SetValues(pam_unix2, auth, 'call_modules=winbind')
+PamSettings::SetValues(pam_unix2, account, 'call_modules=winbind')
+$VAR1 = 1;
+$VAR1 = 1;
+Service::Adjust(winbind, enable)
+$VAR1 = 1;
+Service::Adjust(winbind, disable)
+$VAR1 = 1;
+$VAR1 = 1;
+$VAR1 = 1;
+Service::Start(winbind)
+$VAR1 = 1;
+Service::Start(winbind)
+$VAR1 = 1;
+Service::Restart(winbind)
+$VAR1 = 1;
+Service::Restart(winbind)
+$VAR1 = 1;
+Service::Stop(winbind)
+$VAR1 = 1;
+Service::Stop(winbind)
+$VAR1 = 1;
+$VAR1 = 1;

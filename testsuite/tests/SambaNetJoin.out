@@ -1,8 +1,5 @@
-Execute	.target.bash_output "LANG=C net rpc testjoin -s /dev/zero -w 'domain'" 0
-Dump	true
-Execute	.target.bash_output "net rpc join member -w 'domain' -s /dev/zero -U 'user%passwd'" 0
-Dump	unknown error
-Execute	.target.bash_output "LANG=C net rpc testjoin -s /dev/zero -w 'domain' -n 'test'" 0
-Dump	true
-Execute	.target.bash_output "net rpc join member -w 'domain' -s /dev/zero -n 'test' -U 'user%passwd'" 0
-Dump	unknown error
+$VAR1 = 1;
+$VAR2 = 1;
+$VAR3 = 1;
+$VAR1 = 1;
+$VAR2 = 1;

@@ -13,7 +13,11 @@ Write	.etc.nsswitch_conf nil true
 Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."auth" nil
 Dir	.etc.security.section: []
+Read	.etc.security.v."pam_unix2"."auth" nil
+Dir	.etc.security.section: []
 Write	.etc.security.v."pam_unix2"."auth" "call_modules=winbind" true
+Dir	.etc.security.section: []
+Read	.etc.security.v."pam_unix2"."account" nil
 Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."account" nil
 Dir	.etc.security.section: []
@@ -29,11 +33,7 @@ Write	.etc.nsswitch_conf nil true
 Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."auth" nil
 Dir	.etc.security.section: []
-Write	.etc.security.v."pam_unix2"."auth" "" true
-Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."account" nil
-Dir	.etc.security.section: []
-Write	.etc.security.v."pam_unix2"."account" "" true
 Execute	.target.bash "rpm -q samba-winbind" 0
 Read	.init.scripts.exists "winbind" nil
 Log	Service winbind does not exist.
