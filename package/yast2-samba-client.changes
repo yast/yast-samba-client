@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  4 13:32:01 CEST 2003 - visnov@suse.de
+
+- restart nscd after starting winbind
+
+-------------------------------------------------------------------
 Tue Sep  2 13:15:23 CEST 2003 - visnov@suse.de
 
 - try harder to stop temporary winbind 
