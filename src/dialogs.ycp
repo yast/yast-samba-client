@@ -39,7 +39,7 @@ symbol WorkgroupDialog () {
 	HELPS["WorkgroupDialog"]:"", Label::BackButton(), Label::FinishButton() 
     );
     
-    Wizard::ReplaceBackButton( `Empty() );
+    Wizard::HideBackButton();
     
     any ret = nil;
     while(true) {
