@@ -111,9 +111,12 @@ global define boolean Read() ``{
 
     // We do not set help text here, because it was set outside
     Progress::New( caption, " ", steps, [
+	    // translators: progress stage 1/1
 	    _("Read the global SAMBA settings"),
 	], [
+	    // translators: progress step 1/1
 	    _("Reading the global SAMBA settings"),
+	    // translators: progress finished
 	    _("Finished")
 	],
 	""
@@ -148,6 +151,7 @@ global define boolean Read() ``{
     globals_configured = true;
     
     if(Abort()) return false;
+    // translators: progress finished
     ProgressNextStage(_("Finished"));
 
     modified = false;
@@ -170,13 +174,17 @@ global define boolean Write() ``{
 	    // translators: write progress stage
 	    _("Write the settings"),
 	    // translators: write progress stage
-	    !winbind ? _("Disable SAMBA services") : _("Enable SAMBA services")
+	    !winbind ? _("Disable SAMBA services") : 
+		// translators: write progress stage
+		_("Enable SAMBA services")
 	], [
 	    // translators: write progress step
 	    _("Writing the settings..."),
 	    // translators: write progress step
-	    !winbind ? _("Disabling SAMBA services") : _("Enabling SAMBA services"),
-	    // translators: write progress step
+	    !winbind ? _("Disabling SAMBA services") 
+		// translators: write progress step
+		: _("Enabling SAMBA services"),
+	    // translators: write progress finished
 	    _("Finished")
 	],
 	""
@@ -191,7 +199,10 @@ global define boolean Write() ``{
     
     WriteSettings();
 
-    if( !SCR::Write( .etc.smb, nil ) ) Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/samba/smb.conf") );
+    if( !SCR::Write( .etc.smb, nil ) ) {
+	// translators: error message
+	Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/samba/smb.conf") );
+    }
 
     if(Abort()) return false;
     Progress::NextStage ();
@@ -272,7 +283,7 @@ global define string Summary() ``{
     summary = Summary::AddHeader(summary, _("Global configuration"));
     
     if( globals_configured ) {
-	// summary item: an option is turned on
+	// autoyast summary item: configured workgroup 
 	summary = Summary::AddLine(summary, sformat(_("Workgroup/Domain: %1"), workgroup ) );
     } else {
 	summary = Summary::AddLine(summary, nc );
@@ -290,11 +301,14 @@ global define string ShortSummary() ``{
     string summary = "";
 
     if( globals_configured ) {
-	// summary item:
+	// summary item: configured workgroup
 	summary = sformat(_("<b>Workgroup/Domain</b>: %1<br>"), workgroup) +
-	// summary item: an option is turned on
+	// summary item: authentication using winbind
 	sformat(_("<b>Authentication with SMB</b>: %1"),
-	    winbind ? _("Yes"): _("No"));
+	    // translators: winbind status in summary
+	    winbind ? _("Yes")
+	    // translators: winbind status in summary
+		: _("No"));
     } else {
 	summary = Summary::NotConfigured ();
     }
@@ -442,7 +456,10 @@ global define boolean enableWinbind( boolean on ) ``{
     // enable winbind service
     if( ! Runlevel::ServiceAdjust( "winbind", on ? "enable": "disable" ) )
     {
-	Report::Error( on ? _("Cannot start winbindd daemon."): _("Cannot stop winbindd daemon.") );
+	// translators: error message
+	Report::Error( on ? _("Cannot start winbind daemon.")
+	    // translators: error message
+	    : _("Cannot stop winbind daemon.") );
 	return false;
     }
     
@@ -457,6 +474,7 @@ global define boolean enableWinbind( boolean on ) ``{
 	if( Runlevel::ServiceStatus( "winbind" ) != 0 ) {
 	    // the service does not run
 	    if( Runlevel::RunInitScript( "winbind", "start" ) != 0 ) {
+		// translators: error message
 		Report::Error( _("Cannot start 'winbind' service.") );
 	    }
 	}
@@ -464,6 +482,7 @@ global define boolean enableWinbind( boolean on ) ``{
 	// the service is running
 	if( Runlevel::ServiceStatus( "winbind" ) == 0 ) {
 	    if( Runlevel::RunInitScript( "winbind", "stop" ) != 0 ) {
+		// translators: error message
 		Report::Error( _("Cannot stop 'winbind' service.") );
 	    }
 	}
@@ -526,6 +545,7 @@ global define void WriteWinbind( boolean on ) ``{
     SCR::Write(.etc.nsswitch_conf.group, mergestring( nsswitch_list, " " ) );
 
     if( !SCR::Write(.etc.nsswitch_conf, nil ) )
+	// translators: error message
 	Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/nsswitch.conf") );
     
     // change Pam configuration
@@ -602,6 +622,7 @@ global define void WriteWinbind( boolean on ) ``{
 global define list availableWorkgroups() ``{
     map ret = SCR::Execute( .target.bash_output, nmbstatus );
     if( ret["exit"]:-1 != 0 ) {
+	// translators: error message
 	Report::Error( _("Cannot get a list of already existing workgroups.") );
 	y2debug( "%1", ret );
 	return nil;
@@ -613,7 +634,8 @@ global define list availableWorkgroups() ``{
     foreach( string line, lines, ``{
 	list cols = splitstring( line, "\t" );
 	if( cols != [] && cols[0]:"" == "WORKGROUP" ) {
-	    result = add( result, cols[1]:_("unknown") );
+	    // translators: internal error occured, should not happen
+	    result = add( result, cols[1]:_("Internal error") );
 	}
     });
     

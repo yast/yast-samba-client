@@ -51,20 +51,24 @@ global define boolean DomainMemberHandler( map options ) ``{
     
     // validate the options
     if( domain == nil ) {
-	// must provide the share name
+	// user must provide the domain name to be tested
+	// error message for isdomainmember command line action 
 	Report::Error( sformat( _("You must specify the name of a domain.") ) );
 	return false;
     }
     
     boolean result = Samba::isDomainMember( domain );
     if( result == nil ) {
+	// translators: error message for isdomainmember command line action 
 	Report::Error( _("Cannot test domain membership.") );
 	return false;
     }
     
     if( result ) {
+	// translators: result message for isdomainmember command line action 
 	CommandLine::Print( sformat( _("This machine is a member of '%1'"), domain ) );
     } else {
+	// translators: result message for isdomainmember command line action 
 	CommandLine::Print( sformat( _("This machine is not a member of '%1'"), domain ) );
     }
     
@@ -82,13 +86,15 @@ global define boolean JoinDomainHandler( map options ) ``{
     
     // validate the options
     if( domain == nil ) {
-	// must provide the share name
+	// must provide the domain name to be joined
+	// error message for joindomain command line action 
 	Report::Error( sformat( _("You must specify the name of a domain.") ) );
 	return false;
     }
     
     string result = Samba::joinDomain( domain, options["user"]:nil, options["password"]:"" );
     if( result == nil ) {
+	// translators: result message for joindomain command line action 
 	CommandLine::Print( sformat( _("Domain '%1' was successfully joined."), domain ) );
 	return true;
     } else {
@@ -123,6 +129,7 @@ any ret = nil;
 /* the command line description map */
 map cmdline = $[
     "id" 		: "samba-client",
+    // translators: command line help text for Samba client module
     "help" 		: _("Samba client configuration module.
 See Samba documentation for details."),
     "guihandler" 	: ``(SambaClientSequence()),
@@ -131,42 +138,52 @@ See Samba documentation for details."),
     "actions"		: $[
 	"winbind" :$[
 	    "handler"	: ``(WinbindEnableHandler()),
+	    // translators: command line help text for winbind action
 	    "help"	: _("Enable or disable the Winbind services (winbindd)")
 	],
 	"isdomainmember": $[
 	    "handler"	: ``(DomainMemberHandler()),
+	    // translators: command line help text for isdomainmember action
 	    "help"	: _("Check, if this machine is a member of a domain")
 	],
 	"joindomain"	: $[
 	    "handler"	: ``(JoinDomainHandler()),
+	    // translators: command line help text for joindomain action
 	    "help"	: _("Join this machine into a domain")
 	],
 	"configure"	: $[
 	    "handler"	: ``(ChangeConfiguration()),
+	    // translators: command line help text for configure action
 	    "help"	: _("Change the global settings of the Samba server")
 	]
     ],
     "options"		: $[
 	"enable" 	:$[
+	    // translators: command line help text for winbind enable option 
 	    "help"	: _("Enable the service")
 	],
 	"disable"	:$[
+	    // translators: command line help text for winbind disable option 
 	    "help"	: _("Disable the service")
 	],
 	"domain"	:$[
+	    // translators: command line help text for domain to be checked/joined 
 	    "help"	: _("The name of a domain to join"),
 	    "type"	: "string"
 	],
 	"user"		:$[
+	    // translators: command line help text for joindomain user option 
 	    "help"	: _("The user used for joining the domain. If omitted, YaST2 will
 try to join the domain without specifying user and password."),
 	    "type"	: "string"
 	],
 	"password"	:$[
+	    // translators: command line help text for joindomain password option 
 	    "help"	: _("The share used for the user when joining the domain"),
 	    "type"	: "string"
 	],
 	"workgroup"	:$[
+	    // translators: command line help text for the workgroup name option 
 	    "help"	: _("The name of a workgroup"),
 	    "type"	: "string"
 	], 
@@ -181,8 +198,9 @@ try to join the domain without specifying user and password."),
 
 /* ensure samba package is installed */
 if( !Require::RequireAndConflictTarget( ["samba-client"], [], 
+    // notification about package needed 1/2
     _("<p>To configure the Samba client, the <b>%1</b> package must be installed.</p>") +
-        // notification 2/2
+    // notification about package needed 2/2
     _("<p>Do you want to install it now?</p>")) )
 {
     return `auto;

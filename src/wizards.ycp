@@ -48,7 +48,9 @@ global define symbol SambaClientSequence() ``{
 	]
     ];
 
-    string caption = _("samba-client configuration");
+    // translators: initialization dialog caption
+    string caption = _("Samba client configuration");
+    // translators: initialization dialog contents
     term contents = `Label(_("Initializing ..."));
 
     Wizard::CreateDialog();
@@ -67,7 +69,9 @@ global define symbol SambaClientSequence() ``{
  * @return sequence result
  */
 global define symbol SambaClientAutoSequence() ``{
-    string caption = _("samba-client configuration");
+    // translators: initialization dialog caption
+    string caption = _("Samba client configuration");
+    // translators: initialization dialog contents
     term contents = `Label(_("Initializing ..."));
 
     Wizard::CreateDialog();

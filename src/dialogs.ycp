@@ -28,8 +28,10 @@ global define symbol WorkgroupDialog () ``{
     string caption = _("SAMBA workgroup");
     
     Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
+	// frame label
 	`Frame( _("Membership"), `VBox(
 	    WorkgroupWidget(),
+	    // checkbox label to enable winbind
 	    `Left(`CheckBox( `id( `winbind ), _("&Use SMB information also for Linux authentication" ), Samba::winbind ) )
 	) ) ) ), 
 	HELPS["WorkgroupDialog"]:"", Label::BackButton(), Label::FinishButton() 

@@ -6,7 +6,7 @@
 
 [Y2Module samba-client]
 
-; name of the entry, shown in y2cc
+; // name of the entry, shown in y2cc
 Name = _("Samba client")
 
 ; "raw" group name to which this module belongs
@@ -16,7 +16,7 @@ Group = Net_advanced
 ; icon displayed in y2cc
 Icon = samba-client.png
 
-; *one* *short* descriptive line for y2cc
+; // *one* *short* descriptive line for y2cc
 Helptext = _("Configure Samba client")
 
 ; arguments, seperated by space

@@ -71,7 +71,9 @@ global define map passwordUserPopup( string message, string defaultuser ) ``{
     UI::OpenDialog(
     	    `VBox( 
 		`Label( message ),
+		// text entry label
 		`TextEntry(`id(`user), _("&User name:"), defaultuser ),
+		// text entry label
     		`Password(`id(`passwd), _("&Password:") ),
     		`HBox( 
 		    `PushButton(`id(`ok), `opt(`default), Label::OKButton() ), 
@@ -115,9 +117,11 @@ global define void ProgressNextStage(string title) ``{
  * @return term the widget term
  */
 global define term WorkgroupWidget() ``{
+    // text entry label
     return `HBox( `TextEntry( `id(`workgroup), _("&Domain or workgroup"), Samba::workgroup ),
                 `VBox(
                     `Label(""),
+		    // push button label
                     `PushButton( `id(`browse), _("&Browse") )
                 )
             );
@@ -145,6 +149,7 @@ global define symbol CheckWorkgroup( string workgroup ) ``{
     // cached
     if( lastCheckedDomain == workgroup ) return lastCheckedDomainResult;
 	    
+    // translators: progress information dialog text
     UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
 	    
     if(  Samba::isDomain(workgroup) ) {
@@ -184,12 +189,17 @@ global define boolean AskJoinDomain( string workgroup, symbol status ) ``{
     
     // allow to join the domain
     if( status == `domain ) {	
-	// we don't know the domain status
+    	    // we don't know the domain status
+	    
+	    // translators: popup question, the domain status cannot be found out, ask user what to do
+	    // %1 is the domain name
 	    res = Popup::YesNo( sformat( _("Cannot automatically determine, if this host
 is a member of the domain '%1'.\n
 Do you want to join the domain '%1'?"), workgroup  ) );
 
     } else if( status == `not_joined_domain ) {
+	// translators: popup question, The workgroup is a domain in fact and the machine is not a member, ask user what to do.
+	// %1 is the domain name
 	res = Popup::YesNo( sformat( _("This host is not a member 
 of the domain '%1'.\n
 Do you want to join the domain '%1'?"), workgroup  ) );
@@ -199,6 +209,8 @@ Do you want to join the domain '%1'?"), workgroup  ) );
     if( res ) {
 	// change the dialog result back to next
 	symbol ret = `next;
+	// translators: popup to fill in the domain joining info
+	// %1 is the domain name
 	map passwd = passwordUserPopup( sformat( _("Enter the user and the password
 for joining the domain '%1'.\n
 To join the domain anonymously leave the 
@@ -234,6 +246,7 @@ global define string BrowseWorkgroups() ``{
 
     // let the user choose a workgroup
     UI::OpenDialog( `VBox(
+	// selection box label
         `SelectionBox( `id(`selection), _("Existing &workgroups:"), groups ),
         `HBox(
             `PushButton( `id(`ok), Label::OKButton() ),
