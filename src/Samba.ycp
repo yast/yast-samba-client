@@ -285,9 +285,9 @@ global string ShortSummary() {
 
     if (globals_configured) {
 	// summary item: configured workgroup
-	summary = sformat(_("<b>Workgroup or Domain</b>: %1<br>"), workgroup) +
+	summary = sformat(_("<p><b>Workgroup or Domain</b>: %1</p>"), workgroup) +
 	// summary item: authentication using winbind
-	sformat(_("<b>Authentication with SMB</b>: %1"),
+	sformat(_("<p><b>Authentication with SMB</b>: %1</p>"),
 	    // translators: winbind status in summary
 	    winbind_enabled ? _("Yes")
 	    // translators: winbind status in summary
