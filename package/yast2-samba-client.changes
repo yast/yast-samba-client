@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 24 16:16:20 CEST 2003 - visnov@suse.cz
+
+- sync settings to disk before trying to join domain (#31722 - 
+  samba-client can't join domain)
+- 2.8.11 
+
+-------------------------------------------------------------------
 Tue Sep 23 12:27:50 CEST 2003 - jsuchome@suse.cz
 
 - disable autologin when winbind is enabled (#31470)

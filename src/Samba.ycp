@@ -389,6 +389,12 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
 
     // write the settings to the disk
     WriteSettings();
+
+    // ensure writing of the settings
+    if( !SCR::Write( .etc.smb, nil ) ) {
+	// translators: error message
+	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/samba/smb.conf") );
+    }
     
     // set the actual password (-s means password on stdin)
     string cmd = "smbpasswd -j " + domain;
