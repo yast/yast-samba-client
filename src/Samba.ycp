@@ -259,7 +259,11 @@ global define boolean WriteSettings() ``{
  */
 global define boolean Import (map settings) ``{
 
-    
+    if (settings == $[] ) {
+		workgroup = "WORKGROUP";
+		winbind = false;
+		return true;
+	}
     // read global settings
     workgroup = settings["global","workgroup"]:"WORKGROUP";
 
