@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar 18 10:48:59 CET 2004 - visnov@suse.cz
+
+- restart winbind if already running (#35356) 
+- update nmbstatus info if available (#36394)
+- 2.9.9
+
+-------------------------------------------------------------------
 Mon Mar 15 18:12:09 CET 2004 - visnov@suse.cz
 
 - compilation fix
