@@ -23,6 +23,14 @@ import "Runlevel";
 
 include "samba-client/routines.ycp";
 
+
+
+
+/**
+ * list of required packages
+ */
+global list required_packages = ["samba"];
+
 global block AbortFunction = nil;
 
 /**
@@ -704,6 +712,18 @@ global define list availableWorkgroups() ``{
     
     return maplist( string group, any data, nmbstatus_output, ``( group ) );
 }
-				    
+
+
+/**
+ * Return required packages for auto-installation
+ * @return map of packages to be installed and to be removed
+ */
+global define map AutoPackages() ``{
+	return ($["install": required_packages, "remove": []]);
+
+}
+
+
+
 /* EOF */
 }
