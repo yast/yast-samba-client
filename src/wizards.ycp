@@ -14,8 +14,7 @@ textdomain "samba-client";
 import "Wizard";
 import "Label";
 import "Samba";
-
-include "wizard/sequencer.ycp";
+import "Sequencer";
 
 include "samba-client/complex.ycp";
 include "samba-client/dialogs.ycp";
@@ -50,7 +49,7 @@ symbol SambaClientSequence() {
 
     Wizard::CreateDialog();
 
-    any ret = WizardSequencer(aliases, sequence);
+    any ret = Sequencer::Run(aliases, sequence);
 
     UI::CloseDialog();
     return (symbol) ret;

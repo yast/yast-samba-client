@@ -29,7 +29,7 @@ import "Samba";
  * @param options  a list of parameters passed as args
  * @return boolean true on success
  */
-boolean WinbindEnableHandler( map options ) {
+boolean WinbindEnableHandler( map<string,string> options ) {
     // check the "command" to be present exactly once
     string command = CommandLine::UniqueOption( options, 
 	["enable", "disable" ] );

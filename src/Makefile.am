@@ -21,6 +21,11 @@ desktop_DATA =			\
 module_DATA =			\
 	Samba.ycp
 
+samba-client:
+	ln -sf . samba-client
+
+ycpchook = samba-client
+
 EXTRA_DIST = $(client_DATA) $(ynclude_DATA) $(module_DATA) $(desktop_DATA)
 
 include $(top_srcdir)/Makefile.am.common
