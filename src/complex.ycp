@@ -12,7 +12,6 @@
 textdomain "samba-client";
 
 import "Wizard";
-import "Wizard_hw";
 
 import "Samba";
 
