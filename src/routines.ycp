@@ -119,7 +119,7 @@ global define void ProgressNextStage(string title) ``{
  */
 global define term WorkgroupWidget() ``{
     // text entry label
-    return `HBox( `TextEntry( `id(`workgroup), _("&Domain or Workgroup"), Samba::workgroup ),
+    return `HBox( `TextEntry( `id(`workgroup), _("&Domain or Workgroup:"), Samba::workgroup ),
                 `VBox(
                     `Label(""),
 		    // push button label
