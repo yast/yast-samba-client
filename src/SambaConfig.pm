@@ -174,7 +174,12 @@ sub Read {
 
 	# disabled (comment-out) share
 	$Config{$share}{_disabled} = 1 if $section->{type};
-	$Config{$share}{_comment} = $section->{comment};
+	my $comment = $section->{comment};
+	$comment =~ s/^[ \t]*[;#]+[ \t]*//gm if $comment;
+	$comment =~ s/^Share disabled by YaST$//mgi if $comment;
+	$comment =~ s/^\n*// if $comment;
+	$comment =~ s/\n*$// if $comment;
+	$Config{$share}{_comment} = $comment if $comment;
 
 	foreach my $line (@{$section->{value}}) {
 	    next if $line->{kind} ne "value";
@@ -249,13 +254,15 @@ sub Write {
 	# write the type and comment of the section
 	SCR->Write(".etc.smb.section_type.$share", Integer($commentout));
 	my $comment = $Config{$share}{_comment} || "";
-	if (!$commentout) {
-	    $comment =~ s/[;#]+\s*Share disabled by YaST\s*\n//gi;
-	} elsif ($comment !~ /.*Share.*Disabled.*/i) {
-	    $comment .= "## Share disabled by YaST\n";
+	
+	$comment =~ s/\n*$//;
+	$comment =~ s/^\n*//;
+	if ($commentout && $comment !~ /.*Share.*Disabled.*/i) {
+	    $comment = ($comment?"$comment\n":"") . "## Share disabled by YaST";
 	}
-	$comment = "\n" unless $comment;
-	SCR->Write(".etc.smb.section_comment.$share", String($comment));
+	$comment =~ s/^(?![#;])/; /mg if $comment;
+	$comment .= "\n" if $comment;
+	SCR->Write(".etc.smb.section_comment.$share", String("\n$comment"));
 
 	# remove modified flag
 	$Config{$share}{_modified} = undef;

@@ -70,11 +70,14 @@ sub AdjustNsswitch {
     my ($self, $on) = @_;
 
     foreach my $db ("passwd", "group") {
-	my %nsswitch_list = map {$_, 1} @{Nsswitch->ReadDb($db)};
-        $nsswitch_list{"winbind"} = $on;
-	my $list = [grep {$nsswitch_list{$_}} keys %nsswitch_list];
-	y2debug("Nsswitch->WriteDB($db, ".Dumper($list).")");
-	Nsswitch->WriteDb($db, $list);
+	my $nsswitch = Nsswitch->ReadDb($db);
+	if ($on) {
+	    push @$nsswitch, "winbind" unless grep {$_ eq "winbind"} @$nsswitch;
+	} else {
+	    @$nsswitch = grep {$_ ne "winbind"} @$nsswitch;
+	}
+	y2debug("Nsswitch->WriteDB($db, ".Dumper($nsswitch).")");
+	Nsswitch->WriteDb($db, $nsswitch);
     };
 
     return TRUE if Nsswitch->Write();
@@ -90,26 +93,19 @@ sub AdjustPam {
     my ($self, $on) = @_;
 
     foreach my $db ("auth", "account") {
-	my @call_modules = grep {s/^call_modules=//} @{PamSettings->GetValues("pam_unix2", $db)};
-	y2debug("call_modules for $db is ".join(",",@call_modules));
-      
-	unless (@call_modules) {
-	    if ($on) {
-		# add the option
-		PamSettings->AddValue("pam_unix2", $db, "call_modules=winbind") or return FALSE;
-	    }
-	    # do nothing for off
+	my $values = PamSettings->GetValues("pam_unix2", $db);
+	my @values = grep {$_ !~ /^call_modules=/} ($values ? @$values : ());
+	my @modules = map {split(",",$_)} grep {s/^call_modules=//} ($values ? @$values : ());
+
+	if ($on) {
+	    push @modules, "winbind" unless grep {$_ eq "winbind"} @modules;
 	} else {
-	    # find out list of called modules
-	    my %mods = map {$_, 1} split ",", $call_modules[0];
-	    $mods{winbind} = $on;
-	
-	    # change the current value
-	    PamSettings->RemoveValue("pam_unix2", $db, "call_modules=$call_modules[0]") or return FALSE;
-	    my $mods = join ",", grep {$mods{$_}} keys %mods;
-	    PamSettings->AddValue("pam_unix2", $db, "call_modules=$mods") or return FALSE if $mods;
+	    @modules = grep {$_ ne "winbind"} @modules;
 	}
-    }    
+	
+	push @values, "call_modules=".join(",",@modules) if @modules;
+	PamSettings->SetValues("pam_unix2", $db, \@values);
+    }
 
     return TRUE;
 }
@@ -123,7 +119,7 @@ BEGIN{$TYPEINFO{AdjustService}=["function","boolean","boolean"]}
 sub AdjustService {
     my ($self, $on) = @_;
     my $installed = PackageSystem->Installed("samba-winbind");
-    return 1 if !$on && !$installed;	# return ok
+    return TRUE if !$on && !$installed;	# return ok
     if ($on && !$installed) {
 	y2debug("Try to enable winbind service, but samba-winbind isn't installed.");
 	return FALSE;

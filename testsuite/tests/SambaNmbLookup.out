@@ -4,8 +4,6 @@ Execute	.target.bash "rpm -q samba-client" 0
 Execute	.target.bash "rpm -q samba" 0
 Read	.init.scripts.exists "nmb" nil
 Log	Service nmb does not exist.
-Read	.init.scripts.exists "nmb" nil
-Log	Service nmb does not exist.
 Execute	.target.bash_output "/usr/bin/id --user" 0
 Execute	.background.run_output "/usr/bin/nmbstatus" true
 Dump	true
@@ -13,8 +11,6 @@ Dump	true
 Read	.background.isrunning false
 Read	.background.isrunning false
 Read	.background.newout ["WORKGROUP\tGIZO", "PDC\tGIZO", "WORKGROUP\tGIRA", "BDC\tGIRA", "WORKGROUP\tWORKGROUP"]
-Read	.init.scripts.exists "nmb" nil
-Log	Service nmb does not exist.
 Dump	true
 Dump	true
 Dump	true
