@@ -1,3 +1,10 @@
+-------------------------------------------------------------------
+Wed Jun 16 17:12:21 CEST 2004 - visnov@suse.cz
+
+- fixed testsuite
+- 2.10.0
+
+-------------------------------------------------------------------
 Thu May 13 09:07:58 CEST 2004 - visnov@suse.cz
 
 - always provide user/password when joining domain (#40439)
