@@ -282,6 +282,27 @@ global define string Summary() ``{
 }
 
 /**
+ * Create shorter textual summary and a list of unconfigured options
+ * @return summary of the current configuration
+ */
+global define string ShortSummary() ``{
+
+    string summary = "";
+
+    if( globals_configured ) {
+	// summary item:
+	summary = sformat(_("<b>Workgroup/Domain</b>: %1<br>"), workgroup) +
+	// summary item: an option is turned on
+	sformat(_("<b>Authentication with SMB</b>: %1"),
+	    deletechars (winbind ? Label::YesButton(): Label::NoButton(),"&"));
+    } else {
+	summary = Summary::NotConfigured ();
+    }
+    return summary;
+}
+
+
+/**
  * Set a host workgroup
  *
  * @param group	a new workgroup
