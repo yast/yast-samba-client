@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 21 14:57:09 CEST 2003 - visnov@suse.de
+
+- show error dialog if required packages are not installed before quit
+
+-------------------------------------------------------------------
 Wed Aug 20 15:34:00 CEST 2003 - visnov@suse.de
 
 - Do not show Initializing... dialog
