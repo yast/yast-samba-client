@@ -4,7 +4,7 @@
  * Summary:	Data for configuration of samba-client, input and output functions.
  * Authors:	Stanislav Visnovsky <visnov@suse.cz>
  *
- * $Id $
+ * $Id$
  *
  * Representation of the configuration of samba-client.
  * Input and output routines.
@@ -774,6 +774,21 @@ global define list<string> availableWorkgroups() ``{
     // TODO: inform user about problems
     
     return maplist( string group, any data, nmbstatus_output, ``( group + (isDomain (group) ? _(" (domain)") : "") ) );
+}
+
+
+/**
+ * Return a map of workgroups already existing in the lan.
+ * The value of the map is boolean indicating a domain.
+ * @return map  of found workgroups/domains
+ */
+global define map<string, boolean> PreprocessAvailableWorkgroups() ``{
+    
+    CheckNmbstatus();
+
+    // TODO: inform user about problems
+    
+    return mapmap( string group, any data, nmbstatus_output, ``( $[ group : isDomain (group)] ) );
 }
 
 
