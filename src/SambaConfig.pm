@@ -289,29 +289,39 @@ BEGIN{ $TYPEINFO{Export} = ["function", "any"]; }
 sub Export {
     my ($self) = @_;
     # remove modified flags and internal shares from config
-    my %myconfig;
+    my @myconfig;
     foreach my $share (keys %Config) {
 	next unless $Config{$share};	# skip removed shares
 	next if $share =~ /^_/;		# skip internal shares
+	my %section;
+	$section{name} = $share;
+	$section{comment} = $Config{$share}{_comment} if $Config{$share}{_comment};
+	$section{disabled} = Boolean(1) if $Config{$share}{_disabled};
 	while(my ($key, $val) = each %{$Config{$share}}) {
 	    next unless defined $val;	# skip undefined values
-	    next if $key eq "_modified"; # skip internal modified flag
-	    next if $key eq "_disabled" && !$val; # skip unnecessary internal flag
-	    $myconfig{$share}{$key} = $val;
+	    next if $key =~ /^_/;	# skip internal keys
+	    $key =~ tr/a-zA-Z/_/cs;
+	    $section{parameters}{lc $key} = $val;
 	}
+	push @myconfig, \%section;
     }
-    return \%myconfig;
+    return \@myconfig;
 }
 
 # import configuration
-BEGIN{ $TYPEINFO{Import} = ["function", "void", ["map", "any", "any"]]; }
+BEGIN{$TYPEINFO{Import} = ["function", "void", "any"]}
 sub Import {
     my ($self, $config) = @_;
     %Config = ();
     if ($config) {
-	foreach my $share (keys %$config) {
-	    while(my ($key, $val) = each %{$config->{$share}}) {
-		$Config{$share}{$key} = $val;
+	foreach my $section (@$config) {
+	    my $name = $section->{name};
+	    next unless $name;
+	    $Config{$name}{_comment} = $section->{comment} if $section->{comment};
+	    $Config{$name}{_disabled} = 1 if $section->{disabled};
+	    while(my ($key, $val) = each %{$section->{parameters}}) {
+		$key =~ tr/_/ /;
+		$Config{$name}{$key} = $val;
 	    }
 	}
     }

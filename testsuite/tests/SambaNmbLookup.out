@@ -6,6 +6,7 @@ Read	.init.scripts.exists "nmb" nil
 Log	Service nmb does not exist.
 Read	.init.scripts.exists "nmb" nil
 Log	Service nmb does not exist.
+Execute	.target.bash_output "/usr/bin/id --user" 0
 Execute	.background.run_output "/usr/bin/nmbstatus" true
 Dump	true
 Dump	true

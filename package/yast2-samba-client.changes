@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Feb 18 09:28:39 CET 2005 - mlazar@suse.cz
+
+- 2.11.4
+- fixed testsuites
+- SambaConfig.pm: fixed Export/Import (see #50736)
+
+-------------------------------------------------------------------
 Thu Feb 17 10:15:34 CET 2005 - mlazar@suse.cz
 
 - internal key "_commentout" replaced by "_disabled"
