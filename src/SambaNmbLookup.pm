@@ -1,4 +1,4 @@
-#7 File:	modules/SambaNmbLookup.pm
+# File:   	modules/SambaNmbLookup.pm
 # Package:	Configuration of samba-client
 # Summary:	Data for configuration of samba-client, input and output functions.
 # Authors:	Stanislav Visnovsky <visnov@suse.cz>
@@ -58,7 +58,7 @@ sub Start {
     }
 
     # first, check if nmbd is running
-    if (PackageSystem->Installed("samba") && Service->Status("nmb")) {
+    if (PackageSystem->Installed("samba") && Service->Status("nmb")==0) {
         $Nmbd_was_running = 1;
         y2debug("Stopping nmbd for nmbstatus");
         # FIXME: we should check, if stop did not fail
@@ -119,11 +119,11 @@ sub checkNmbstatus {
 	
 	my $current_group = "";
 	foreach (@$output) {
-	    next unless /^([^\t]+)\t(.*)$/;
+	    next unless /^([^\t]+)\t(.+)$/;
 	    if ($1 eq "WORKGROUP") {
 		$current_group = uc $2;
 		$Nmbstatus_output{$current_group} = {};
-	    } elsif ($1) {
+	    } else {
 		$Nmbstatus_output{$current_group}{uc $1} = uc $2;
 	    }
 	}

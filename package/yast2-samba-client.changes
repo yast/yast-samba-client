@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Mar  4 09:47:06 CET 2005 - mlazar@suse.cz
+
+- 2.12.1
+- SambaConfig.pm: fixed handling with comments in Read() and Write()
+- SambaNmbLookup.pm: fixed checking nmb status
+- SambaWinbind.pm: fixed AdjustNsswitch() and AdjustPam()
+- updated testsuites
+
+-------------------------------------------------------------------
 Tue Mar  1 16:04:51 CET 2005 - mlazar@suse.cz
 
 - 2.12.0
