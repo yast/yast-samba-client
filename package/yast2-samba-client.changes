@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar  8 16:35:59 CET 2004 - visnov@suse.cz
+
+- add yast2-installation to NFB
+- 2.9.6 
+
+-------------------------------------------------------------------
 Thu Mar  4 14:24:34 CET 2004 - visnov@suse.cz
 
 - also install samba-winbind (#35343) 

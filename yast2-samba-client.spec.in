@@ -1,5 +1,5 @@
 @HEADER-COMMENT@
-# neededforbuild yast2-devel-packages samba yast2-pam
+# neededforbuild yast2-devel-packages samba yast2-pam yast2-installation
 
 @HEADER@
 Requires:	yast2 yast2-pam
