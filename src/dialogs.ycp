@@ -15,6 +15,7 @@ import "Samba";
 import "Label";
 import "Popup";
 import "Wizard";
+import "Autologin";
 
 include "samba-client/helps.ycp";
 include "samba-client/routines.ycp";
@@ -84,7 +85,10 @@ for Linux authentication.
 ") );
 		continue;
 	    }
-	    
+
+	    if (ret == `next && Samba::winbind)
+		// popup text FIXME something more descriptive...
+		Autologin::AskForDisabling(_("Now you have enabled Samba."));
             break;
         }
 	else if(ret == `browse ) {
