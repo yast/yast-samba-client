@@ -39,7 +39,8 @@ symbol SambaClientSequence() {
 	],
 	"main" : $[
 	    `abort	: `abort,
-	    `next	: "write"
+	    `next	: "write",
+	    `back	: `back
 	],
 	"write" : $[
 	    `abort	: `abort,

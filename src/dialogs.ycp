@@ -102,6 +102,8 @@ for Linux authentication.
 		UI::ChangeWidget( `id(`workgroup), `Value, new_workgroup );
 	    }
 	    continue;
+	} else if (ret == `back ) {
+	    break;
 	}
     }
     
