@@ -19,13 +19,10 @@ import "Progress";
 import "Report";
 import "Summary";
 import "Runlevel";
+import "Pam";
 
 include "samba-client/routines.ycp";
 
-/**
- * Abort function
- * return boolean return true if abort
- */
 global block AbortFunction = nil;
 
 /**
@@ -33,8 +30,9 @@ global block AbortFunction = nil;
  */
 global boolean modified = false;
 
-global boolean proposal_valid = false;
-
+/**
+ * Are globals already configured (for AutoYaST)
+ */
 global boolean globals_configured = false;
 
 /**
@@ -45,16 +43,46 @@ global boolean write_only = false;
 
 /** ================================ global data =============================*/
 
+/**
+ * name of a workgroup for the host
+ */
 global string workgroup = "WORKGROUP";
+
+/**
+ * security level for the host
+ */
+global string security = "user";
+
+/**
+ * netbios name of the host
+ */
 global string netbios_name = nil;
+
+/**
+ * password server setting from smb.conf
+ */
 global string password_server = nil;
 
+/**
+ * Should be winbind enabled?
+ */
 global boolean winbind = false;
+
+/**
+ * UIDs used by winbind
+ */
 global string winbind_uid = nil;
+
+/**
+ * GIDs used by winbind
+ */
 global string winbind_gid = nil;
 
 /** ============================= end of global data ==========================*/
 
+/**
+ * Path to the nmbstatus binary
+ */
 string nmbstatus = "/usr/sbin/nmbstatus";
 
 /** ============================= defaults ====================================*/
@@ -98,6 +126,8 @@ global define boolean Read() ``{
     
     value = SCR::Read( .etc.smb.value.global."workgroup" );
     if( value != nil ) workgroup = value;
+    value = SCR::Read( .etc.smb.value.global."security" );
+    if( value != nil ) security = value;
     value = SCR::Read( .etc.smb.value.global."password server" );
     if( value != nil ) password_server = value;
     value = SCR::Read( .etc.smb.value.global."netbios name" );
@@ -184,6 +214,7 @@ global define boolean WriteSettings() ``{
 
     // write global settings
     SCR::Write( .etc.smb.value.global.workgroup, workgroup );
+    SCR::Write( .etc.smb.value.global.security, security );
     if( size(password_server) > 0 )
 	SCR::Write( .etc.smb.value.global."password server", password_server );
     
@@ -250,6 +281,11 @@ global define string Summary() ``{
     return summary;
 }
 
+/**
+ * Set a host workgroup
+ *
+ * @param workgroup	a new workgroup
+ */
 global define void setWorkgroup( string workgroup ) ``{
     if( Samba::workgroup != workgroup ) {
 	Samba::workgroup = workgroup;
@@ -257,13 +293,11 @@ global define void setWorkgroup( string workgroup ) ``{
     }
 }
 
-global define void setDescription( string description ) ``{
-    if( Samba::server_string != description ) {
-	Samba::server_string = description;
-	modified = true;
-    }
-}
-
+/**
+ * Enable or disable winbind configuration.
+ *
+ * @param status a new status
+ */
 global define void setWinbind( boolean status ) ``{
     if( Samba::winbind != status ) {
 	Samba::winbind = status;
@@ -271,9 +305,18 @@ global define void setWinbind( boolean status ) ``{
     }
 }
 
-/** Joining a domain
-Will write the configuration for domain before settings the password
-*/
+/** 
+ * Joins the host into a given domain. If user is provided, it will use
+ * the user and password for joining. If the user is nil, joining will
+ * be done anonymously.
+ *
+ * Attention: It will write the configuration for domain before settings the password
+ *
+ * @param domain	a name of a domain to be joined
+ * @param user		username to be used for joining, or nil for anonymous
+ * @param passwd	password for the user
+ * @return string	an error message or nil if successful
+ */
 global define string joinDomain( string domain, string user, string passwd ) ``{
     if( user == "" ) user = nil;
     
@@ -282,7 +325,9 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
 
     // write the settings to the disk
     WriteSettings();
+    // FIXME:
     WriteSAMBackend();
+    // FIXME:
     ReloadSettings();
     
     // set the actual password (-s means password on stdin)
@@ -308,22 +353,43 @@ global define string joinDomain( string domain, string user, string passwd ) ``{
     return res == ""? _("Unable to join the domain.") : res;
 }
 
+/**
+ * Check if this host is a member of a given domain. TODO: this does not work correctly now
+ *
+ * @param domain  a name of the domain to check
+ * @return boolean  true if the host is a member, false if not, nil on error (not possible to find out)
+ */
 global define boolean isDomainMember( string domain ) ``{
-    map ret = SCR::Execute( .target.bash_output, nmbstatus + " --members --workgroup " + domain );
-    if( ret["exit"]:-1 != 0 ) {
-        y2error( "Cannot execute nmbstatus." );
-        return nil;
+    if( Runlevel::ServiceStatus( "winbind" ) == 0 ) {
+	map res = SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
+	y2error( "wbinfo -t : %1", res );
+	if( res["exit"]:-1 != 0 ) return nil;
+	return res["stdout"]:"" == "Secret is good\n";
     }
-    
-    list members = splitstring( select( splitstring(ret["stdout"]: "", "\n"), 0, "" ), "\t" );
-    // filter out the first entry "MEMBERS"
-    members = remove( members, 0 );
-
-    y2debug( "Members found: %1", members );
-    
-    return contains( members, toupper(netbios_name) );
+    else 
+    {
+	string tmpsmbconf = SCR::Read( .target.tmpdir ) + "/smb.conf" ;
+	SCR::Write( .target.string, tmpsmbconf, "[global]\nwinbind uid = 10000-20000
+winbind gid = 10000-20000\nworkgroup = "+domain+"\nsecurity=domain\n" );
+	SCR::Execute( .background.run_output, "/usr/sbin/winbindd -s "+tmpsmbconf );
+	// sleep a bit
+	sleep( 1000 );
+	// do the test
+	map res = SCR::Execute( .target.bash_output, "LANG=C wbinfo -t" );
+	y2error( "wbinfo -t : %1", res );
+	// quit winbind
+	SCR::Execute( .background.kill );
+	if( res["exit"]:-1 != 0 ) return nil;
+	return res["stdout"]:"" == "Secret is good\n";
+    }
 }
 
+/**
+ * Check if a given workgroup is a domain or not. Tests presence of PDC or BDC in the workgroup.
+ * 
+ * @param workgroup	the name of a workgroup to be tested
+ * @return boolean	true if the workgroup is a domain
+ */
 global define boolean isDomain( string workgroup ) ``{
     integer res = SCR::Execute( .target.bash, nmbstatus + " --quiet --pdc --workgroup " + workgroup );
     
@@ -340,6 +406,12 @@ global define boolean isDomain( string workgroup ) ``{
     return false;
 }
 
+/** 
+ * Enable/disable and start/stop winbindd services.
+ *
+ * @param on the status of the winbind to be configured (true=enabled, false=disabled)
+ * @return boolean true on success
+*/
 global define boolean enableWinbind( boolean on ) ``{
     // enable winbind service
     if( ! Runlevel::ServiceAdjust( "winbind", on ? "enable": "disable" ) )
@@ -370,8 +442,10 @@ global define boolean enableWinbind( boolean on ) ``{
     return true;
 }
 
-/** Write winbindd configuration
-TODO: does not handle PAM modules ATM
+/** 
+ * Write winbindd configuration. It modifies smb.conf and nsswitch.conf.
+ *
+ * @param on the status of the winbind to be configured (true=enabled, false=disabled)
 */
 global define void WriteWinbind( boolean on ) ``{
     if( on ) {
@@ -417,13 +491,17 @@ global define void WriteWinbind( boolean on ) ``{
     if( !SCR::Write(.etc.nsswitch_conf, nil ) )
 	Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/nsswitch.conf") );
     
-    // TODO: change pam.d/login
+    // change pam.d/login
     
-    // add: auth sufficient /lib/security/pam_winbind.so
-    // add parameter: auth required ..... use_first_pass
-    // add: account sufficient /lib/security/pam_winbind.so
+    Pam::UpdatePAMLoginFor(on ? [ $["service":"winbind", "control": "sufficient" ] ] : [], ["login"] );
+
+    // TODO: add: account sufficient /lib/security/pam_winbind.so
 }
 
+/**
+ * Return a list of workgroups already existing in the lan.
+ * @return list  of found workgroups/domains
+ */
 global define list availableWorkgroups() ``{
     map ret = SCR::Execute( .target.bash_output, nmbstatus );
     if( ret["exit"]:-1 != 0 ) {

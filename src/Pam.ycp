@@ -1,0 +1,206 @@
+/**
+ * File:	modules/Pam.ycp
+ * Package:	Configuration of PAM
+ * Summary:	Data for configuration of PAM, input and output functions.
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ *
+ * Representation of the configuration of PAM.
+ * Input and output routines.
+ */
+
+{
+
+module "Pam";
+
+/**
+ * Data was modified?
+ */
+global boolean modified = false;
+
+/**
+ * Write only, used during autoinstallation.
+ * Don't run services and SuSEconfig, it's all done at one place.
+ */
+global boolean write_only = false;
+
+/** ================================ global data =============================*/
+
+map pam_files = $[];
+
+// FIXME:
+global boolean pam_unix_present = true;
+
+/** ============================= end of global data ==========================*/
+
+/**
+ * Data was modified?
+ * @return true if modified
+ */
+global define boolean Modified() ``{
+    y2debug("modified=%1",modified);
+    return modified;
+};
+
+/**
+ * Check for file existence
+ * @param path_to_file the path
+ * @return the answer
+ */
+global define boolean FileExists (string path_to_file) ``{
+
+    return (SCR::Execute (.target.bash,
+        sformat ("/usr/bin/test -e %1", path_to_file)) == 0);
+}
+
+/**
+ * Reads the contens of pam file
+ * @param name name of the file in /etc/pam.d directory
+ * @return string file contens
+ */
+global define string ReadStringFile (string name) ``{
+
+    string ret = SCR::Read (.target.string, "/etc/pam.d/" + name);
+
+    if (findlastof (ret, "\n") < size (ret) - 1)
+        ret = ret + "\n";
+//    y2milestone ("file /etc/pam.d/%1: %2", name, ret);
+    return ret;
+
+}
+
+/**
+ * Removes the old module used from authentication from pam file
+ * @param file contens
+ * @param old_module name of old module
+ * @return modified file contens
+ */
+define string RemoveOldEntry (string file, string old_module) ``{
+
+    list file_list = splitstring (file, "\n");
+    file_list = filter (`entry, file_list, ``{
+        if (findfirstof (entry, "#") != 0 &&
+            issubstring (entry, "auth") &&
+            issubstring (entry, old_module))
+            return false;
+        else return true;
+    });
+
+    file = mergestring (file_list, "\n");
+    return file;
+}
+
+define string OldEntryPresent (string file, string old_module) ``{
+
+    string result = "";
+    list file_list = splitstring (file, "\n");
+    foreach (`entry, file_list, ``{
+        if (findfirstof (entry, "#") != 0 &&
+            issubstring (entry, "auth") &&
+            issubstring (entry, old_module))
+            result = entry;
+    });
+
+    return result;
+}
+
+/**
+ * Change the authentication settings in the files in /etc/pam.d/
+ * @param files the list of files to modificate
+ * @return success
+ */
+global define boolean UpdatePAMLoginFor( list services, list files ) ``{
+
+    // FIXME: check stamp
+    // TODO: support other services
+    
+    boolean use_winbind = false;
+    
+    if( services == [] ) use_winbind = false;
+    else if( services == [ $["service":"winbind", "control":"sufficient" ] ] ) use_winbind = true;
+    else return false;
+    
+    // TODO: better handling with pam_unix2.so
+    foreach (`filename, files, ``{
+    
+	string service = "winbind";
+	string control = "sufficient";
+
+        string file_path = "/etc/pam.d/" + filename;
+        if (! FileExists (file_path))
+            return false;
+        string content = ReadStringFile(filename);
+        path unix2_path = add( add( add (.pam, filename), "auth"), "pam_unix2");
+        string unix2_entry = "auth requisite pam_unix2.so\tnullok";
+
+        if ( !use_winbind )
+        {
+            // remove the previously used entry
+            content = RemoveOldEntry (content, "pam_"+service+".so");
+        }
+	
+	string old_entry = OldEntryPresent(content, "pam_"+service);
+
+	// TODO: fix if control is a name in the rest of a line
+        if ( use_winbind && !issubstring( old_entry, control ) )
+        {
+            // add the new entry is:
+            string entry = "auth " + control + " pam_" + service+".so";
+            if (control == "sufficient")
+            {
+                //sufficient - 1st line
+                if (pam_unix_present)
+                {
+                    content = entry + "\n" + content;
+                    SCR::Write (.target.string, file_path, content);
+                    // change params for pam_unix
+                    SCR::Write (unix2_path, "+use_first_pass");
+                }
+                else
+                {
+                    content = entry + "\n" + unix2_entry + " use_first_pass\n"
+                        + content;
+                    SCR::Write (.target.string, file_path, content);
+                }
+            }
+            else if (control == "optional")
+            {
+                entry = entry + " try_first_pass";
+                //optional - last line
+                if (pam_unix_present)
+                {
+                    content = content + entry;
+                    SCR::Write (.target.string, file_path, content);
+                    // change params for pam_unix
+                    SCR::Write (unix2_path, "-use_first_pass");
+                }
+                else
+                {
+                    content = unix2_entry + "\n" + content + entry;
+                    SCR::Write (.target.string, file_path, content);
+                }
+            }
+            else if (control == "required")
+            {
+                // remove pam_unix2 - only kerberos authentication
+                // will be possible !!
+                content = RemoveOldEntry (content, "pam_unix");
+                content = entry + " rootok\n" + content;
+                SCR::Write (.target.string, file_path, content);
+            }
+        }
+        else
+        {
+            // remove service from /etc/pam.d
+            if (!pam_unix_present)
+                content = unix2_entry + "\n" + content;
+            SCR::Write (.target.string, file_path, content);
+        }
+    });
+    return true;
+}
+
+
+/* EOF */
+}

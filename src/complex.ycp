@@ -49,14 +49,5 @@ global define symbol WriteDialog() ``{
     return ret ? `next : `abort;
 }
 
-global define term WorkgroupWidget() ``{
-    return `HBox( `TextEntry( `id(`workgroup), _("Domain or workgroup"), Samba::workgroup ),
-                `VBox(
-                    `Label(""),
-                    `PushButton( `id(`browse), _("Browse") )
-                )
-            );
-}
-
 /* EOF */
 }

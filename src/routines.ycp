@@ -29,6 +29,12 @@ global define boolean PollAbort() ``{
     return UI::PollInput() == `abort;
 }
 
+/**
+ * Allow user to type in a password in a popup.
+ *
+ * @param text	a text to be displayed above the password text entry
+ * @return string entered password or nil on cancel
+ */
 global define string passwordPopup( string text ) ``{
     UI::OpenDialog(
     	    `VBox( 
@@ -48,6 +54,14 @@ global define string passwordPopup( string text ) ``{
     return passwd;
 }
 
+/**
+ * Allow user to type in a user/password pair in a popup.
+ *
+ * @param message	a text to be displayed above the password text entry
+ * @param defaultuser 	a pre-filled user name
+ * @return map		$["user": string, "password": string] with information
+ *			provided by the user or nil on cancel
+ */
 global define map passwordUserPopup( string message, string defaultuser ) ``{
     UI::OpenDialog(
     	    `VBox( 
@@ -90,6 +104,11 @@ global define void ProgressNextStage(string title) ``{
     Progress::Title(title);
 }
 
+/**
+ * Return a complex widget for setting a workgroup or domain. Contains Browse button.
+ *
+ * @return term the widget term
+ */
 global define term WorkgroupWidget() ``{
     return `HBox( `TextEntry( `id(`workgroup), _("Domain or workgroup"), Samba::workgroup ),
                 `VBox(
@@ -103,8 +122,19 @@ global define term WorkgroupWidget() ``{
  * Do not repeat the last test of domain/workgroup
  */
 global string lastCheckedDomain = nil;
+
+/*
+ * Do not repeat the last test of domain/workgroup
+ */
 global symbol lastCheckedDomainResult = nil;
 
+/**
+ * Check, if the workgroup is a domain or a workgroup. If it is a domain,
+ * offer to join the domain. Uses caching to avoid long checks of a workgroup members.
+ *
+ * @param workgroup	the workgroup to be checked
+ * @return symbol	type of the workgroup: `domain, `workgroup or nil if error
+ */
 global define symbol CheckWorkgroup( string workgroup ) ``{
     symbol ret = nil;
     // cached
@@ -131,9 +161,10 @@ global define symbol CheckWorkgroup( string workgroup ) ``{
 is a member of the domain '%1'.\n
 Do you want to join the domain '%1'?"), workgroup  ) );
 	} else {
-	    ret = Popup::YesNo( sformat( _("This host is not a member 
+	    if( Popup::YesNo( sformat( _("This host is not a member 
 of the domain '%1'.\n
-Do you want to join the domain '%1'?"), workgroup  ) );
+Do you want to join the domain '%1'?"), workgroup  ) ) ) ret = `yes;
+	    else ret = `no;
 	}
 		
 	if( ret == `yes ) {
@@ -164,6 +195,11 @@ text entries empty."), workgroup ), "Administrator" );
     return `domain;
 }
 
+/**
+ * Show a selection popup to select a workgroup from the ones existing on LAN.
+ *
+ * @return string chosen workgroup or nil if cancelled
+ */
 global define string BrowseWorkgroups() ``{
    list groups = Samba::availableWorkgroups();
 

@@ -21,6 +21,12 @@ import "Require";
 
 include "commandline/commandline.ycp";
 
+/**
+ * Enable or disable winbind service (high-level)
+ *
+ * @param options  a list of parameters passed as args
+ * @return boolean true on success
+ */
 global define boolean WinbindEnableHandler( map options ) ``{
     // check the "command" to be present exactly once
     string command = CommandLine::UniqueOption( options, 
@@ -30,6 +36,12 @@ global define boolean WinbindEnableHandler( map options ) ``{
     return Samba::enableWinbind( command == "enable" );
 }
 
+/**
+ * Check domain membership.
+ * 
+ * @param options  a list of parameters passed as args
+ * @return boolean true on success
+ */
 global define boolean DomainMemberHandler( map options ) ``{
 
     string domain = options["domain"]:nil;
@@ -56,6 +68,12 @@ global define boolean DomainMemberHandler( map options ) ``{
     return true;
 }
 
+/**
+ * Join a domain.
+ * 
+ * @param options  a list of parameters passed as args
+ * @return boolean true on success
+ */
 global define boolean JoinDomainHandler( map options ) ``{
     string domain = options["domain"]:nil;
     
@@ -76,6 +94,12 @@ global define boolean JoinDomainHandler( map options ) ``{
     }
 }
 
+/**
+ * Change workgroup name.
+ * 
+ * @param options  a list of parameters passed as args
+ * @return boolean true on success
+ */
 global define boolean ChangeConfiguration( map options ) ``{
 	
     string value = options["workgroup"]:nil;
@@ -93,6 +117,7 @@ include "samba-client/wizards.ycp";
 /* main ui function */
 any ret = nil;
 
+/* the command line description map */
 map cmdline = $[
     "id" 		: "samba-client",
     "help" 		: _("Samba client configuration module.
