@@ -1,2 +1,1 @@
-Execute	.target.bash_output "/usr/bin/nmbstatus" $["exit":0, "stderr":"Found 10 hosts. Collecting additional information. Please wait.\n..........\n", "stdout":"WORKGROUP\tDEBIAN_FANS\nLMB\tBRAHMA\nMEMBERS\tBRAHMA\n\nWORKGROUP\tTUX-NET\nLMB\tVALKYRIE\nMEMBERS\tVALKYRIE\n\n"]
 Return	nil

@@ -8,25 +8,24 @@
     import "Samba";
     
     include "samba-client/routines.ycp";
+    
+    Samba::nmbstatus_running = false;
+    Samba::nmbstatus_output = $[
+	"DEBIAN_FANS" : $[
+	    "LMB": "BRAHMA",
+	    "MEMBERS": "BRAHMA"
+	],
+	"FAXSERVER" : $[
+	    "LMB":	"TEST1",
+	    "MEMBERS":  "TEST1"
+	],
+	"MYDOMAIN" : $[
+	    "PDC" : "SUSIK",
+	    "DMB" : "SUSIK",
+	    "LMB" : "SUSIK",
+	    "MEMBERS" : "SUSIK"
+	]
+    ];
 
-    TEST( ``( BrowseWorkgroups() ), [ $[], $[], 
-	$[ 
-	    "target" : $[ "bash_output" : 
-		$[ 
-		    "exit": 0,
-		    "stdout" : "WORKGROUP	DEBIAN_FANS
-LMB	BRAHMA
-MEMBERS	BRAHMA
-
-WORKGROUP	TUX-NET
-LMB	VALKYRIE
-MEMBERS	VALKYRIE
-
-",
-		    "stderr" : "Found 10 hosts. Collecting additional information. Please wait.
-..........
-"
-		]
-	] ] 
-    ], nil );
+    TEST( ``( BrowseWorkgroups() ), [], nil );
 }

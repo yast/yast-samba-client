@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 30 14:20:24 CEST 2003 - visnov@suse.de
+
+- start nmbstatus as soon as possible
+
+-------------------------------------------------------------------
 Mon Jul 28 17:17:22 CEST 2003 - visnov@suse.de
 
 - support for call_modules option in pam_unix2.conf

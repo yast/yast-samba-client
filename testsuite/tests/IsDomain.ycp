@@ -7,18 +7,28 @@
     
     import "Samba";
 
-    // reasonable result, is not domain
-    TEST( ``( Samba::isDomain("MYDOMAIN") ), [ $[], $[], 
-	$[ 
-	    "target" : $[ "bash" : 0 ]
-	]
-    ], nil );
+    Samba::nmbstatus_running = false;
+    Samba::nmbstatus_output = $[
+        "DEBIAN_FANS" : $[
+            "LMB": "BRAHMA",
+            "MEMBERS": "BRAHMA"
+        ],
+        "FAXSERVER" : $[
+            "LMB":      "TEST1",
+            "MEMBERS":  "TEST1"
+        ],
+        "MYDOMAIN" : $[
+            "PDC" : "SUSIK",
+            "DMB" : "SUSIK",
+            "LMB" : "SUSIK",
+            "MEMBERS" : "SUSIK"
+        ]
+    ];
 
     // reasonable result, is not domain
-    TEST( ``( Samba::isDomain("MYDOMAIN") ), [ $[], $[], 
-	$[ 
-	    "target" : $[ "bash" : 1 ]
-	]
-    ], nil );
+    TEST( ``( Samba::isDomain("FAXSERVER") ), [], nil );
+
+    // reasonable result, is domain
+    TEST( ``( Samba::isDomain("MYDOMAIN") ), [], nil );
 
 }

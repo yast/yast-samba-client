@@ -156,7 +156,7 @@ global define symbol CheckWorkgroup( string workgroup ) ``{
 	    
     // translators: progress information dialog text
     UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
-	    
+    
     if(  Samba::isDomain(workgroup) ) {
 	// handle domain joining
 	boolean res = Samba::isDomainMember( workgroup );
@@ -166,7 +166,7 @@ global define symbol CheckWorkgroup( string workgroup ) ``{
 	lastCheckedDomainResult = `domain;
 		
 	// we the host is already in domain, continue
-	if( res ) ret = `joined_domain;
+	if( res == true ) ret = `joined_domain;
 	else if( res != nil ) ret = `not_joined_domain;
 	else ret = `domain;
     } else {
