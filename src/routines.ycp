@@ -103,11 +103,12 @@ global define term WorkgroupWidget() ``{
  * Do not repeat the last test of domain/workgroup
  */
 global string lastCheckedDomain = nil;
+global symbol lastCheckedDomainResult = nil;
 
-global define boolean CheckWorkgroup( string workgroup ) ``{
+global define symbol CheckWorkgroup( string workgroup ) ``{
     symbol ret = nil;
     // cached
-    if( lastCheckedDomain == workgroup ) return true;
+    if( lastCheckedDomain == workgroup ) return lastCheckedDomainResult;
 	    
     UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
 	    
@@ -119,9 +120,10 @@ global define boolean CheckWorkgroup( string workgroup ) ``{
 		
 	// caching
 	lastCheckedDomain = workgroup;
+	lastCheckedDomainResult = `domain;
 		
 	// we the host is already in domain, continue
-	if( res ) return true;
+	if( res ) return `domain;
 		
 	// allow to join the domain
 	if( res == nil ) {
@@ -142,21 +144,24 @@ for joining the domain '%1'.\n
 To join the domain anonymously leave the 
 text entries empty."), workgroup ), "Administrator" );
 	    // cancelled the domain joining
-	    if( passwd == nil ) return false;
+	    if( passwd == nil ) return nil;
 		    
 	    // try to join the domain
 	    string error = Samba::joinDomain( workgroup, passwd["user"]:nil, passwd["password"]:"" );
 	    if(  error != nil )
 	    {
 		Popup::Error( error );
-		return false;
+		return nil;
 	    }
 	    // Translators: Information popup, %1 is the name of the domain
 	    else Popup::Message( sformat( _("Domain '%1' was successfully joined."), Samba::workgroup )) ;
 	}
-    } else UI::CloseDialog();
+    } else {
+	UI::CloseDialog();
+	return `workgroup;
+    }
     
-    return true;	    
+    return `domain;
 }
 
 global define string BrowseWorkgroups() ``{
