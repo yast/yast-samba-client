@@ -529,6 +529,7 @@ global define void CheckNmbstatus() ``{
 	
 	y2debug( "nmbstatus result: %1", output );
 	
+	nmbstatus_available = true;
 	nmbstatus_running = false;
 	nmbstatus_output = $[];
 	
@@ -616,6 +617,13 @@ global define boolean enableWinbind( boolean on ) ``{
 		// translators: error message
 		Report::Error( _("Cannot start 'winbind' service.") );
 	    }
+	}
+	else
+	{
+	    // the service is running, restart it
+	    if( ! Service::Restart( "winbind" ) ) {
+		// translators: error message
+		Report::Error( _("Cannot start 'winbind' service.") );	    
 	}
 
 	// stop nscd daemon	
