@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 17 15:35:13 CEST 2003 - visnov@suse.de
+
+- we require "samba-client", not "samba" package
+- 2.8.9 
+
+-------------------------------------------------------------------
 Tue Sep  9 08:36:18 CEST 2003 - visnov@suse.de
 
 - #30300: don't misinform  user about required apache2 package
