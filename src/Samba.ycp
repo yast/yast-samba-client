@@ -128,6 +128,13 @@ global map<string,any> nmbstatus_output = $[];
 global boolean nmbstatus_available = false;
 
 /**
+ * Flag, if we should restart nmbd after finishing nmbstatus.
+ * nmbd must be stopped, when doing nmbstatus, otherwise only
+ * local host is shown.
+ */
+boolean nmbd_was_running = false;
+
+/**
  * level of a domain membership when joining
  * possible values are "member", "bdc" and "pdc"
  */
@@ -212,10 +219,29 @@ global define boolean Read() ``{
     ProgressNextStage(_("Finished"));
     
     // start nmbstatus
+    
+    // first, check if nmbd is running
+    if (Service::Status ("nmb") == 0)
+    {
+	nmbd_was_running = true;
+	
+	y2milestone ("Stopping nmbd for nmbstatus");
+	// FIXME: we should check, if stop did not fail
+	Service::Stop ("nmb");
+    }
+    
     nmbstatus_running = (boolean) SCR::Execute(.background.run_output, nmbstatus);
     if( ! nmbstatus_running ) {
 	y2error( "Cannot start nmbstatus" );
 	nmbstatus_available = false;
+	
+	// restore nmbd
+	if (nmbd_was_running)
+	{
+	    y2milestone ("Restarting nmbd for nmbstatus");
+	    Service::Start ("nmb");
+	    nmbd_was_running = false;
+	}
     }
 
     modified = false;
@@ -538,7 +564,14 @@ global define void CheckNmbstatus() ``{
 		nmbstatus_output[current_group, parts[0]:"error" ] = parts[1]:"error";
 	    } // skip empty lines
 	});
-	
+
+	// restore nmbd
+	if (nmbd_was_running)
+	{
+	    y2milestone ("Restarting nmbd for nmbstatus");
+	    Service::Start ("nmb");
+	    nmbd_was_running = false;
+	}	
     }
 }
 
