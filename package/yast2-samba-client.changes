@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 30 08:11:35 CET 2004 - visnov@suse.cz
+
+- first version for the new interpreter
+- 2.9.2 
+
+-------------------------------------------------------------------
 Wed Oct 29 08:52:52 CET 2003 - visnov@suse.cz
 
 - adapted testsuite
