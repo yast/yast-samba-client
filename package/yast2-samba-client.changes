@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 20 15:34:00 CEST 2003 - visnov@suse.de
+
+- Do not show Initializing... dialog
+
+-------------------------------------------------------------------
 Mon Aug 11 08:46:29 CEST 2003 - visnov@suse.de
 
 - added desktop file

@@ -48,14 +48,7 @@ global define symbol SambaClientSequence() ``{
 	]
     ];
 
-    // translators: initialization dialog caption
-    string caption = _("Samba Client Configuration");
-    // translators: initialization dialog contents
-    term contents = `Label(_("Initializing ..."));
-
     Wizard::CreateDialog();
-    Wizard::SetContentsButtons(caption, contents, "",
-	    Label::BackButton(), Label::NextButton());
 
     any ret = WizardSequencer(aliases, sequence);
 
