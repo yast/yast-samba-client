@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  6 10:07:24 CEST 2004 - mlazar@suse.cz
+
+- fixed typo
+
+-------------------------------------------------------------------
 Mon Sep  6 10:00:56 CEST 2004 - mlazar@suse.cz
 
 - Added GetModified, SetModified for autoyast

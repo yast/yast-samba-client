@@ -102,7 +102,7 @@ else if (func == "GetModified") {
  * return boolean
  */
 else if (func == "SetModified") {
-    Samaba::modified = true;
+    Samba::modified = true;
     ret = true;
 }
 
