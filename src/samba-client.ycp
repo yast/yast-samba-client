@@ -204,15 +204,15 @@ if( !Require::RequireAndConflictTarget( Samba::required_packages, [],
     // notification about package needed 2/2
     _("<p>Do you want to install it now?</p>")) )
 {
-    if( !Require::IsPackageAvailable( "apache2" ) ) {
+    if( !Require::IsPackageAvailable( "samba-client" ) ) {
         // translators: error popup before aborting the module
         Popup::Error( sformat( _("<p>The package <b>%1</b> is not available.<br>
 YaST2 cannot continue the configuration
 without installing the package.</p>"), "samba-client" ) );
     } else {
         // translators: error popup before aborting the module
-        Popup::Error( sformat( _("YaST2 cannot continue the configuration
-without installing the required packages."), "samba-client" ) );
+        Popup::Error( _("YaST2 cannot continue the configuration
+without installing the required packages.") );
     }
 
     return false;
