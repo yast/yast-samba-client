@@ -83,7 +83,7 @@ else if (func == "Read") {
 /* Write givven settings */
 else if (func == "Write") {
     import "Progress";
-    boolean po = Progress::off(false);
+    boolean po = Progress::set(false);
     ret = Samba::Write(true);
     Progress::set(po);
 }

@@ -199,7 +199,7 @@ sub Write {
 
     # first, write the global settings complete
     if ($forceWrite or $Config{global}{_modified}) {
-	foreach my $key (keys %{$Config{global}}) {
+	foreach my $key (sort keys %{$Config{global}}) {
 	    next if $key =~ /^_/;	# skip internal keys
 	    my $val = $Config{global}{$key};
 	    if (!defined $val) {
@@ -219,13 +219,13 @@ sub Write {
     }
 
     # remove removed shares first
-    foreach my $share (grep {!$Config{$_}} keys %Config) {
+    foreach my $share (sort grep {!$Config{$_}} keys %Config) {
 	SCR->Write(".etc.smb.section.$share", undef);
     };
     $Config{_removed} = undef; # remove modified flag
 
     # write shares
-    foreach my $share (keys %Config) {
+    foreach my $share (sort keys %Config) {
 	next unless $Config{$share};	# skip removed shares
 	next if $share eq "global";	# skip global section
 	next if $share =~ /^_/;		# skip internal shares
@@ -235,7 +235,7 @@ sub Write {
 	my $commentout = $Config{$share}{_commentout} ? 1 : 0;
 	
 	# write all the options
-	foreach my $key (keys %{$Config{$share}}) {
+	foreach my $key (sort keys %{$Config{$share}}) {
 	    next if $key =~ /^_/;	# skip our internal options
 	    my $val = $Config{$share}{$key};
 	    if (!defined $val) {
