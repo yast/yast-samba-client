@@ -67,7 +67,7 @@ sub Start {
     
     # start nmbstatus
     my $out = SCR->Execute(".target.bash_output", "/usr/bin/id --user");
-    if ($out->{stdout} == 0) {
+    if ($out && $out->{stdout} == 0) {
 	$Nmbstatus_running = SCR->Execute(".background.run_output", "su nobody -c " . NMBSTATUS_EXE);
     } else {
 	$Nmbstatus_running = SCR->Execute(".background.run_output", NMBSTATUS_EXE);
