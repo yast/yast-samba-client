@@ -62,7 +62,7 @@ define map<string, string> passwordUserPopup( string message, string defaultuser
  * @return true if abort is confirmed
  */
 define boolean ReallyAbort() ``{
-    return Stage::cont() ?
+    return (Stage::cont() && !contains (WFM::Args (), "from_users")) ?
 	Popup::ConfirmAbort (`incomplete) :
 	(!Samba::GetModified() || Popup::ReallyAbort(true));
 }
