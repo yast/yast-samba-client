@@ -4,7 +4,7 @@
  * Summary:	Data for configuration of samba-client, input and output functions.
  * Authors:	Stanislav Visnovsky <visnov@suse.cz>
  *
- * $Id$
+ * $Id $
  *
  * Representation of the configuration of samba-client.
  * Input and output routines.
@@ -432,22 +432,6 @@ global define void setWorkgroup( string group ) ``{
  */
 global define void setWinbind( boolean status ) ``{
     if( winbind != status ) {
-	import "Popup";
-	import "Mode";
-
-	// check the nscd status first, if enabling
-	if ( !Mode::config && status && Service::Enabled ("nscd") && ! Popup::ContinueCancel (
-	    _("The service 'nscd' is enabled,
-but the service 'winbind' used for
-the SMB authentication does not work
-with 'nscd' enabled.
-The 'nscd' service will be disabled.
-") ) )
-	{
-	    // don't enable winbind
-	    return;
-	}
-	
 	winbind = status;
 	modified = true;
     }
@@ -613,14 +597,6 @@ global define boolean enableWinbind( boolean on ) ``{
 	return false;
     }
     
-    // disable nscd service, if needed
-    if( on && ! Service::Disable ("nscd") )
-    {
-	// translators: error message
-	Report::Error( _("Cannot stop nscd daemon."));
-	return false;
-    }
-    
     winbind = on;
     
     modified = true;
@@ -648,14 +624,6 @@ global define boolean enableWinbind( boolean on ) ``{
 	    if( ! Service::Restart( "winbind" ) ) {
 		// translators: error message
 		Report::Error( _("Cannot start 'winbind' service.") );	    
-	    }
-	}
-
-	// stop nscd daemon	
-	if( Service::Status( "nscd" ) == 0 ) {
-	    if ( ! Service::Stop ( "nscd" ) ){
-		// translators: error message
-		Report::Error( _("Cannot stop 'nscd' service.") );
 	    }
 	}
     } else {

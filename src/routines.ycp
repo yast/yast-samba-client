@@ -56,7 +56,7 @@ define string passwordPopup( string text ) ``{
     string passwd = nil;
     if (ret == `ok)
     {
-	string passwd = (string) UI::QueryWidget(`id(`passwd), `Value);
+	passwd = (string) UI::QueryWidget(`id(`passwd), `Value);
     }
 
     UI::CloseDialog();

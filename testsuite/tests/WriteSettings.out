@@ -11,8 +11,6 @@ Read	.etc.security.v."pam_unix2"."auth" nil
 Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."account" nil
 Return	nil
-Read	.init.scripts.exists "nscd" true
-Read	.init.scripts.runlevel "nscd" $[]
 Write	.etc.smb.value.global.workgroup "othertesting" true
 Write	.etc.smb.value.global.security "user" true
 Write	.etc.smb.value.global."encrypt passwords" "yes" true

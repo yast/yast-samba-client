@@ -1,5 +1,3 @@
-Read	.init.scripts.exists "nscd" true
-Read	.init.scripts.runlevel "nscd" $[]
 Dump	true
 Dump	true
 Dump	true
