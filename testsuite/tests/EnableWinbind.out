@@ -10,6 +10,8 @@ Read	.init.scripts.runlevel "nscd" nil
 Read	.init.scripts.comment "nscd" nil
 Read	.init.scripts.exists "winbind" true
 Execute	.target.bash "/etc/init.d/winbind status" $["TERM":"raw"] 0
+Read	.init.scripts.exists "winbind" true
+Execute	.target.bash "/etc/init.d/winbind restart" $["TERM":"raw"] 0
 Read	.init.scripts.exists "nscd" true
 Execute	.target.bash "/etc/init.d/nscd status" $["TERM":"raw"] 0
 Read	.init.scripts.exists "nscd" true
