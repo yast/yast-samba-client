@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 23 12:27:50 CEST 2003 - jsuchome@suse.cz
+
+- disable autologin when winbind is enabled (#31470)
+- 2.8.10
+
+-------------------------------------------------------------------
 Wed Sep 17 15:35:13 CEST 2003 - visnov@suse.de
 
 - we require "samba-client", not "samba" package

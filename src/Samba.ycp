@@ -526,6 +526,24 @@ global define boolean isDomain( string workgroup ) ``{
     return false;
 }
 
+    /**
+     * Disable autologin feature when samba is started
+     */
+    global define boolean DisableAutologin () ``{
+
+	if (SCR::Read (.sysconfig.displaymanager.DISPLAYMANAGER) == "kdm" &&
+	    SCR::Read (.sysconfig.displaymanager.DISPLAYMANAGER_AUTOLOGIN)!="")
+	{
+	    SCR::Write (.sysconfig.displaymanager.DISPLAYMANAGER_AUTOLOGIN, "");
+	    SCR::Write (.sysconfig.displaymanager.DISPLAYMANAGER_PASSWORD_LESS_LOGIN, "no");
+	    SCR::Write(.sysconfig.displaymanager, nil);
+
+	    if (!write_only)
+		SCR::Execute (.target.bash, "/sbin/SuSEconfig --module kdm3");
+	}
+	return true;
+    }
+
 /** 
  * Enable/disable and start/stop winbindd services.
  *
@@ -547,6 +565,9 @@ global define boolean enableWinbind( boolean on ) ``{
     
     modified = true;
     
+    if (on)
+	DisableAutologin ();
+
     if( write_only ) return true;
     
     if( on ) {
