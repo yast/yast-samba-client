@@ -39,7 +39,7 @@ sub Test {
     my $cmd = "LANG=C net rpc testjoin -s /dev/zero -w '$domain'" . ($netbios_name?" -n '$netbios_name'":"");
     my $res = SCR->Execute(".target.bash_output", $cmd);
     y2debug("$cmd => ".Dumper($res));
-    return $TestJoinCache{$domain} = ($res && $res->{exit}==0);
+    return $TestJoinCache{$domain} = ($res && defined $res->{exit} && $res->{exit}==0);
 }
 
 # Joins the host into a given domain. If user is provided, it will use
@@ -68,7 +68,7 @@ sub Join {
     y2debug("$cmd => ".Dumper($result));
     
     # check the exit code, return nil on success
-    if ($result && $result->{exit} == 0) {
+    if ($result && defined $result->{exit} && $result->{exit} == 0) {
 	$TestJoinCache{$domain} = 1;
 	return undef;
     }

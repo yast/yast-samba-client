@@ -1,4 +1,19 @@
 -------------------------------------------------------------------
+Fri Mar  4 10:37:22 CET 2005 - mlazar@suse.cz
+
+- SambaConfig.pm:
+   * removed config2all(), Config2All()
+   * [Share]SetModified() now return false if modified flag alrady set
+   * added UnsetModified()
+   * Dump() display configuration in smb.conf-like format
+   * Import() support also hashes (for easer testing)
+- SambaNetJoin.pm: better tests exit status
+- SambaNmbLookup.pm:
+   * global variables changed from 'my' to 'our' (for testing)
+   * better test exit status
+   * GetAvailableDomains/Neighbours() now return sorted list
+
+-------------------------------------------------------------------
 Fri Mar  4 09:47:06 CET 2005 - mlazar@suse.cz
 
 - 2.12.1
