@@ -2,6 +2,7 @@
 
 // test for Samba::joinDomain( domain, user, password )
 // $Id$
+// testedfiles:Samba.ycp PamSettings.ycp
 
     include "testsuite.ycp";
     

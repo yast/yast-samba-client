@@ -2,6 +2,7 @@
 
 // test for Samba::WriteWinbind() write Winbind configuration
 // $Id$
+// testedfiles:Samba.ycp PamSettings.ycp
 
     include "testsuite.ycp";
     
