@@ -1,0 +1,174 @@
+/**
+ * File:	clients/samba-client.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Main file
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ *
+ * Main file for samba-client configuration. Uses all other files.
+ */
+
+{
+
+/***
+ * <h3>Configuration of the samba-client</h3>
+ */
+
+textdomain "samba-client";
+
+import "Require";
+
+include "commandline/commandline.ycp";
+
+global define boolean WinbindEnableHandler( map options ) ``{
+    // check the "command" to be present exactly once
+    string command = CommandLine::UniqueOption( options, 
+	["enable", "disable" ] );
+    if( command == nil ) return false;
+
+    return Samba::enableWinbind( command == "enable" );
+}
+
+global define boolean DomainMemberHandler( map options ) ``{
+
+    string domain = options["domain"]:nil;
+    
+    // validate the options
+    if( domain == nil ) {
+	// must provide the share name
+	Report::Error( sformat( _("You must specify the name of a domain.") ) );
+	return false;
+    }
+    
+    boolean result = Samba::isDomainMember( domain );
+    if( result == nil ) {
+	Report::Error( _("Cannot test domain membership.") );
+	return false;
+    }
+    
+    if( result ) {
+	CommandLine::Print( sformat( _("This machine is a member of '%1'"), domain ) );
+    } else {
+	CommandLine::Print( sformat( _("This machine is not a member of '%1'"), domain ) );
+    }
+    
+    return true;
+}
+
+global define boolean JoinDomainHandler( map options ) ``{
+    string domain = options["domain"]:nil;
+    
+    // validate the options
+    if( domain == nil ) {
+	// must provide the share name
+	Report::Error( sformat( _("You must specify the name of a domain.") ) );
+	return false;
+    }
+    
+    string result = Samba::joinDomain( domain, options["user"]:nil, options["password"]:"" );
+    if( result == nil ) {
+	CommandLine::Print( sformat( _("Domain '%1' was successfully joined."), domain ) );
+	return true;
+    } else {
+	Report::Error( result );
+	return false;
+    }
+}
+
+global define boolean ChangeConfiguration( map options ) ``{
+	
+    string value = options["workgroup"]:nil;
+    if( value != nil ) Samba::setWorkgroup(value);
+
+    return true;
+}
+
+/* The main () */
+y2milestone ("----------------------------------------");
+y2milestone ("Samba-client module started");
+
+include "samba-client/wizards.ycp";
+
+/* main ui function */
+any ret = nil;
+
+map cmdline = $[
+    "id" 		: "samba-client",
+    "help" 		: _("Samba client configuration module.
+See Samba documentation for details."),
+    "guihandler" 	: ``(SambaClientSequence()),
+    "initialize"	: ``(Samba::Read()),
+    "finish"		: ``(Samba::Write()),
+    "actions"		: $[
+	"winbind" :$[
+	    "handler"	: ``(WinbindEnableHandler()),
+	    "help"	: _("Enable or disable the Winbind services (winbindd)")
+	],
+	"isdomainmember": $[
+	    "handler"	: ``(DomainMemberHandler()),
+	    "help"	: _("Check, if this machine is a member of a domain")
+	],
+	"joindomain"	: $[
+	    "handler"	: ``(JoinDomainHandler()),
+	    "help"	: _("Join this machine into a domain")
+	],
+	"configure"	: $[
+	    "handler"	: ``(ChangeConfiguration()),
+	    "help"	: _("Change the global settings of the Samba server")
+	]
+    ],
+    "options"		: $[
+	"enable" 	:$[
+	    "help"	: _("Enable the service")
+	],
+	"disable"	:$[
+	    "help"	: _("Disable the service")
+	],
+	"domain"	:$[
+	    "help"	: _("The name of a domain to join"),
+	    "type"	: "string"
+	],
+	"user"		:$[
+	    "help"	: _("The user used for joining the domain. If omitted, YaST2 will
+try to join the domain without specifying user and password."),
+	    "type"	: "string"
+	],
+	"password"	:$[
+	    "help"	: _("The share used for the user when joining the domain"),
+	    "type"	: "string"
+	],
+	"workgroup"	:$[
+	    "help"	: _("The name of a workgroup"),
+	    "type"	: "string"
+	], 
+    ],
+    "mappings"		: $[
+	"winbind" 	: [ "enable", "disable" ],
+	"isdomainmember": [ "domain" ],
+	"joindomain"	: [ "domain", "user", "password" ],
+	"configure"	: [ "workgroup" ]
+    ]
+];
+
+/* ensure samba package is installed */
+if( !Require::RequireAndConflictTarget( ["samba-client"], [], 
+    _("<p>To configure the Samba client, the <b>%1</b> package must be installed.</p>") +
+        // notification 2/2
+    _("<p>Do you want to install it now?</p>")) )
+{
+    return `auto;
+}
+
+ret = CommandLineRun( cmdline );
+
+y2debug("ret=%1", ret);
+
+/* Finish */
+y2milestone("Samba-client module finished");
+y2milestone("----------------------------------------");
+
+return ret;
+
+/* EOF */
+}

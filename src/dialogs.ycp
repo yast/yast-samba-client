@@ -1,0 +1,76 @@
+/* File:	include/samba-client/dialogs.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Dialogs definitions
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+import "Samba";
+import "Label";
+import "Popup";
+
+include "samba-client/helps.ycp";
+include "samba-client/routines.ycp";
+
+/**
+ * SAMBA workgroup dialog
+ * @return dialog result
+ */
+global define symbol WorkgroupDialog () ``{
+
+    /* Samba-client workgroup dialog caption */
+    string caption = _("SAMBA workgroup");
+    
+    Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
+	`Frame( _("Membership"), `VBox(
+	    WorkgroupWidget(),
+	    `Left(`CheckBox( `id( `winbind ), _("Use SMB information also for Linux authentication" ), Samba::winbind ) )
+	) ) ) ), 
+	HELPS["WorkgroupDialog"]:"", Label::BackButton(), Label::FinishButton() 
+    );
+    
+    Wizard::ReplaceBackButton( `Empty() );
+    
+    any ret = nil;
+    while(true) {
+
+	ret = UI::UserInput();
+	
+	/* abort? */
+	if(ret == `abort || ret == `cancel) {
+	    if(ReallyAbort()) break;
+	    else continue;
+	}
+        else if(ret == `next || ret == `advanced ) {
+	    Samba::setWorkgroup( UI::QueryWidget( `id( `workgroup ), `Value ) );
+	    Samba::setWinbind( UI::QueryWidget( `id( `winbind ), `Value ) );
+	    
+	    CheckWorkgroup( Samba::workgroup );
+	    
+            break;
+        }
+	else if(ret == `browse ) {
+	
+	    string new_workgroup = BrowseWorkgroups();
+	    
+	    if( new_workgroup != nil ) {
+		// fill in the new workgroup name
+		UI::ChangeWidget( `id(`workgroup), `Value, new_workgroup );
+	    }
+	    continue;
+	}
+    }
+    
+    Wizard::RestoreNextButton();
+    Wizard::RestoreBackButton();
+    
+    return ret;
+}
+
+/* EOF */
+}

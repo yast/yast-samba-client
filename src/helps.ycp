@@ -1,0 +1,56 @@
+/**
+ * File:	include/samba-client/helps.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Help texts of all the dialogs
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+/**
+ * All helps are here
+ */
+global map HELPS = $[
+
+    /* Read dialog help 1/2 */
+    "read" : _("<p><b><big>Initializing Samba client configuration</big></b><br>
+Please wait for a while...<br></p>") +
+
+    /* Read dialog help 2/2 */
+    _("<p><b><big>Aborting the initialization:</big></b><br>
+Safely abort the configuration utility by pressing the <b>Abort</b> now.</p>"),
+
+    /* Write dialog help 1/2 */
+    "write" : _("<p><b><big>Saving Samba client configuration</big></b><br>
+Please wait for a while...<br></p>") +
+
+    /* Write dialog help 2/2 */
+_("<p><b><big>Aborting the saving:</big></b><br>
+You can abort the saving by pressing the <b>Abort</b> button.
+An additional dialog will inform you whether it is safe to do so or not.
+</p>"),
+
+    /* Samba workgroup dialog help 1/3 */
+    "WorkgroupDialog" : _("<p><b><big>Selection of Samba workgroup</big></b><br>
+A Samba client can be a member of a workgroup or NT domain.<br>
+Here you can specify the name of the workgroup. The <b>Browse</b> button
+will present the list of all workgroups and domains found in the
+network.
+</p>") +
+
+    /* Samba role dialog help 2/3 */
+_("<p><b>Use SMB information also for Linux authentication</b> allows to 
+verify the passwords against the NT server.</p>")+
+
+    /* Samba role dialog help 3/3 */
+_("<p>When you press <b>Finish</b>, YaST2 will verify the workgroup and
+if it is a NT domain, it will allow this host to join the domain.</p>")
+
+];
+
+/* EOF */
+}

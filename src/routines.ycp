@@ -1,0 +1,184 @@
+/**
+ * File:	include/samba-client/routines.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Miscelanous functions for configuration of samba-client.
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+/**
+ * Abort function
+ * @return blah blah lahjk
+ */
+global define boolean Abort() ``{
+    if(AbortFunction != nil)
+	return eval(AbortFunction) == true;
+    return false;
+}
+
+/**
+ * Check for pending Abort press
+ * @return true if pending abort
+ */
+global define boolean PollAbort() ``{
+    return UI::PollInput() == `abort;
+}
+
+global define string passwordPopup( string text ) ``{
+    UI::OpenDialog(
+    	    `VBox( 
+    		`Password(`id(`passwd), text),
+    		`HBox( 
+		    `PushButton(`id(`ok), `opt(`default), Label::OKButton() ), 
+		    `PushButton(`id(`cancel), Label::CancelButton() ) 
+		)
+    	    )
+        );
+    
+    symbol ret = UI::UserInput();
+    
+    string passwd = ret == `ok ? UI::QueryWidget(`id(`passwd), `Value) : nil;
+    UI::CloseDialog();
+    
+    return passwd;
+}
+
+global define map passwordUserPopup( string message, string defaultuser ) ``{
+    UI::OpenDialog(
+    	    `VBox( 
+		`Label( message ),
+		`TextEntry(`id(`user), _("User name:"), defaultuser ),
+    		`Password(`id(`passwd), _("Password:") ),
+    		`HBox( 
+		    `PushButton(`id(`ok), `opt(`default), Label::OKButton() ), 
+		    `PushButton(`id(`cancel), Label::CancelButton() ) 
+		)
+    	    )
+        );
+    
+    symbol ret = UI::UserInput();
+    
+    map result = ret == `ok ? $[ 
+	"user":UI::QueryWidget(`id(`passwd), `Value),
+	"password":UI::QueryWidget(`id(`passwd), `Value) ] 
+    : nil;
+
+    UI::CloseDialog();
+    
+    return result;
+}
+
+/**
+ * If modified, ask for confirmation
+ * @return true if abort is confirmed
+ */
+global define boolean ReallyAbort() ``{
+    return !Modified() || Popup::ReallyAbort(true);
+}
+
+/**
+ * Progress::NextStage and Progress::Title combined into one function
+ * @param title progressbar title
+ */
+global define void ProgressNextStage(string title) ``{
+    Progress::NextStage();
+    Progress::Title(title);
+}
+
+global define term WorkgroupWidget() ``{
+    return `HBox( `TextEntry( `id(`workgroup), _("Domain or workgroup"), Samba::workgroup ),
+                `VBox(
+                    `Label(""),
+                    `PushButton( `id(`browse), _("Browse") )
+                )
+            );
+}
+
+/*
+ * Do not repeat the last test of domain/workgroup
+ */
+global string lastCheckedDomain = nil;
+
+global define boolean CheckWorkgroup( string workgroup ) ``{
+    symbol ret = nil;
+    // cached
+    if( lastCheckedDomain == workgroup ) return true;
+	    
+    UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
+	    
+    if(  Samba::isDomain(workgroup) ) {
+	// handle domain joining
+	boolean res = Samba::isDomainMember( workgroup );
+		
+	UI::CloseDialog();
+		
+	// caching
+	lastCheckedDomain = workgroup;
+		
+	// we the host is already in domain, continue
+	if( res ) return true;
+		
+	// allow to join the domain
+	if( res == nil ) {
+	    ret = Popup::YesNo( sformat( _("Cannot automatically determine, if this host
+is a member of the domain '%1'.\n
+Do you want to join the domain '%1'?"), workgroup  ) );
+	} else {
+	    ret = Popup::YesNo( sformat( _("This host is not a member 
+of the domain '%1'.\n
+Do you want to join the domain '%1'?"), workgroup  ) );
+	}
+		
+	if( ret == `yes ) {
+	    // change the dialog result back to next
+	    ret = `next;
+	    map passwd = passwordUserPopup( sformat( _("Enter the user and the password
+for joining the domain '%1'.\n
+To join the domain anonymously leave the 
+text entries empty."), workgroup ), "Administrator" );
+	    // cancelled the domain joining
+	    if( passwd == nil ) return false;
+		    
+	    // try to join the domain
+	    string error = Samba::joinDomain( workgroup, passwd["user"]:nil, passwd["password"]:"" );
+	    if(  error != nil )
+	    {
+		Popup::Error( error );
+		return false;
+	    }
+	    // Translators: Information popup, %1 is the name of the domain
+	    else Popup::Message( sformat( _("Domain '%1' was successfully joined."), Samba::workgroup )) ;
+	}
+    } else UI::CloseDialog();
+    
+    return true;	    
+}
+
+global define string BrowseWorkgroups() ``{
+   list groups = Samba::availableWorkgroups();
+
+    if( groups == nil ) return nil;
+
+    // let the user choose a workgroup
+    UI::OpenDialog( `VBox(
+        `SelectionBox( `id(`selection), _("Existing workgroups:"), groups ),
+        `HBox(
+            `PushButton( `id(`ok), Label::OKButton() ),
+            `PushButton( `id(`cancel), Label::CancelButton() )
+        )
+    ) );
+
+    ret = UI::UserInput();
+    string sel = UI::QueryWidget( `id(`selection), `CurrentItem );
+    UI::CloseDialog();
+    
+    return ret == `ok ? sel : nil;
+}
+
+/* EOF */
+}

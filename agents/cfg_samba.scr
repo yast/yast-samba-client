@@ -1,0 +1,17 @@
+/**
+ * File:
+ *   cfg_samba.scr
+ * Summary:
+ *   SCR Agent for reading/writing /etc/sysconfig/samba
+ *   using the sysconfig-agent
+ * 
+ * $Id$
+ *
+ * Read/Sets the values defined in <tt>/etc/sysconfig/samba</tt>
+ * in an easy manner.
+ */
+.sysconfig.samba
+
+`ag_ini(
+  SysConfigFile("/etc/sysconfig/samba")
+)

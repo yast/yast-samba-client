@@ -1,0 +1,62 @@
+/**
+ * File:	include/samba-client/complex.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Dialogs definitions
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+import "Wizard";
+import "Wizard_hw";
+
+import "Samba";
+
+include "samba-client/helps.ycp";
+include "samba-client/routines.ycp";
+
+/**
+ * Return a modification status
+ * @return true if data was modified
+ */
+global define boolean Modified() ``{
+    return Samba::Modified();
+}
+
+/**
+ * Read settings dialog
+ * @return `abort if aborted and `next otherwise
+ */
+global define symbol ReadDialog() ``{
+    Wizard::RestoreHelp(HELPS["read"]:"");
+    Samba::AbortFunction = ``{ return PollAbort();};
+    boolean ret = Samba::Read();
+    return ret ? `next : `abort;
+}
+
+/**
+ * Write settings dialog
+ * @return `abort if aborted and `next otherwise
+ */
+global define symbol WriteDialog() ``{
+    Wizard::RestoreHelp(HELPS["write"]:"");
+    Samba::AbortFunction = ``{ return PollAbort();};
+    boolean ret = Samba::Write();
+    return ret ? `next : `abort;
+}
+
+global define term WorkgroupWidget() ``{
+    return `HBox( `TextEntry( `id(`workgroup), _("Domain or workgroup"), Samba::workgroup ),
+                `VBox(
+                    `Label(""),
+                    `PushButton( `id(`browse), _("Browse") )
+                )
+            );
+}
+
+/* EOF */
+}
