@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec 20 16:29:44 CET 2004 - mlazar@suse.cz
+
+- fix for abort during user module
+
+-------------------------------------------------------------------
 Fri Nov 19 15:34:00 CET 2004 - mlazar@suse.cz
 
 - avoid computed arguments in sformat()
