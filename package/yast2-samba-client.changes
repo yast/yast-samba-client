@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 27 08:11:55 CET 2005 - mlazar@suse.cz
+
+- fixed testsuites
+
+-------------------------------------------------------------------
 Tue Jan 25 09:15:42 CET 2005 - mlazar@suse.cz
 
 - Progress::on()/off() replaced with Progress::set()
