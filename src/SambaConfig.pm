@@ -335,7 +335,7 @@ sub ShareExists {
     return defined $Config{$share};
 }
 
-# set printers key value, return old value;
+# get share keys
 BEGIN{ $TYPEINFO{ShareKeys} = ["function", ["list", "string"], "string"]; }
 sub ShareKeys {
     my ($self, $share) = @_;
