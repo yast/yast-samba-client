@@ -393,7 +393,8 @@ sub ShareSetStr {
     	    $Config{$share}{$key} = $val ? "Yes" : "No";
 	} else {
 	    $modified = 1 if defined $old;
-	    delete $Config{$share}{$key};
+#	    delete $Config{$share}{$key};
+	    $Config{$share}{$key} = undef;
 	}
     } else {
 	my $old = $Config{$share}{$key};
@@ -402,7 +403,8 @@ sub ShareSetStr {
 	    $Config{$share}{$key} = $val;
 	} else {
     	    $modified = 1 if defined $old;
-	    delete $Config{$share}{$key};
+#	    delete $Config{$share}{$key};
+	    $Config{$share}{$key} = undef;
 	}
     }
     $self->ShareSetModified($share) if $modified;

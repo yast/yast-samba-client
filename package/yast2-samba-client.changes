@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Dec 29 15:16:29 CET 2004 - mlazar@suse.cz
+
+- fixed setting undefined values in SambaConfig.pm
+
+-------------------------------------------------------------------
 Mon Dec 20 16:29:44 CET 2004 - mlazar@suse.cz
 
 - fix for abort during user module
