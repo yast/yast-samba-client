@@ -54,6 +54,7 @@ else if(func == "ShortSummary") {
 else if (func == "Reset") {
     Samba::Import($[]);
     Samba::globals_configured = false;
+    Samba::modified = false;
     ret = $[];
 }
 /* Change configuration (run AutoSequence) */
@@ -87,6 +88,24 @@ else if (func == "Write") {
     ret = Samba::Write();
     Progress::on();
 }
+
+/**
+ * Return if configuration  was changed
+ * return boolean
+ */
+else if (func == "GetModified") {
+    ret = Samba::modified;
+}
+
+/**
+ * Set modified flag
+ * return boolean
+ */
+else if (func == "SetModified") {
+    Samaba::modified = true;
+    ret = true;
+}
+
 /* Unknown function */
 else {
     y2error("Unknown function: %1", func);
