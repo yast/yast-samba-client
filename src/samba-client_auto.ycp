@@ -49,6 +49,8 @@ if(func == "Summary") {
 /* Reset configuration */
 else if (func == "Reset") {
     Samba::Import($[]);
+    Samba::globals_configured = false;
+    
     ret = $[];
 }
 /* Change configuration (run AutoSequence) */

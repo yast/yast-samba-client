@@ -10,6 +10,7 @@
 
 textdomain "samba-client";
 
+import "Mode";
 import "Samba";
 import "Label";
 import "Popup";
@@ -55,6 +56,8 @@ global define symbol WorkgroupDialog () ``{
 	    
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup( Samba::workgroup );
+	    
+	    if( Mode::config ) break;
 	    
 	    if( Samba::winbind && workgroup_type == `workgroup ) {
 		// translators: error message, winbind cannot provide user information taken from a workgroup, must be a domain
