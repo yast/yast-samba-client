@@ -288,7 +288,17 @@ sub Configured {
 BEGIN{ $TYPEINFO{Export} = ["function", "any"]; }
 sub Export {
     my ($self) = @_;
-    return \%Config;
+    # remove modified flags and internal shares from config
+    my %myconfig;
+    foreach my $share (keys %Config) {
+	next unless $Config{$share};	# skip removed shares
+	next if $share =~ /^_/;		# skip internal shares
+	while(my ($key, $val) = each %{$Config{$share}}) {
+	    next if $key eq "_modified";
+	    $myconfig{$share}{$key} = $val;
+	}
+    }
+    return \%myconfig;
 }
 
 # import configuration
