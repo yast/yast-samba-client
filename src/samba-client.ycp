@@ -23,8 +23,6 @@ import "Report";
 import "Require";
 import "Samba";
 
-include "commandline/commandline.ycp";
-
 /**
  * Enable or disable winbind service (high-level)
  *
@@ -218,7 +216,7 @@ without installing the required packages.") );
     return false;
 }
 
-ret = CommandLineRun( cmdline );
+ret = CommandLine::Run( cmdline );
 
 y2debug("ret=%1", ret);
 

@@ -147,7 +147,7 @@ define symbol CheckWorkgroup( string workgroup ) ``{
     // translators: progress information dialog text
     UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
     
-    if(  Samba::isDomain(workgroup) ) {
+    if(  Samba::isDomain(workgroup) || !Samba::nmbstatus_available ) {
 	// handle domain joining
 	boolean res = Samba::isDomainMember( workgroup );
 		

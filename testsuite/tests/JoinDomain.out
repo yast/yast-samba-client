@@ -11,7 +11,7 @@ Read	.etc.security.v."pam_unix2"."auth" nil
 Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."account" nil
 Write	.etc.smb nil true
-Execute	.target.bash_output "smbpasswd -j testing" $["exit":0, "stderr":"", "stdout":"Joined the domain"]
+Execute	.target.bash_output "net join member -w testing" $["exit":0, "stderr":"", "stdout":"Joined the domain"]
 Return	nil
 Write	.etc.smb.value.global.workgroup "testing" true
 Write	.etc.smb.value.global.security "domain" true
@@ -26,7 +26,7 @@ Read	.etc.security.v."pam_unix2"."auth" nil
 Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."account" nil
 Write	.etc.smb nil true
-Execute	.target.bash_output "smbpasswd -j testing -U root%password" $["exit":0, "stderr":"", "stdout":"Joined the domain"]
+Execute	.target.bash_output "net join member -w testing -U 'root%password'" $["exit":0, "stderr":"", "stdout":"Joined the domain"]
 Return	nil
 Write	.etc.smb.value.global.workgroup "testing" true
 Write	.etc.smb.value.global.security "domain" true
@@ -41,5 +41,5 @@ Read	.etc.security.v."pam_unix2"."auth" nil
 Dir	.etc.security.section: []
 Read	.etc.security.v."pam_unix2"."account" nil
 Write	.etc.smb nil true
-Execute	.target.bash_output "smbpasswd -j testing -U root%password" $["exit":1, "stderr":"", "stdout":"Unable to join domain"]
+Execute	.target.bash_output "net join member -w testing -U 'root%password'" $["exit":1, "stderr":"", "stdout":"Unable to join domain"]
 Return	Unable to join the domain.
