@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep  2 10:26:09 CEST 2003 - visnov@suse.de
+
+- do not start winbind if host not in a domain
+
+-------------------------------------------------------------------
 Mon Sep  1 16:50:25 CEST 2003 - visnov@suse.de
 
 - fix helps, labels (style guide)
