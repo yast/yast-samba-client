@@ -28,6 +28,5 @@ Summary:	Configuration of samba-client
 @moduledir@/Samba.ycp
 @moduledir@/Samba.ybc
 @desktopdir@/samba-client.desktop
-@scrconfdir@/cfg_samba.scr
 @scrconfdir@/cfg_smbconf.scr
 %doc @docdir@

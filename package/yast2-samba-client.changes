@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 11 20:08:52 CET 2004 - visnov@suse.cz
+
+- drop /etc/sysconfig/samba support - does not exist anymore
+
+-------------------------------------------------------------------
 Mon Feb  9 16:19:28 CET 2004 - visnov@suse.cz
 
 - disable nscd if winbind should be activated
