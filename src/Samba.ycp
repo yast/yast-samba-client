@@ -65,7 +65,7 @@ global define void ProgressNextStage(string title) ``{
 /**
  * list of required packages
  */
-global list<string> required_packages = ["samba-client"];
+global list<string> required_packages = ["samba-client", "samba-winbind"];
 
 /**
  * Data was modified?
