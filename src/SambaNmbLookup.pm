@@ -34,17 +34,17 @@ use constant {
 
 
 # is nmbstatus still running?
-my $Nmbstatus_running;
+our $Nmbstatus_running;
 
 # nmbstatus output
-my %Nmbstatus_output;
+our %Nmbstatus_output;
 
-my $Nmbstatus_available;
+our $Nmbstatus_available;
 
 # Flag, if we should restart nmbd after finishing nmbstatus.
 # nmbd must be stopped, when doing nmbstatus, otherwise only
 # local host is shown.
-my $Nmbd_was_running;
+our $Nmbd_was_running;
 
 # Start nmbstatus in background
 # @return true on success
@@ -67,7 +67,7 @@ sub Start {
     
     # start nmbstatus
     my $out = SCR->Execute(".target.bash_output", "/usr/bin/id --user");
-    if ($out && $out->{stdout} == 0) {
+    if ($out && $out->{exit} == 0 && $out->{stdout} == 0) {
 	$Nmbstatus_running = SCR->Execute(".background.run_output", "su nobody -c " . NMBSTATUS_EXE);
     } else {
 	$Nmbstatus_running = SCR->Execute(".background.run_output", NMBSTATUS_EXE);
@@ -88,19 +88,18 @@ sub Start {
 }
 
 # Ensure that nmbstatus already finished. Then parse its output into nmbstatus_output
+our $wait = 120;
 sub checkNmbstatus {
     if ($Nmbstatus_running) {
 
 	# better count slept time
-	my $wait = 1200;
+	my $start = time;
 	
-	while ($wait>0 && SCR->Read(".background.isrunning")) {
-	    select undef, undef, undef, 0.1;
-	    $wait = $wait - 1;
+	while (time<$start+$wait && SCR->Read(".background.isrunning")) {
+	    select undef, undef, undef, 0.2; # sleep 0.2 sec
 	}
-	
 	if (SCR->Read(".background.isrunning")) {
-	    y2error("Something went wrong, nmbstatus didn't finish in more that 2 minutes");
+	    y2error("Something went wrong, nmbstatus didn't finish in more that $wait seconds");
 	    # better kill it
 	    SCR->Execute(".background.kill");
 	    $Nmbstatus_running = 0;
@@ -218,7 +217,7 @@ sub GetAvailableNeighbours {
     checkNmbstatus();
 
     # TODO: inform user about problems
-    return [ map {$_ . ($self->IsDomain($_)?$domain_suffix:"")} keys %Nmbstatus_output ];
+    return [ map {$_ . ($self->IsDomain($_)?$domain_suffix:"")} sort keys %Nmbstatus_output ];
 }
 
 # Return a list of domains already existing in the lan.
@@ -230,7 +229,7 @@ sub GetAvailableDomains {
     checkNmbstatus();
 
     # TODO: inform user about problems
-    return [ grep {$self->IsDomain($_)} keys %Nmbstatus_output ];
+    return [ grep {$self->IsDomain($_)} sort keys %Nmbstatus_output ];
 }
 
 

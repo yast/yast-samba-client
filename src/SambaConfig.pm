@@ -103,55 +103,38 @@ sub GetModified {
 }
 
 # set modified status
-BEGIN{ $TYPEINFO{SetModified} = ["function", "void"]; }
+BEGIN{ $TYPEINFO{SetModified} = ["function", "boolean"]; }
 sub SetModified {
     my ($self) = @_;
     $Config{"global"}{_modified} = 1;
+    return 1;
 }
 
-# dump configuration to STDOUT (for debugging only)
-BEGIN{ $TYPEINFO{Dump} = ["function", "void"]; }
+# unset modified status
+BEGIN{ $TYPEINFO{UnsetModified} = ["function", "void"]; }
+sub UnsetModified {
+    my ($self) = @_;
+    foreach (keys %Config) {
+	delete $Config{$_}{_modified};
+    }
+}
+
+# dump configuration to STDOUT (for debugging)
+BEGIN{ $TYPEINFO{Dump} = ["function", "void", "string"]; }
 sub Dump {
-    my $self = shift;
-    print Data::Dumper->Dump(
-	[\%Config], [qw(Config)]
-    );
-}
-
-sub config2all {    
-    my ($config, $share) = @_;
-    my @section;
-    my $out = { 
-	kind =>		"section", 
-	name=>		$share,
-	value=>		[], 
-	type=>		Integer($config->{$share}{_disabled}?1:0), 
-	comment=>	$config->{$share}{_comment}
-    };
-    my $type = $out->{type} = $config->{$share}{$_};
-    foreach(keys %{$config->{$share}}) {
-	next if /^_/;
-        push @{$out->{value}}, { kind=>"value", name=>$_, value=>$config->{$share}{$_}, type=>$out->{type} };
+    my ($self,$preffix) = @_;
+    $preffix = "SambaConfig: " unless $preffix;
+    my @out = ();
+    foreach my $share (sort keys %Config) {
+	my $out = "$preffix\[$share\]\n";
+	foreach my $key (sort keys %{$Config{$share}}) {
+	    $out .= "$preffix$key = ".($Config{$share}{$key}||"<undefined>")."\n";
+	}
+	push @out, $out;
     }
-    return $out;
+    print join("$preffix\n", @out);
+    print "\n";
 }
-
-# convert configuration map to format suitable for SRC Read/Write all-at-once
-BEGIN{ $TYPEINFO{Config2All} = ["function", ["map", "any", "any"], ["map", "any", "any"]]; }
-sub Config2All {
-    my ($self, $config) = @_;
-    my @out;
-    foreach("global", "homes", "printers", "netlogon") {
-	push @out, config2all($config, $_) if $config->{$_};
-    }
-    foreach(keys %$config) {
-	next if /^_/;
-	next if /^(global|homes|printers|netlogon)$/;
-	push @out, config2all($config, $_);
-    }
-    return {value=>\@out, kind=>"section", type=>Integer(-1), file=>Integer(-1), name=>"", comment=>""};
-}
-
 
 # read configuration from file
 BEGIN{ $TYPEINFO{Read} = ["function", "boolean", "boolean"]; }
@@ -188,6 +171,7 @@ sub Read {
 	    $self->ShareSetStr($share, $line->{name}, $line->{value});
 	}
     }
+    $self->UnsetModified();
     
     y2debug("Readed config: ".Dumper(\%Config));
     return 1;
@@ -254,7 +238,6 @@ sub Write {
 	# write the type and comment of the section
 	SCR->Write(".etc.smb.section_type.$share", Integer($commentout));
 	my $comment = $Config{$share}{_comment} || "";
-	
 	$comment =~ s/\n*$//;
 	$comment =~ s/^\n*//;
 	if ($commentout && $comment !~ /.*Share.*Disabled.*/i) {
@@ -320,17 +303,20 @@ BEGIN{$TYPEINFO{Import} = ["function", "void", "any"]}
 sub Import {
     my ($self, $config) = @_;
     %Config = ();
-    if ($config) {
+    if ($config && ref $config eq "ARRAY") { # normal import
 	foreach my $section (@$config) {
 	    my $name = $section->{name};
 	    next unless $name;
-	    $Config{$name}{_comment} = $section->{comment} if $section->{comment};
-	    $Config{$name}{_disabled} = 1 if $section->{disabled};
+	    $self->ShareSetComment($name, $section->{comment}) if $section->{comment};
+	    $self->ShareDisable($name) if $section->{disabled};
 	    while(my ($key, $val) = each %{$section->{parameters}}) {
 		$key =~ tr/_/ /;
-		$Config{$name}{$key} = $val;
+		$self->ShareSetStr($name, $key, $val);
 	    }
 	}
+	$self->UnsetModified();
+    } elsif ($config && ref $config eq "HASH") { # for testing
+	%Config = %$config;
     }
     y2debug("Imported config: ".Dumper(\%Config));
 }
@@ -570,14 +556,16 @@ sub ShareUpdateMap {
 }
 
 # set share modified
-BEGIN{ $TYPEINFO{ShareSetModified} = ["function", "void", "string"]; }
+BEGIN{ $TYPEINFO{ShareSetModified} = ["function", "boolean", "string"]; }
 sub ShareSetModified {
     my ($self, $share) = @_;
     if (not defined $share) {
 	y2error("undefned share");
 	return undef;
     }
+    return 0 if $Config{$share}{_modified};
     $Config{$share}{_modified} = 1;
+    return 1;
 }
 
 # get share modified
