@@ -294,7 +294,9 @@ sub Export {
 	next unless $Config{$share};	# skip removed shares
 	next if $share =~ /^_/;		# skip internal shares
 	while(my ($key, $val) = each %{$Config{$share}}) {
-	    next if $key eq "_modified";
+	    next unless defined $val;	# skip undefined values
+	    next if $key eq "_modified"; # skip internal modified flag
+	    next if $key eq "_commnetout" && !$val; # skip unnecessary internal flag
 	    $myconfig{$share}{$key} = $val;
 	}
     }
