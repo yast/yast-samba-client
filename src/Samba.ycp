@@ -19,6 +19,7 @@ import "Progress";
 import "Report";
 import "Summary";
 import "Runlevel";
+import "PamSettings";
 
 include "samba-client/routines.ycp";
 
@@ -522,13 +523,22 @@ global define void WriteWinbind( boolean on ) ``{
 
     if( !SCR::Write(.etc.nsswitch_conf, nil ) )
 	Report::Error (sformat(_("Cannot write settings to %1!"), "/etc/nsswitch.conf") );
-    
+
     // change Pam configuration
+    foreach (`type, [ "account", "auth" ], ``{
+	if (on)
+	    PamSettings::AddValue ("pam_unix2", type, "call_module=winbind");
+	else
+	    PamSettings::RemoveValue ("pam_unix2", type, "call_module=winbind");
+    });
+    /*
     string call_module = on ? "+call_module=winbind" : "-call_module=winbind" ;
     SCR::Write(.pam.all.account.pam_unix2, call_module );
     SCR::Write(.pam.all.auth.pam_unix2, call_module);
+    */
 
     // TODO: add: account sufficient /lib/security/pam_winbind.so
+    // -- why is this necessary?
 }
 
 /**
