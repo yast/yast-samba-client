@@ -69,14 +69,16 @@ global define symbol SambaClientAutoSequence() ``{
 
     Wizard::CreateDialog();
     Wizard::SetContentsButtons(caption, contents, "",
-	    BackButtonLabel(), NextButtonLabel());
+	    Label::BackButton(), Label::NextButton());
 
     any ret = WorkgroupDialog();
 
     UI::CloseDialog();
     
-    Samba::globals_configured = true;
-    Samba::shares_configured = true;
+    if( ret != `abort ) {
+	Samba::globals_configured = true;
+	Samba::shares_configured = true;
+    }
     
     return ret;
 }

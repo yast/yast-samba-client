@@ -283,6 +283,8 @@ global define map Export () ``{
 	"winbind" : winbind
     ];
     
+    modified = false;
+    
     return $[ "global": globals ];
 }
 
