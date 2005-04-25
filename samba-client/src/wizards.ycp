@@ -1,0 +1,86 @@
+/**
+ * File:	include/samba-client/wizards.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Wizards definitions
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+import "Wizard";
+import "Label";
+import "Samba";
+import "Sequencer";
+
+include "samba-client/complex.ycp";
+include "samba-client/dialogs.ycp";
+
+/**
+ * Whole configuration of samba-client
+ * @return sequence result
+ */
+symbol SambaClientSequence() {
+
+    map aliases = $[
+	"read"	: [ ``( ReadDialog() ), true ],
+	"main"	:   ``( MembershipDialog() ),
+	"write"	: [ ``( WriteDialog() ), true ]
+    ];
+
+    map sequence = $[
+	"ws_start" : "read",
+	"read" : $[
+	    `abort	: `abort,
+	    `next	: "main"
+	],
+	"main" : $[
+	    `abort	: `abort,
+	    `next	: "write",
+	    `back	: `back
+	],
+	"write" : $[
+	    `abort	: `abort,
+	    `next	: `next
+	]
+    ];
+
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("samba-client");
+
+    any ret = Sequencer::Run(aliases, sequence);
+
+    UI::CloseDialog();
+    return (symbol) ret;
+}
+
+/**
+ * Whole configuration of samba-client but without reading and writing.
+ * For use with autoinstallation.
+ * @return sequence result
+ */
+symbol SambaClientAutoSequence() {
+    // translators: initialization dialog caption
+    string caption = _("Samba Client Configuration");
+    // translators: initialization dialog contents
+    term contents = `Label(_("Initializing ..."));
+
+    Wizard::CreateDialog();
+    Wizard::SetContentsButtons(caption, contents, "",
+	    Label::BackButton(), Label::NextButton());
+
+    any ret = MembershipDialog();
+
+    UI::CloseDialog();
+    if( ret != `abort ) {
+	Samba::globals_configured = true;
+    }
+    
+    return (symbol) ret;
+}
+
+/* EOF */
+}

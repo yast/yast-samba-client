@@ -1,0 +1,416 @@
+-------------------------------------------------------------------
+Mon Apr 25 09:24:50 UTC 2005 - mlazar@suse.cz
+
+- 2.12.2
+
+-------------------------------------------------------------------
+Fri Mar  4 10:53:12 CET 2005 - mlazar@suse.cz
+
+- 2.12.1
+- ycp tests replaced (and extended) with perl tests
+
+-------------------------------------------------------------------
+Fri Mar  4 10:37:22 CET 2005 - mlazar@suse.cz
+
+- SambaConfig.pm:
+   * removed config2all(), Config2All()
+   * [Share]SetModified() now return false if modified flag alrady set
+   * added UnsetModified()
+   * Dump() display configuration in smb.conf-like format
+   * Import() support also hashes (for easer testing)
+- SambaNetJoin.pm: better tests exit status
+- SambaNmbLookup.pm:
+   * global variables changed from 'my' to 'our' (for testing)
+   * better test exit status
+   * GetAvailableDomains/Neighbours() now return sorted list
+
+-------------------------------------------------------------------
+Fri Mar  4 09:47:06 CET 2005 - mlazar@suse.cz
+
+- 2.12.1
+- SambaConfig.pm: fixed handling with comments in Read() and Write()
+- SambaNmbLookup.pm: fixed checking nmb status
+- SambaWinbind.pm: fixed AdjustNsswitch() and AdjustPam()
+- updated testsuites
+
+-------------------------------------------------------------------
+Tue Mar  1 16:04:51 CET 2005 - mlazar@suse.cz
+
+- 2.12.0
+- fixed bug 66892: insufficiently informative error popup
+
+-------------------------------------------------------------------
+Fri Feb 18 09:28:39 CET 2005 - mlazar@suse.cz
+
+- 2.11.4
+- fixed testsuites
+- SambaConfig.pm: fixed Export/Import (see #50736)
+
+-------------------------------------------------------------------
+Thu Feb 17 10:15:34 CET 2005 - mlazar@suse.cz
+
+- internal key "_commentout" replaced by "_disabled"
+- run nmbstatus as user nobody
+
+-------------------------------------------------------------------
+Wed Feb 16 17:26:09 CET 2005 - mlazar@suse.cz
+
+- do not export undefined values
+
+-------------------------------------------------------------------
+Wed Feb 16 14:45:58 CET 2005 - mlazar@suse.cz
+
+- 2.11.3
+- internal values are not exported (see bug #50736)
+- fixed importing/exporting unconfigured data
+
+-------------------------------------------------------------------
+Thu Jan 27 08:29:14 CET 2005 - mlazar@suse.cz
+
+- 2.11.2
+
+-------------------------------------------------------------------
+Thu Jan 27 08:11:55 CET 2005 - mlazar@suse.cz
+
+- fixed testsuites
+
+-------------------------------------------------------------------
+Tue Jan 25 09:15:42 CET 2005 - mlazar@suse.cz
+
+- Progress::on()/off() replaced with Progress::set()
+
+-------------------------------------------------------------------
+Fri Jan 21 10:16:51 CET 2005 - mlazar@suse.cz
+
+- 2.11.1
+
+-------------------------------------------------------------------
+Wed Dec 29 15:16:29 CET 2004 - mlazar@suse.cz
+
+- fixed setting undefined values in SambaConfig.pm
+
+-------------------------------------------------------------------
+Mon Dec 20 16:29:44 CET 2004 - mlazar@suse.cz
+
+- fix for abort during user module
+
+-------------------------------------------------------------------
+Fri Nov 19 15:34:00 CET 2004 - mlazar@suse.cz
+
+- avoid computed arguments in sformat()
+
+-------------------------------------------------------------------
+Mon Nov  8 18:29:46 CET 2004 - mlazar@suse.cz
+
+- 2.11.0
+- Samba.ycp transformed to perl and splited to SambaConfig.pm,
+  SambaNetJoin.pm, SambaNmbLookup.pm and SambawWinbind.pm
+- adapted testsuite
+
+-------------------------------------------------------------------
+Mon Sep 13 18:36:07 CEST 2004 - mlazar@suse.cz
+
+- 2.10.5 
+
+-------------------------------------------------------------------
+Fri Sep 10 16:35:32 CEST 2004 - mlazar@suse.cz
+
+- samba-winbind installed only when need
+
+-------------------------------------------------------------------
+Thu Sep  9 14:24:49 CEST 2004 - mlazar@suse.cz
+
+- Required replaced by PackageSystem (see bug 30872)
+
+-------------------------------------------------------------------
+Mon Sep  6 10:07:24 CEST 2004 - mlazar@suse.cz
+
+- fixed typo
+
+-------------------------------------------------------------------
+Mon Sep  6 10:00:56 CEST 2004 - mlazar@suse.cz
+
+- Added GetModified, SetModified for autoyast
+- 2.10.4
+
+-------------------------------------------------------------------
+Mon Aug 30 17:07:59 CEST 2004 - mlazar@suse.cz
+
+- 2.10.3
+- fixed Bug 44284 - Samba authentication allows to disable the authentication
+
+-------------------------------------------------------------------
+Thu Aug 19 14:49:59 CEST 2004 - mlazar@suse.cz
+
+- Fixed return value for CommandLine::Run()
+
+-------------------------------------------------------------------
+Wed Aug 18 15:19:56 CEST 2004 - mlazar@suse.cz
+
+- Fixed Back button for installation sequence
+- Modified .etc.smb agent
+- 2.10.2
+
+-------------------------------------------------------------------
+Tue Aug  3 15:46:04 CEST 2004 - jsuchome@suse.cz
+
+- Added Back and Next buttons for installation sequence
+- 2.10.1
+
+-------------------------------------------------------------------
+Wed Jun 16 17:12:21 CEST 2004 - visnov@suse.cz
+
+- fixed testsuite
+- 2.10.0
+
+-------------------------------------------------------------------
+Thu May 13 09:07:58 CEST 2004 - visnov@suse.cz
+
+- always provide user/password when joining domain (#40439)
+- 2.9.17
+
+-------------------------------------------------------------------
+Tue Apr 27 11:07:58 CEST 2004 - visnov@suse.cz
+
+- enhance API for the new UI 
+- 2.9.16
+
+-------------------------------------------------------------------
+Wed Apr 21 11:10:31 CEST 2004 - visnov@suse.cz
+
+- really return password from dialog (#38996)
+- 2.9.15
+ 
+
+-------------------------------------------------------------------
+Mon Apr 19 09:13:25 CEST 2004 - visnov@suse.cz
+
+- don't stop nscd when enabling winbind (suggested by lmuelle@suse.de)
+- fix testsuite
+- 2.9.14 
+
+-------------------------------------------------------------------
+Tue Apr  6 10:14:52 CEST 2004 - visnov@suse.cz
+
+- stop nmbd temporarily for nmbstatus (#38452) 
+- 2.9.13
+
+-------------------------------------------------------------------
+Fri Apr  2 16:21:48 CEST 2004 - visnov@suse.cz
+
+- YaST is GPL now
+- 2.9.12 
+
+-------------------------------------------------------------------
+Fri Apr  2 14:26:26 CEST 2004 - visnov@suse.cz
+
+- don't try to read netbios name (#37942)
+- 2.9.11 
+
+-------------------------------------------------------------------
+Mon Mar 29 08:27:41 CEST 2004 - visnov@suse.cz
+
+- fixed warning
+- 2.9.10 
+
+-------------------------------------------------------------------
+Thu Mar 18 10:48:59 CET 2004 - visnov@suse.cz
+
+- restart winbind if already running (#35356) 
+- update nmbstatus info if available (#36394)
+- 2.9.9
+
+-------------------------------------------------------------------
+Mon Mar 15 18:12:09 CET 2004 - visnov@suse.cz
+
+- compilation fix
+- 2.9.7
+
+-------------------------------------------------------------------
+Wed Mar 10 02:22:25 CET 2004 - sh@suse.de
+
+- V 2.9.7
+- Fixed OpenDialog() / SetIcon() sequence 
+
+-------------------------------------------------------------------
+Mon Mar  8 16:35:59 CET 2004 - visnov@suse.cz
+
+- add yast2-installation to NFB
+- set wizard icon
+- 2.9.6 
+
+-------------------------------------------------------------------
+Thu Mar  4 14:24:34 CET 2004 - visnov@suse.cz
+
+- also install samba-winbind (#35343) 
+
+-------------------------------------------------------------------
+Mon Mar  1 13:40:30 CET 2004 - visnov@suse.cz
+
+- merged back proofread texts
+- use Sequencer
+- fix types
+- 2.9.5
+
+-------------------------------------------------------------------
+Wed Feb 18 15:08:05 CET 2004 - jsuchome@suse.cz
+
+- added possibility to call ShortSummary function from auto-client
+
+-------------------------------------------------------------------
+Wed Feb 18 13:15:59 CET 2004 - visnov@suse.cz
+
+- 2.9.4 
+
+-------------------------------------------------------------------
+Wed Feb 11 20:08:52 CET 2004 - visnov@suse.cz
+
+- drop /etc/sysconfig/samba support - does not exist anymore
+
+-------------------------------------------------------------------
+Mon Feb  9 16:19:28 CET 2004 - visnov@suse.cz
+
+- disable nscd if winbind should be activated
+- show "domain" flag in the list of available domains 
+
+-------------------------------------------------------------------
+Mon Feb  9 10:53:03 CET 2004 - visnov@suse.cz
+
+- use "idmap uid/gid" instead of "winbind uid/gid"
+- use "net join" instead of "smbpasswd -j" 
+- use "net testjoin" instead of "wbinfo -t"
+- allow domain joining if nmbstatus not found
+- fix #33583: can't join domain with special chars in Administrator-pwd
+- drop y2cc
+- 2.9.3
+
+-------------------------------------------------------------------
+Fri Jan 30 08:39:22 CET 2004 - visnov@suse.cz
+
+- remove "global" keyword
+- fix command line support
+
+-------------------------------------------------------------------
+Fri Jan 30 08:11:35 CET 2004 - visnov@suse.cz
+
+- first version for the new interpreter
+- 2.9.2 
+
+-------------------------------------------------------------------
+Wed Oct 29 08:52:52 CET 2003 - visnov@suse.cz
+
+- adapted testsuite
+- 2.9.1 
+
+-------------------------------------------------------------------
+Thu Oct  2 14:04:23 CEST 2003 - jsuchome@suse.cz
+
+- adapted to new Autologin interface
+- 2.9.0
+
+-------------------------------------------------------------------
+Wed Sep 24 16:16:20 CEST 2003 - visnov@suse.cz
+
+- sync settings to disk before trying to join domain (#31722 - 
+  samba-client can't join domain)
+- 2.8.11 
+
+-------------------------------------------------------------------
+Tue Sep 23 12:27:50 CEST 2003 - jsuchome@suse.cz
+
+- disable autologin when winbind is enabled (#31470)
+- 2.8.10
+
+-------------------------------------------------------------------
+Wed Sep 17 15:35:13 CEST 2003 - visnov@suse.de
+
+- we require "samba-client", not "samba" package
+- 2.8.9 
+
+-------------------------------------------------------------------
+Tue Sep  9 08:36:18 CEST 2003 - visnov@suse.de
+
+- #30300: don't misinform  user about required apache2 package
+- 2.8.8
+
+-------------------------------------------------------------------
+Mon Sep  8 21:51:03 CEST 2003 - nashif@suse.de
+
+- #30291: return list of required package for autoyast
+
+-------------------------------------------------------------------
+Mon Sep  8 15:33:08 CEST 2003 - visnov@suse.de
+
+- fixed autoyast problems (similar to #30161)
+- 2.8.6 
+
+-------------------------------------------------------------------
+Fri Sep  5 08:51:00 CEST 2003 - visnov@suse.de
+
+- merged in proofread texts
+- 2.8.5 
+
+-------------------------------------------------------------------
+Thu Sep  4 13:32:01 CEST 2003 - visnov@suse.de
+
+- restart nscd after starting winbind
+
+-------------------------------------------------------------------
+Tue Sep  2 13:15:23 CEST 2003 - visnov@suse.de
+
+- try harder to stop temporary winbind 
+
+-------------------------------------------------------------------
+Tue Sep  2 12:24:20 CEST 2003 - visnov@suse.de
+
+- fix syntax errors
+- fix domain joining (pass user instead of password)
+
+-------------------------------------------------------------------
+Tue Sep  2 10:26:09 CEST 2003 - visnov@suse.de
+
+- do not start winbind if host not in a domain
+
+-------------------------------------------------------------------
+Mon Sep  1 16:50:25 CEST 2003 - visnov@suse.de
+
+- fix helps, labels (style guide)
+- 2.8.4
+
+-------------------------------------------------------------------
+Mon Aug 25 16:08:30 CEST 2003 - visnov@suse.de
+
+- 2.8.3
+
+-------------------------------------------------------------------
+Thu Aug 21 14:57:09 CEST 2003 - visnov@suse.de
+
+- show error dialog if required packages are not installed before quit
+
+-------------------------------------------------------------------
+Wed Aug 20 15:34:00 CEST 2003 - visnov@suse.de
+
+- Do not show Initializing... dialog
+
+-------------------------------------------------------------------
+Mon Aug 11 08:46:29 CEST 2003 - visnov@suse.de
+
+- added desktop file
+- merged in proofread texts
+- 2.8.2 
+
+-------------------------------------------------------------------
+Wed Jul 30 14:20:24 CEST 2003 - visnov@suse.de
+
+- start nmbstatus as soon as possible
+
+-------------------------------------------------------------------
+Mon Jul 28 17:17:22 CEST 2003 - visnov@suse.de
+
+- support for call_modules option in pam_unix2.conf
+- 2.8.1
+
+-------------------------------------------------------------------
+Thu May 29 14:54:23 2003 - visnov@suse.cz
+
+- initial version

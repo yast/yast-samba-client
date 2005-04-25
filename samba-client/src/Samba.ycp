@@ -1,0 +1,353 @@
+/**
+ * File:	modules/Samba.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Data for configuration of samba-client, input and output functions.
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ *
+ * Representation of the configuration of samba-client.
+ * Input and output routines. 
+ */
+
+{
+
+module "Samba";
+textdomain "samba-client";
+
+import "Progress";
+import "Report";
+import "Service";
+import "PackageSystem";
+import "Mode";
+import "Autologin";
+
+import "SambaConfig";
+import "SambaNetJoin";
+import "SambaWinbind";
+import "SambaNmbLookup";
+
+
+/**
+ * Data was modified?
+ */
+global boolean modified = false;
+
+/**
+ * Are globals already configured (for AutoYaST)
+ */
+global boolean globals_configured = false;
+
+/**
+ * Write only, used during autoinstallation.
+ * Don't run services and SuSEconfig, it's all done at one place.
+ */
+global boolean write_only = false;
+
+/**
+ * Should be winbind enabled?
+ */
+global boolean winbind_enabled = false;
+
+
+/**
+ * Data was modified?
+ * @return true if modified
+ */
+global boolean GetModified() {
+    y2debug("modified=%1",modified);
+    return modified || SambaConfig::GetModified();
+};
+
+/**
+ * Read all samba-client settings
+ * @return true on success
+ */
+global boolean Read() {
+
+    /* Samba-client read dialog caption */
+    string caption = _("Initializing Samba Client Configuration");
+
+    integer steps = 2;
+
+    // We do not set help text here, because it was set outside
+    Progress::New( caption, " ", steps, [
+	    // translators: progress stage 1/2
+	    _("Read the global SAMBA settings"),
+	    // translators: progress stage 2/2
+	    _("Read the WINBIND status"),
+	], [
+	    // translators: progress step 1/2
+	    _("Reading the global SAMBA settings..."),
+	    // translators: progress step 2/2
+	    _("Reading the WINBIND status..."),
+	    // translators: progress finished
+	    _("Finished")
+	],
+	""
+    );
+
+    // read global settings
+    Progress::NextStage();
+    SambaConfig::Read(false);
+
+    // check installed packages
+    if (!PackageSystem::CheckAndInstallPackagesInteractive(["samba-client"])) {
+	y2warning("package samba-client not installed");
+        return false;
+    }
+
+    // read winbind status
+    Progress::NextStage();
+    winbind_enabled = SambaWinbind::IsEnabled();
+
+    // start nmbstatus in background
+    if (!Mode::test()) {
+	SambaNmbLookup::Start();
+    }
+    
+    Autologin::Read();
+
+    // finished
+    Progress::NextStage();
+    globals_configured = true;
+    modified = false;
+
+    return true;
+}
+
+/**
+ * Write all samba-client settings
+ * @return true on success
+ */
+global boolean Write(boolean write_only) {
+    boolean ret = true;
+
+    /* Samba-client read dialog caption */
+    string caption = _("Saving Samba Client Configuration");
+
+    // We do not set help text here, because it was set outside
+    Progress::New(caption, " ", 2, [
+	    // translators: write progress stage
+	    _("Write the settings"),
+	    // translators: write progress stage
+	    !winbind_enabled ? _("Disable SAMBA services") : 
+		// translators: write progress stage
+		_("Enable SAMBA services")
+	], [
+	    // translators: write progress step
+	    _("Writing the settings..."),
+	    // translators: write progress step
+	    !winbind_enabled ? _("Disabling SAMBA services...") 
+		// translators: write progress step
+		: _("Enabling SAMBA services..."),
+	    // translators: write progress finished
+	    _("Finished")
+	],
+	""
+    );
+
+    // write settings
+    Progress::NextStage();
+    
+    // if nothing to write, quit (but show at least the progress bar :-)
+    if (!GetModified()) return true;
+
+    if (!SambaConfig::Write(write_only)) {
+	// translators: error message
+	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/samba/smb.conf") );
+	ret = false;
+    }
+
+    // winbind
+    Progress::NextStage();
+    if (winbind_enabled) {
+	if (!PackageSystem::Installed("samba-winbind")) {
+	    if (!Mode::test() && !PackageSystem::CheckAndInstallPackagesInteractive(["samba-winbind"])) {
+		ret = false;
+	    }
+	}
+	if (!SambaWinbind::AdjustService(true)) {
+	    // translators: error message
+	    Report::Error( _("Cannot start 'winbind' service."));
+	    ret = false;
+	}
+	if (!write_only && !SambaWinbind::StartStopNow(true)) {
+	    // translators: error message
+	    Report::Error(_("Cannot start 'winbind' daemon."));
+	    ret = false;
+	}
+    } else {
+	if (!SambaWinbind::AdjustService(false)) {
+	    // translators: error message
+	    Report::Error( _("Cannot stop 'winbind' service."));
+	    ret = false;
+	}
+	if (!write_only && !SambaWinbind::StartStopNow(false)) {
+	    // translators: error message
+	    Report::Error(_("Cannot stop 'winbind' daemon."));
+	    ret = false;
+	}
+    }
+    if (!SambaWinbind::AdjustNsswitch(winbind_enabled)) {
+	// translators: error message
+	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/nsswitch.conf"));
+	ret = false;
+    }
+    if (!SambaWinbind::AdjustPam(winbind_enabled)) {
+	// translators: error message
+	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/security/pam_unix2.conf"));
+	ret = false;
+    }
+
+    Autologin::Write(write_only);	// see dialog.ycp
+
+    // finished    
+    Progress::NextStage();
+    modified = false;
+
+    return ret;
+}
+
+/**
+ * Get all samba-client settings from the first parameter
+ * (For use by autoinstallation.)
+ * @param settings The YCP structure to be imported.
+ * @return boolean True on success
+ */
+global boolean Import (map settings) {
+    if (haskey(settings, "global")) {
+	SambaConfig::GlobalSetStr("workgroup", settings["global","workgroup"]:"WORKGROUP");
+	winbind_enabled = settings["global","winbind"]:false;
+	globals_configured = true;
+        modified = false;
+    } else {
+	globals_configured = false;
+    }
+
+    return true;
+}
+
+/**
+ * Dump the samba-client settings to a single map
+ * (For use by autoinstallation.)
+ * @return map Dumped settings (later acceptable by Import ())
+ */
+global map Export () {
+
+    if (!globals_configured) {
+	return $[];
+    }
+
+    map globals = $[
+	"workgroup": SambaConfig::GlobalGetStr("workgroup", ""),
+	"winbind" : winbind_enabled,
+    ];
+    
+    modified = false;
+    
+    return $[ "global": globals ];
+}
+
+/**
+ * Create a textual summary and a list of unconfigured options
+ * @return summary of the current configuration
+ */
+global string Summary() {
+    import "Summary";
+    
+    string summary = "";
+    string nc = Summary::NotConfigured();
+    string workgroup = SambaConfig::GlobalGetStr("workgroup", "");
+    
+    // summary header
+    summary = Summary::AddHeader(summary, _("Global Configuration"));
+    
+    if( globals_configured ) {
+	// autoyast summary item: configured workgroup 
+	summary = Summary::AddLine(summary, sformat(_("Workgroup or Domain: %1"), workgroup ) );
+    } else {
+	summary = Summary::AddLine(summary, nc );
+    }
+    
+    return summary;
+}
+
+/**
+ * Create shorter textual summary and a list of unconfigured options
+ * @return summary of the current configuration
+ */
+global string ShortSummary() {
+    import "Summary";
+
+    string summary = "";
+    string workgroup = SambaConfig::GlobalGetStr("workgroup", "");
+
+    if (globals_configured) {
+	// summary item: configured workgroup
+	summary = sformat(_("<p><b>Workgroup or Domain</b>: %1</p>"), workgroup) +
+	// summary item: authentication using winbind
+	sformat(_("<p><b>Authentication with SMB</b>: %1</p>"),
+	    // translators: winbind status in summary
+	    winbind_enabled ? _("Yes")
+	    // translators: winbind status in summary
+		: _("No"));
+    } else {
+	summary = Summary::NotConfigured();
+    }
+    return summary;
+}
+
+
+/**
+ * Set a host workgroup
+ *
+ * @param group	a new workgroup
+ */
+global void SetWorkgroup( string group ) {
+    SambaConfig::GlobalSetStr("workgroup", group);
+}
+
+/**
+ * Get a host workgroup
+ *
+ * @return string	a new workgroup
+ */
+global string GetWorkgroup() {
+    return SambaConfig::GlobalGetStr("workgroup", "");
+}
+
+
+/**
+ * Set a windind status
+ *
+ * @param group	a new winbind status
+ */
+global define void SetWinbind(boolean status) ``{
+    if (status != winbind_enabled) {
+	modified = true;
+	winbind_enabled = status;
+    }
+    SambaWinbind::AdjustSambaConfig(status);
+}
+
+/**
+ * Get a winbind status
+ *
+ * @return booleand	a winbind status
+ */
+global define boolean GetWinbind() ``{
+    return winbind_enabled;
+}
+
+/**
+ * Return required packages for auto-installation
+ * @return map of packages to be installed and to be removed
+ */
+global define map AutoPackages() ``{
+	return ($["install": ["samba-client", "samba-winbind"], "remove": []]);
+}
+
+
+/* EOF */
+}

@@ -1,0 +1,209 @@
+/**
+ * File:	include/samba-client/routines.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Miscelanous functions for configuration of samba-client.
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+import "Mode";
+import "Label";
+import "Stage";
+import "Popup";
+
+import "Samba";
+import "SambaNetJoin";
+import "SambaNmbLookup";
+
+
+/**
+ * Allow user to type in a user/password pair in a popup.
+ *
+ * @param message	a text to be displayed above the password text entry
+ * @param defaultuser 	a pre-filled user name
+ * @return map<string, string>		$["user": string, "password": string] with information
+ *			provided by the user or nil on cancel
+ */
+define map<string, string> passwordUserPopup( string message, string defaultuser ) ``{
+    UI::OpenDialog(
+    	    `VBox( 
+		`Label( message ),
+		// text entry label
+		`TextEntry(`id(`user), _("&User name:"), defaultuser ),
+		// text entry label
+    		`Password(`id(`passwd), _("&Password:") ),
+    		`HBox( 
+		    `PushButton(`id(`ok), `opt(`default), Label::OKButton() ), 
+		    `PushButton(`id(`cancel), Label::CancelButton() ) 
+		)
+    	    )
+        );
+    
+    any ret = UI::UserInput();
+    
+    map<string, string> result = ret == `ok ? $[ 
+	"user":(string)UI::QueryWidget(`id(`user), `Value),
+	"password":(string)UI::QueryWidget(`id(`passwd), `Value) ] 
+    : nil;
+
+    UI::CloseDialog();
+    
+    return result;
+}
+
+/**
+ * If modified, ask for confirmation
+ * @return true if abort is confirmed
+ */
+define boolean ReallyAbort() ``{
+    return (Stage::cont() && !contains (WFM::Args (), "from_users")) ?
+	Popup::ConfirmAbort (`incomplete) :
+	(!Samba::GetModified() || Popup::ReallyAbort(true));
+}
+
+/**
+ * Check, if the workgroup is a domain or a workgroup. Uses caching to avoid long checks of a workgroup members.
+ *
+ * @param workgroup	the workgroup to be checked
+ * @return symbol	type of the workgroup: `joined_domain, `not_joined_domain, `workgroup or `domain if 
+ * 			it is a domain, but the status is not known
+ */
+define symbol CheckWorkgroup( string workgroup ) ``{
+    
+    // for autoyast, skip testing
+    if( Mode::config() ) return `workgroup;
+    
+    symbol ret = nil;
+	    
+    // translators: progress information dialog text
+    UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
+    
+    if(  SambaNmbLookup::IsDomain(workgroup) || !SambaNmbLookup::Available() ) {
+	// handle domain joining
+	boolean res = SambaNetJoin::Test(workgroup);
+		
+	// we the host is already in domain, continue
+	if( res == true ) ret = `joined_domain;
+	else if( res != nil ) ret = `not_joined_domain;
+	else ret = `domain;
+    } else {
+	ret = `workgroup;
+    }
+    
+    UI::CloseDialog();
+    
+    y2debug( "Check workgroup result: %1", ret );
+    
+    return ret;
+}
+
+
+define symbol JoinDomain(string workgroup)
+{
+    // translators: popup to fill in the domain joining info; %1 is the domain name
+    map<string, string> passwd = passwordUserPopup(sformat(_("Enter the user and the password\nfor joining the domain '%1'."), workgroup)
+	+ "\n\n" 
+	+ _("To join the domain anonymously, leave the\ntext entries empty.") + "\n", "Administrator");
+
+    // cancelled the domain joining
+    if( passwd == nil ) return `fail;
+		    
+    // try to join the domain
+    string error = SambaNetJoin::Join(workgroup, "member", passwd["user"]:nil, passwd["password"]:"" );
+    if (error != nil) {
+	Popup::Error(error);
+	return `fail;
+    }
+    
+    // Translators: Information popup, %1 is the name of the domain
+    Popup::Message(sformat(_("Domain '%1' joined successfully."), Samba::GetWorkgroup()));
+    return `ok;
+}
+
+
+/**
+ * Allow to join a domain. Uses result of @ref CheckWorkgroup to inform the user about the status.
+ *
+ * @param workgroup	the workgroup to be joined
+ * @param status	domain status returned by CheckWorkgroup
+ * @return symbol		`ok on successful join (workgroup is always successful),
+ *			`fail on error or user cancel
+ *			`nojoin if user don't want to join
+ */
+define symbol AskJoinDomain( string workgroup, symbol status ) ``{
+
+    // for autoyast, skip testing
+    if( Mode::config() ) return `ok;
+    
+    if( status == `workgroup || status == `joined_domain ) return `ok;
+    
+    boolean res = false;
+    
+    // allow to join the domain
+    if( status == `domain ) {	
+    	    // we don't know the domain status
+	    
+	    // translators: popup question, the domain status cannot be found out, ask user what to do
+	    // %1 is the domain name
+	    res = Popup::YesNo(sformat(_("Cannot automatically determine if this host\nis a member of the domain '%1'."), workgroup)
+		+ "\n\n" + sformat(_("Join the domain '%1'?"), workgroup) + "\n");
+    } else if( status == `not_joined_domain ) {
+	// translators: popup question, The workgroup is a domain in fact and the machine is not a member, ask user what to do.
+	// %1 is the domain name
+	res = Popup::YesNo(sformat(_("This host is not a member\nof the domain '%1'."), workgroup)
+	    + "\n\n" + sformat(_("Join the domain '%1'?"), workgroup) + "\n");
+    }
+
+    if (!res) {
+	return `nojoin;
+    }
+    
+    return JoinDomain(workgroup);
+}
+    
+
+/**
+ * Show a selection popup to select a workgroup from the ones existing on LAN.
+ *
+ * @return string chosen workgroup or nil if cancelled
+ */
+define string BrowseNeighbours(boolean domains_only) ``{
+    list<string> groups = nil;
+    
+    if (domains_only) {
+	groups = SambaNmbLookup::GetAvailableDomains();
+    } else {
+	groups = SambaNmbLookup::GetAvailableNeighbours(_(" (domain)"));
+    }
+
+    if( groups == nil ) return nil;
+
+    // let the user choose a workgroup
+    UI::OpenDialog( `VBox(
+	// translators: selection box label
+        `SelectionBox(`id(`selection), (domains_only ? _("&Existing Domains:") : _("&Existing Neighbours:")), groups),
+        `HBox(
+            `PushButton( `id(`ok), Label::OKButton() ),
+            `PushButton( `id(`cancel), Label::CancelButton() )
+        )
+    ) );
+
+    any ret = UI::UserInput();
+    string sel = (string) UI::QueryWidget( `id(`selection), `CurrentItem );
+    if ( sel != nil && issubstring (sel, _(" (domain)") ) )
+    {
+	integer pos = findfirstof (sel, _(" (domain)") );
+	sel = substring (sel, 0, pos);
+    }
+    UI::CloseDialog();
+    
+    return ret == `ok ? sel : nil;
+}
+
+/* EOF */
+}

@@ -1,0 +1,142 @@
+/* File:	include/samba-client/dialogs.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Dialogs definitions
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+import "Mode";
+import "Stage";
+import "Samba";
+import "Label";
+import "Popup";
+import "Wizard";
+import "Autologin";
+
+import "SambaConfig";
+
+include "samba-client/helps.ycp";
+include "samba-client/routines.ycp";
+
+/**
+ * Samba memberhip dialog
+ * @return dialog result
+ */
+symbol MembershipDialog () {
+    /* Samba-client workgroup dialog caption */
+    string caption = _("Samba Membership");
+//    string template_homedir = SambaConfig::GlobalGetStr("template homedir", nil);
+//    string default_template_homedir = "/home/%D/%U";
+//    if (template_homedir == nil) template_homedir = default_template_homedir;
+
+    Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
+	// translators: frame label
+	`Frame(_("Membership"), 
+	    `VBox(
+		`HBox(
+		    `TextEntry(`id(`workgroup), (Stage::cont() ?
+			// translators: text entry label
+			_("&Domain") :
+			// translators: text entry label
+			_("&Domain or Workgroup:")), Samba::GetWorkgroup()),
+		    `Label(""),
+		    // translators: push button label
+		    `PushButton(`id(`browse), _("&Browse"))),
+		Stage::cont() ? `Empty() : `VBox(
+		    // translators: checkbox label to enable winbind
+		    `Left(`CheckBox(`id(`winbind), _("Also &Use SMB Information for Linux Authentication"), 
+			Samba::GetWinbind()))))))),
+//	    	`TextEntry(`id(`template_homedir), _("&Home Directory Template"), template_homedir)
+	Stage::cont() ? HELPS["MembershipDialog_cont"]:"" : HELPS["MembershipDialog_nocont"]:"", 
+	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
+    );
+
+    if (!Stage::cont()) {
+	Wizard::HideBackButton();
+    }
+
+    any ret = nil;
+    while(true) {
+
+	ret = UI::UserInput();
+	/* abort? */
+	if(ret == `abort || ret == `cancel) {
+	    if(ReallyAbort()) break;
+	    else continue;
+	}
+        else if(ret == `next) {
+	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
+	    Samba::SetWorkgroup(workgroup);
+	    Samba::SetWinbind(Stage::cont() ? true : (boolean)UI::QueryWidget(`id(`winbind), `Value));
+	    // for domain ask to join
+	    symbol workgroup_type = CheckWorkgroup(workgroup);
+
+	    if (Mode::config()) break;
+
+	    if (Samba::GetWinbind() && workgroup_type == `workgroup ) {
+		// translators: error message, winbind cannot provide user information taken
+		// from a workgroup, must be a domain; %1 is the workgroup name
+		Popup::Error(
+		    // translators: 1th part of an error message, winbind cannot provide user information taken from a workgroup, must be a domain; %1 is the workgroup name
+		    sformat( _("Cannot use the workgroup\n'%1' for Linux authentication."), workgroup)
+		    + "\n\n"
+		    + (Stage::cont()
+			// translators: 2nd part of an error message
+			? _("Enter valid name of a domain.")
+			// translators: 2nd part of an error message
+			: _("Enter name of a domain or disable\nusing SMB for Linux authentication.")));
+		continue;
+	    }
+
+	    symbol in_domain = nil;
+	    if (Stage::cont() && workgroup_type != `joined_domain) {
+		// return `ok or `fail
+		in_domain = JoinDomain(workgroup);
+		if (in_domain == `fail) continue;
+	    }
+	    if (!Stage::cont()) {
+		// return `ok, `fail or `nojoin
+		in_domain = AskJoinDomain(workgroup, workgroup_type);
+		if (in_domain == `fail) continue;
+		if (in_domain != `ok && Samba::GetWinbind()) {
+		    // translators: 1st part of an error message, winbind cannot provide user information if the host is not in a domain
+		    Popup::Error( _("The host must be a member of a domain\nfor Linux authentication using SMB.")
+			+ "\n\n"
+		        // translators: 2nd part of an error message
+		        + _("Join a domain or disable use of SMB\nfor Linux authentication."));
+		    continue;
+		}
+	    }
+	    if (Samba::GetWinbind()) {
+	        // popup text FIXME something more descriptive...
+	        Autologin::AskForDisabling(_("Samba is now enabled."));
+	    }
+	    break;
+	    
+        } else if (ret == `browse) {
+	
+	    string new_workgroup = BrowseNeighbours( Stage::cont() );
+	    
+	    if( new_workgroup != nil ) {
+		// fill in the new workgroup name
+		UI::ChangeWidget( `id(`workgroup), `Value, new_workgroup );
+	    }
+	    continue;
+	} else if (ret == `back ) {
+	    break;
+	}
+    }
+    
+    Wizard::RestoreNextButton();
+    Wizard::RestoreBackButton();
+    
+    return (symbol) ret;
+}
+
+/* EOF */
+}

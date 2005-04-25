@@ -1,0 +1,25 @@
+SambaConfig: [home]
+SambaConfig: path = /dev
+
+SambaConfig: [a]
+SambaConfig: b = y
+SambaConfig: 
+SambaConfig: [global]
+SambaConfig: abc = ABC
+
+SambaConfig: [a]
+SambaConfig: _disabled = 1
+SambaConfig: c = z
+SambaConfig: 
+SambaConfig: [global]
+SambaConfig: def = DEF
+
+SambaConfig: [a]
+SambaConfig: _comment = share disabled by gizo
+SambaConfig: _disabled = 1
+SambaConfig: c = q
+SambaConfig: 
+SambaConfig: [global]
+SambaConfig: def = DEF
+SambaConfig: ghc = GHC
+

@@ -1,0 +1,74 @@
+/**
+ * File:	include/samba-client/helps.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Help texts of all the dialogs
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+/**
+ * All helps are here
+ */
+map HELPS = $[
+
+    /* Read dialog help 1/2 */
+    "read" : _("<p><b><big>Initializing Samba Client Configuration</big></b><br>
+Please wait...<br></p>
+") +
+
+    /* Read dialog help 2/2 */
+    _("<p><b><big>Aborting the Initialization:</big></b><br>
+Safely abort the configuration utility by pressing <b>Abort</b>.</p>
+"),
+
+    /* Write dialog help 1/2 */
+    "write" : _("<p><b><big>Saving Samba Client Configuration</big></b><br>
+Please wait...<br></p>
+") +
+
+    /* Write dialog help 2/2 */
+_("<p><b><big>Aborting Saving:</big></b><br>
+Abort the save procedure by pressing <b>Abort</b>.
+An additional dialog will inform you whether it is safe to do so.
+</p>
+"),
+
+    /* translators: Samba workgroup dialog help title */
+    "MembershipDialog_nocont" : _("<p><b><big>Selection of Samba Membership</big></b></p>")
+    /* translators: Samba workgroup dialog help 1/3 */
++ _("<p>A Samba client can be a member of a workgroup or NT domain.
+Here, specify the name of the membership. <b>Browse</b>
+presents the list of all workgroups and domains found in the
+network.</p>
+") +
+
+    /* Samba role dialog help 2/3 */
+_("<p><b>Also Use SMB Information for Linux Authentication</b> allows 
+verification of passwords against the NT server.</p>
+")+
+
+    /* Samba role dialog help 3/3 */
+_("<p>When you press <b>Finish</b>, YaST2 will verify the membership and,
+if it is a NT domain, allow this host to join the domain.</p>
+"),
+
+    /* translators: Samba membership dialog help title (conf stage) */
+    "MembershipDialog_cont" : _("<p><b><big>Selection of Samba Membership</big></b></p>")
+    /* translators: Samba membership dialog help 1/2 (conf stage) */
++ _("<p>Specify the name of the NT domain. <b>Browse</b>
+presents the list of all domains found in the network.</p>
+")
+    /* translators: Samba membership dialog help 2/2 (conf stage) */
++ _("<p>When you press <b>Next</b>, YaST2 will verify the domain and
+allow this host to join the domain.</p>
+")
+
+];
+
+/* EOF */
+}

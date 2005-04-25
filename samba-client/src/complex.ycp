@@ -1,0 +1,50 @@
+/**
+ * File:	include/samba-client/complex.ycp
+ * Package:	Configuration of samba-client
+ * Summary:	Dialogs definitions
+ * Authors:	Stanislav Visnovsky <visnov@suse.cz>
+ *
+ * $Id$
+ */
+
+{
+
+textdomain "samba-client";
+
+import "Wizard";
+
+import "Samba";
+
+include "samba-client/helps.ycp";
+include "samba-client/routines.ycp";
+
+/**
+ * Return a modification status
+ * @return true if data was modified
+ */
+boolean Modified() {
+    return Samba::GetModified();
+}
+
+/**
+ * Read settings dialog
+ * @return `abort if aborted and `next otherwise
+ */
+symbol ReadDialog() {
+    Wizard::RestoreHelp(HELPS["read"]:"");
+    boolean ret = Samba::Read();
+    return ret ? `next : `abort;
+}
+
+/**
+ * Write settings dialog
+ * @return `abort if aborted and `next otherwise
+ */
+symbol WriteDialog() {
+    Wizard::RestoreHelp(HELPS["write"]:"");
+    boolean ret = Samba::Write(false);
+    return ret ? `next : `abort;
+}
+
+/* EOF */
+}
