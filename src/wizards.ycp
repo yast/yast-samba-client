@@ -66,7 +66,7 @@ symbol SambaClientAutoSequence() {
     // translators: initialization dialog caption
     string caption = _("Samba Client Configuration");
     // translators: initialization dialog contents
-    term contents = `Label(_("Initializing ..."));
+    term contents = `Label(_("Initializing..."));
 
     Wizard::CreateDialog();
     Wizard::SetContentsButtons(caption, contents, "",

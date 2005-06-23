@@ -34,9 +34,9 @@ define map<string, string> passwordUserPopup( string message, string defaultuser
     	    `VBox( 
 		`Label( message ),
 		// text entry label
-		`TextEntry(`id(`user), _("&User name:"), defaultuser ),
+		`TextEntry(`id(`user), _("&Username"), defaultuser ),
 		// text entry label
-    		`Password(`id(`passwd), _("&Password:") ),
+    		`Password(`id(`passwd), _("&Password") ),
     		`HBox( 
 		    `PushButton(`id(`ok), `opt(`default), Label::OKButton() ), 
 		    `PushButton(`id(`cancel), Label::CancelButton() ) 
@@ -80,7 +80,7 @@ define symbol CheckWorkgroup( string workgroup ) ``{
     
     symbol ret = nil;
 	    
-    // translators: progress information dialog text
+    // translators: text for busy pop-up
     UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
     
     if(  SambaNmbLookup::IsDomain(workgroup) || !SambaNmbLookup::Available() ) {
@@ -106,7 +106,7 @@ define symbol CheckWorkgroup( string workgroup ) ``{
 define symbol JoinDomain(string workgroup)
 {
     // translators: popup to fill in the domain joining info; %1 is the domain name
-    map<string, string> passwd = passwordUserPopup(sformat(_("Enter the user and the password\nfor joining the domain '%1'."), workgroup)
+    map<string, string> passwd = passwordUserPopup(sformat(_("Enter the username and the password\nfor joining the domain %1."), workgroup)
 	+ "\n\n" 
 	+ _("To join the domain anonymously, leave the\ntext entries empty.") + "\n", "Administrator");
 
@@ -121,7 +121,7 @@ define symbol JoinDomain(string workgroup)
     }
     
     // Translators: Information popup, %1 is the name of the domain
-    Popup::Message(sformat(_("Domain '%1' joined successfully."), Samba::GetWorkgroup()));
+    Popup::Message(sformat(_("Domain %1 joined successfully."), Samba::GetWorkgroup()));
     return `ok;
 }
 
@@ -150,13 +150,13 @@ define symbol AskJoinDomain( string workgroup, symbol status ) ``{
 	    
 	    // translators: popup question, the domain status cannot be found out, ask user what to do
 	    // %1 is the domain name
-	    res = Popup::YesNo(sformat(_("Cannot automatically determine if this host\nis a member of the domain '%1'."), workgroup)
-		+ "\n\n" + sformat(_("Join the domain '%1'?"), workgroup) + "\n");
+	    res = Popup::YesNo(sformat(_("Cannot automatically determine if this host\nis a member of the domain %1."), workgroup)
+		+ "\n\n" + sformat(_("Join the domain %1?"), workgroup) + "\n");
     } else if( status == `not_joined_domain ) {
 	// translators: popup question, The workgroup is a domain in fact and the machine is not a member, ask user what to do.
 	// %1 is the domain name
-	res = Popup::YesNo(sformat(_("This host is not a member\nof the domain '%1'."), workgroup)
-	    + "\n\n" + sformat(_("Join the domain '%1'?"), workgroup) + "\n");
+	res = Popup::YesNo(sformat(_("This host is not a member\nof the domain %1."), workgroup)
+	    + "\n\n" + sformat(_("Join the domain %1?"), workgroup) + "\n");
     }
 
     if (!res) {
@@ -178,7 +178,7 @@ define string BrowseNeighbours(boolean domains_only) ``{
     if (domains_only) {
 	groups = SambaNmbLookup::GetAvailableDomains();
     } else {
-	groups = SambaNmbLookup::GetAvailableNeighbours(_(" (domain)"));
+	groups = SambaNmbLookup::GetAvailableNeighbours(_(" (Domain)"));
     }
 
     if( groups == nil ) return nil;
@@ -186,7 +186,7 @@ define string BrowseNeighbours(boolean domains_only) ``{
     // let the user choose a workgroup
     UI::OpenDialog( `VBox(
 	// translators: selection box label
-        `SelectionBox(`id(`selection), (domains_only ? _("&Existing Domains:") : _("&Existing Neighbours:")), groups),
+        `SelectionBox(`id(`selection), (domains_only ? _("&Existing Domains") : _("&Existing Neighbours")), groups),
         `HBox(
             `PushButton( `id(`ok), Label::OKButton() ),
             `PushButton( `id(`cancel), Label::CancelButton() )
@@ -195,9 +195,9 @@ define string BrowseNeighbours(boolean domains_only) ``{
 
     any ret = UI::UserInput();
     string sel = (string) UI::QueryWidget( `id(`selection), `CurrentItem );
-    if ( sel != nil && issubstring (sel, _(" (domain)") ) )
+    if ( sel != nil && issubstring (sel, _(" (Domain)") ) )
     {
-	integer pos = findfirstof (sel, _(" (domain)") );
+	integer pos = findfirstof (sel, _(" (Domain)") );
 	sel = substring (sel, 0, pos);
     }
     UI::CloseDialog();

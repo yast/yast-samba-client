@@ -22,5 +22,5 @@ Icon=yast-samba-client
 Exec=/sbin/yast2 samba-client 
 
 Name=Samba Client
-GenericName=Configure Samba client
+GenericName=Configure a Samba client
 X-KDE-SubstituteUID=true

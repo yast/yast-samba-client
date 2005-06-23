@@ -73,14 +73,14 @@ global boolean Read() {
     // We do not set help text here, because it was set outside
     Progress::New( caption, " ", steps, [
 	    // translators: progress stage 1/2
-	    _("Read the global SAMBA settings"),
+	    _("Read the global Samba settings"),
 	    // translators: progress stage 2/2
-	    _("Read the WINBIND status"),
+	    _("Read the winbind status"),
 	], [
 	    // translators: progress step 1/2
-	    _("Reading the global SAMBA settings..."),
+	    _("Reading the global Samba settings..."),
 	    // translators: progress step 2/2
-	    _("Reading the WINBIND status..."),
+	    _("Reading the winbind status..."),
 	    // translators: progress finished
 	    _("Finished")
 	],
@@ -131,16 +131,16 @@ global boolean Write(boolean write_only) {
 	    // translators: write progress stage
 	    _("Write the settings"),
 	    // translators: write progress stage
-	    !winbind_enabled ? _("Disable SAMBA services") : 
+	    !winbind_enabled ? _("Disable Samba services") : 
 		// translators: write progress stage
-		_("Enable SAMBA services")
+		_("Enable Samba services")
 	], [
 	    // translators: write progress step
 	    _("Writing the settings..."),
 	    // translators: write progress step
-	    !winbind_enabled ? _("Disabling SAMBA services...") 
+	    !winbind_enabled ? _("Disabling Samba services...") 
 		// translators: write progress step
-		: _("Enabling SAMBA services..."),
+		: _("Enabling Samba services..."),
 	    // translators: write progress finished
 	    _("Finished")
 	],
@@ -154,7 +154,7 @@ global boolean Write(boolean write_only) {
     if (!GetModified()) return true;
 
     if (!SambaConfig::Write(write_only)) {
-	// translators: error message
+	// translators: error message, %1 is filename
 	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/samba/smb.conf") );
 	ret = false;
     }
@@ -168,34 +168,34 @@ global boolean Write(boolean write_only) {
 	    }
 	}
 	if (!SambaWinbind::AdjustService(true)) {
-	    // translators: error message
-	    Report::Error( _("Cannot start 'winbind' service."));
+	    // translators: error message, do not change winbind
+	    Report::Error( _("Cannot start winbind service."));
 	    ret = false;
 	}
 	if (!write_only && !SambaWinbind::StartStopNow(true)) {
-	    // translators: error message
-	    Report::Error(_("Cannot start 'winbind' daemon."));
+	    // translators: error message, do not change winbind
+	    Report::Error(_("Cannot start winbind daemon."));
 	    ret = false;
 	}
     } else {
 	if (!SambaWinbind::AdjustService(false)) {
-	    // translators: error message
-	    Report::Error( _("Cannot stop 'winbind' service."));
+	    // translators: error message, do not change winbind
+	    Report::Error( _("Cannot stop winbind service."));
 	    ret = false;
 	}
 	if (!write_only && !SambaWinbind::StartStopNow(false)) {
-	    // translators: error message
-	    Report::Error(_("Cannot stop 'winbind' daemon."));
+	    // translators: error message, do not change winbind
+	    Report::Error(_("Cannot stop winbind daemon."));
 	    ret = false;
 	}
     }
     if (!SambaWinbind::AdjustNsswitch(winbind_enabled)) {
-	// translators: error message
+	// translators: error message, %1 is filename
 	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/nsswitch.conf"));
 	ret = false;
     }
     if (!SambaWinbind::AdjustPam(winbind_enabled)) {
-	// translators: error message
+	// translators: error message, %1 is filename
 	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/security/pam_unix2.conf"));
 	ret = false;
     }
