@@ -54,7 +54,7 @@ boolean DomainMemberHandler( map<string, any> options ) {
     if( domain == nil ) {
 	// user must provide the domain name to be tested
 	// error message for isdomainmember command line action 
-	Report::Error( sformat( _("Specify the name of a domain.") ) );
+	Report::Error( sformat( _("Enter the name of a domain.") ) );
 	return false;
     }
     
@@ -67,10 +67,10 @@ boolean DomainMemberHandler( map<string, any> options ) {
     
     if( result ) {
 	// translators: result message for isdomainmember command line action 
-	CommandLine::Print( sformat( _("This machine is a member of '%1'"), domain ) );
+	CommandLine::Print( sformat( _("This machine is a member of %1"), domain ) );
     } else {
 	// translators: result message for isdomainmember command line action 
-	CommandLine::Print( sformat( _("This machine is not a member of '%1'"), domain ) );
+	CommandLine::Print( sformat( _("This machine is not a member of %1"), domain ) );
     }
     
     return true;
@@ -89,14 +89,14 @@ boolean JoinDomainHandler( map <string, any> options ) {
     if( domain == nil ) {
 	// must provide the domain name to be joined
 	// error message for joindomain command line action 
-	Report::Error( sformat( _("Specify the name of a domain.") ) );
+	Report::Error( sformat( _("Enter the name of a domain.") ) );
 	return false;
     }
     
     string result = SambaNetJoin::Join(domain, "member", (string)(options["user"]:nil), (string) (options["password"]:""));
     if( result == nil ) {
 	// translators: result message for joindomain command line action 
-	CommandLine::Print( sformat( _("Domain '%1' joined successfully."), domain ) );
+	CommandLine::Print( sformat( _("Domain %1 joined successfully."), domain ) );
 	return true;
     } else {
 	Report::Error( result );

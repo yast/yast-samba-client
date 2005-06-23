@@ -43,10 +43,10 @@ symbol MembershipDialog () {
 			// translators: text entry label
 			_("&Domain") :
 			// translators: text entry label
-			_("&Domain or Workgroup:")), Samba::GetWorkgroup()),
+			_("&Domain or Workgroup")), Samba::GetWorkgroup()),
 		    `Label(""),
 		    // translators: push button label
-		    `PushButton(`id(`browse), _("&Browse"))),
+		    `PushButton(`id(`browse), _("&Browse..."))),
 		Stage::cont() ? `Empty() : `VBox(
 		    // translators: checkbox label to enable winbind
 		    `Left(`CheckBox(`id(`winbind), _("Also &Use SMB Information for Linux Authentication"), 
@@ -82,14 +82,14 @@ symbol MembershipDialog () {
 		// translators: error message, winbind cannot provide user information taken
 		// from a workgroup, must be a domain; %1 is the workgroup name
 		Popup::Error(
-		    // translators: 1th part of an error message, winbind cannot provide user information taken from a workgroup, must be a domain; %1 is the workgroup name
+		    // translators: 1st part of an error message, winbind cannot provide user information taken from a workgroup, must be a domain; %1 is the workgroup name
 		    sformat( _("Cannot use the workgroup\n'%1' for Linux authentication."), workgroup)
 		    + "\n\n"
 		    + (Stage::cont()
 			// translators: 2nd part of an error message
-			? _("Enter valid name of a domain.")
+			? _("Enter a valid domain.")
 			// translators: 2nd part of an error message
-			: _("Enter name of a domain or disable\nusing SMB for Linux authentication.")));
+			: _("Enter a domain or disable\nusing SMB for Linux authentication.")));
 		continue;
 	    }
 
@@ -113,7 +113,7 @@ symbol MembershipDialog () {
 		}
 	    }
 	    if (Samba::GetWinbind()) {
-	        // popup text FIXME something more descriptive...
+	        // used outside this module for autologin function. must be complete sentence.
 	        Autologin::AskForDisabling(_("Samba is now enabled."));
 	    }
 	    break;
