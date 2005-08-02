@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug  2 09:56:11 CEST 2005 - locilka@suse.cz
+
+- Calling SetModified when adjusting the Share (#93840)
+
+-------------------------------------------------------------------
 Mon Aug  1 11:13:31 CEST 2005 - jsuchome@suse.cz
 
 - unified searching popup (#66591)

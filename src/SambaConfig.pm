@@ -493,6 +493,7 @@ sub ShareDisable {
 BEGIN{ $TYPEINFO{ShareAdjust} = ["function", "boolean", "string", "boolean"]; }
 sub ShareAdjust {
     my ($self, $share, $adjust) = @_;
+    $self->ShareSetModified($share);
     return $adjust ? $self->ShareEnable($share) : $self->ShareDisable($share);
 }
 
