@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug  4 13:40:36 CEST 2005 - jsuchome@suse.cz
+
+- 2.12.4 
+
+-------------------------------------------------------------------
 Tue Aug  2 09:56:11 CEST 2005 - locilka@suse.cz
 
 - Calling SetModified when adjusting the Share (#93840)
