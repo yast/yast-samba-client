@@ -23,6 +23,7 @@ import "Report";
 import "Package";
 
 import "Samba";
+import "SambaAD";
 import "SambaNetJoin";
 
 /**
@@ -56,6 +57,12 @@ boolean DomainMemberHandler( map<string, any> options ) {
 	// error message for isdomainmember command line action 
 	Report::Error( sformat( _("Enter the name of a domain.") ) );
 	return false;
+    }
+
+    SambaAD::ReadADS (domain);
+    if (SambaAD::ADS () != "")
+    {
+	SambaAD::ReadRealm ();
     }
     
     boolean result = SambaNetJoin::Test(domain);
@@ -91,6 +98,12 @@ boolean JoinDomainHandler( map <string, any> options ) {
 	// error message for joindomain command line action 
 	Report::Error( sformat( _("Enter the name of a domain.") ) );
 	return false;
+    }
+
+    SambaAD::ReadADS (domain);
+    if (SambaAD::ADS () != "")
+    {
+	SambaAD::ReadRealm ();
     }
     
     string result = SambaNetJoin::Join(domain, "member", (string)(options["user"]:nil), (string) (options["password"]:""));

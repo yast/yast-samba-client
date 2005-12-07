@@ -23,9 +23,9 @@ import "Mode";
 import "Autologin";
 
 import "SambaConfig";
-import "SambaNetJoin";
 import "SambaWinbind";
 import "SambaNmbLookup";
+import "SambaAD";
 
 
 /**
@@ -48,7 +48,6 @@ global boolean write_only = false;
  * Should be winbind enabled?
  */
 global boolean winbind_enabled = false;
-
 
 /**
  * Data was modified?
@@ -200,6 +199,12 @@ global boolean Write(boolean write_only) {
 	ret = false;
     }
 
+    if (!SambaAD::AdjustKerberos (winbind_enabled)) {
+	// translators: error message, %1 is filename
+	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/krb5.conf"));
+	ret = false;
+    }
+
     Autologin::Write(write_only);	// see dialog.ycp
 
     // finished    
@@ -317,6 +322,15 @@ global string GetWorkgroup() {
     return SambaConfig::GlobalGetStr("workgroup", "");
 }
 
+global string GetWorkgroupOrRealm() {
+    string workgroup = SambaConfig::GlobalGetStr("workgroup", "");
+    if (toupper (SambaConfig::GlobalGetStr("security","")) == "ADS")
+    {
+	return SambaConfig::GlobalGetStr("realm", workgroup);
+    }
+    return workgroup;
+}
+
 
 /**
  * Set a windind status
@@ -328,6 +342,7 @@ global define void SetWinbind(boolean status) ``{
 	modified = true;
 	winbind_enabled = status;
     }
+    SambaAD::AdjustSambaConfig(status);
     SambaWinbind::AdjustSambaConfig(status);
 }
 

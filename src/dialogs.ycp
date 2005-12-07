@@ -43,10 +43,13 @@ symbol MembershipDialog () {
 			// translators: text entry label
 			_("&Domain") :
 			// translators: text entry label
-			_("&Domain or Workgroup")), Samba::GetWorkgroup()),
-		    `Label(""),
-		    // translators: push button label
-		    `PushButton(`id(`browse), _("&Browse..."))),
+			_("&Domain or Workgroup")), Samba::GetWorkgroupOrRealm()),
+		    `VBox (
+			`Label(""),
+			// translators: push button label
+			`PushButton(`id(`browse), _("&Browse..."))
+		    )
+		),
 		Stage::cont() ? `Empty() : `VBox(
 		    // translators: checkbox label to enable winbind
 		    `Left(`CheckBox(`id(`winbind), _("Also &Use SMB Information for Linux Authentication"), 
@@ -72,7 +75,20 @@ symbol MembershipDialog () {
         else if(ret == `next) {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
 	    Samba::SetWorkgroup(workgroup);
+
+	    // busy popup text
+	    Popup::ShowFeedback ("",_("Verifying workgroup membership..."));
+	    SambaAD::ReadADS (workgroup);
+	    if (SambaAD::ADS () != "")
+	    {
+		workgroup = SambaAD::GetWorkgroup (workgroup);
+		Samba::SetWorkgroup(workgroup);
+		SambaAD::ReadRealm ();
+	    }
+	    Popup::ClearFeedback ();
+
 	    Samba::SetWinbind(Stage::cont() ? true : (boolean)UI::QueryWidget(`id(`winbind), `Value));
+
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup(workgroup);
 

@@ -20,6 +20,7 @@ our %TYPEINFO;
 
 YaST::YCP::Import("SCR");
 YaST::YCP::Import("SambaConfig");
+YaST::YCP::Import("SambaAD");
 
 my %TestJoinCache;
 
@@ -31,14 +32,26 @@ my %TestJoinCache;
 BEGIN{$TYPEINFO{Test}=["function","boolean","string"]}
 sub Test {
     my ($self, $domain) = @_;
-    # FIXME: ADS
     
     return $TestJoinCache{$domain} if defined $TestJoinCache{$domain};
-    
-    my $netbios_name = SambaConfig->GlobalGetStr("netbios name", undef);
-    my $cmd = "LANG=C net rpc testjoin -s /dev/zero -w '$domain'" . ($netbios_name?" -n '$netbios_name'":"");
+
+    my $protocol	= SambaAD->ADS () ne "" ? "ads" : "rpc";
+    my $netbios_name 	= SambaConfig->GlobalGetStr("netbios name", undef);
+    my $conf_file	= "/dev/zero";
+
+    if ($protocol eq "ads") {
+	$conf_file	= SCR->Read (".target.tmpdir")."/smb.conf";
+	my $realm	= SambaAD->Realm ();
+	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n\tuse kerberos keytab = Yes");
+    }
+
+    # FIXME -P is probably wrong, but suppresses password prompt
+    my $cmd = "LANG=C net $protocol testjoin -s $conf_file -P";
+    if ($protocol ne "ads") {
+	$cmd = $cmd." -w '$domain'" . ($netbios_name?" -n '$netbios_name'":"");
+    }
     my $res = SCR->Execute(".target.bash_output", $cmd);
-    y2debug("$cmd => ".Dumper($res));
+    y2internal("$cmd => ".Dumper($res));
     return $TestJoinCache{$domain} = ($res && defined $res->{exit} && $res->{exit}==0);
 }
 
@@ -57,15 +70,24 @@ BEGIN{$TYPEINFO{Join}=["function","string","string","string","string","string"]}
 sub Join {
     my ($self, $domain, $join_level, $user, $passwd) = @_;
     
-    my $netbios_name = SambaConfig->GlobalGetStr("netbios name", undef);
-    my $cmd = "net rpc join " . lc($join_level||"")
-	. " -w '$domain' -s /dev/zero"
-	. ($netbios_name?" -n '$netbios_name'":"")
+    my $netbios_name	= SambaConfig->GlobalGetStr("netbios name", undef);
+    my $protocol	= SambaAD->ADS () ne "" ? "ads" : "rpc";
+    my $conf_file	= "/dev/zero";
+    if ($protocol eq "ads") {
+	$conf_file	= SCR->Read (".target.tmpdir")."/smb.conf";
+	my $realm	= SambaAD->Realm ();
+	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n\tuse kerberos keytab = Yes");
+    }
+    my $cmd = "net $protocol join "
+	. ($protocol ne "ads" ? lc($join_level||"") : "")
+	. ($protocol ne "ads" ? " -w '$domain'" : "")
+	. " -s $conf_file"
+	. (($protocol ne "ads" && $netbios_name)?" -n '$netbios_name'":"")
 	. " -U '" . ($user||"") . "%" . ($passwd||"") . "'";
 
     my $result = SCR->Execute(".target.bash_output", $cmd);
     $cmd =~ s/(-U '[^%]*)%[^']*'/$1'/; # hide password in debug
-    y2debug("$cmd => ".Dumper($result));
+    y2internal("$cmd => ".Dumper($result));
     
     # check the exit code, return nil on success
     if ($result && defined $result->{exit} && $result->{exit} == 0) {

@@ -232,5 +232,4 @@ sub GetAvailableDomains {
     return [ grep {$self->IsDomain($_)} sort keys %Nmbstatus_output ];
 }
 
-
 8;

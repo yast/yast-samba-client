@@ -18,10 +18,12 @@ textdomain "samba-client";
 our %TYPEINFO;
 
 BEGIN{
-YaST::YCP::Import("Service");
+YaST::YCP::Import("Kerberos");
 YaST::YCP::Import("Nsswitch");
 YaST::YCP::Import("PamSettings");
 YaST::YCP::Import("PackageSystem");
+YaST::YCP::Import("Progress");
+YaST::YCP::Import("Service");
 
 YaST::YCP::Import("SambaConfig");
 }
@@ -54,7 +56,7 @@ sub AdjustSambaConfig {
 	# if turning on and there is no values set, use default
 	SambaConfig->GlobalUpdateMap({
 	    "idmap uid" => "10000-20000",
-	    "idmap gid" => "10000-20000",
+	    "idmap gid" => "10000-20000"
 	});
 #	SambaConfig::GlobalSetStr("security", "domain");
     }
@@ -81,6 +83,7 @@ sub AdjustNsswitch {
     };
 
     return TRUE if Nsswitch->Write();
+# FIXME for AD, disable (or at least remove) NSCD cache for passwd
     y2error("Nsswitch->Write() fail");
     return FALSE;
 }

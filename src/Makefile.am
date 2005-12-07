@@ -23,7 +23,8 @@ module_DATA =			\
 	SambaNetJoin.pm		\
 	SambaWinbind.pm		\
 	SambaNmbLookup.pm	\
-	SambaConfig.pm
+	SambaConfig.pm		\
+	SambaAD.pm
 
 samba-client:
 	ln -sf . samba-client
