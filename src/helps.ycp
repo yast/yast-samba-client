@@ -47,6 +47,10 @@ presents the list of all workgroups and domains found in the
 network.</p>
 ") +
 
+    _("<p><b>AD domain</b></p>") +
+
+    _("<p><b>FIXME</b> no browsing available etc.</p>") +
+
     /* Samba role dialog help 2/3 */
 _("<p><b>Also Use SMB Information for Linux Authentication</b> allows 
 verification of passwords against the NT server.</p>

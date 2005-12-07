@@ -19,6 +19,7 @@ import "Popup";
 import "Samba";
 import "SambaNetJoin";
 import "SambaNmbLookup";
+import "SambaAD";
 
 
 /**
@@ -82,11 +83,12 @@ define symbol CheckWorkgroup( string workgroup ) ``{
 	    
     // translators: text for busy pop-up
     UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
-    
-    if(  SambaNmbLookup::IsDomain(workgroup) || !SambaNmbLookup::Available() ) {
+
+    if (SambaNmbLookup::IsDomain(workgroup) || !SambaNmbLookup::Available() ||
+	SambaAD::ADS () != "") {
+
 	// handle domain joining
 	boolean res = SambaNetJoin::Test(workgroup);
-		
 	// we the host is already in domain, continue
 	if( res == true ) ret = `joined_domain;
 	else if( res != nil ) ret = `not_joined_domain;
