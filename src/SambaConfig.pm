@@ -168,11 +168,16 @@ sub Read {
 	    next if $line->{kind} ne "value";
 	    next if $line->{type} and not $section->{type}; # commented line
 
-	    $self->ShareSetStr($share, $line->{name}, $line->{value});
+	    if (defined $Config{$share}{$line->{name}}) {
+		$self->ShareAddStr($share, $line->{name}, $line->{value});
+	    }
+	    else {
+		$self->ShareSetStr($share, $line->{name}, $line->{value});
+	    }
 	}
     }
     $self->UnsetModified();
-    
+
     y2debug("Readed config: ".Dumper(\%Config));
     return 1;
 }
@@ -194,14 +199,17 @@ sub Write {
 	    if (!defined $val) {
 		SCR->Write(".etc.smb.value.global.$key", undef);
 	    } else {
-	        SCR->Write(".etc.smb.value.global.$key", String($val));
+		if (ref ($val) ne "ARRAY") {
+		    $val = [ String($val) ];
+		}
+	        SCR->Write(".etc.smb.value.global.$key", $val);
 	        # ensure option is not commented
-		SCR->Write(".etc.smb.value_type.global.$key", Integer(0));
+		SCR->Write(".etc.smb.value_type.global.$key", [Integer(0)]);
 	    }
 	}
 
 	# ensure global section is not commented
-	SCR->Write(".etc.smb.section_type.global", Integer(0));
+	SCR->Write(".etc.smb.section_type.global", [Integer(0)]);
 	
 	# remove modified flag
 	$Config{global}{_modified} = undef;
@@ -230,13 +238,16 @@ sub Write {
 	    if (!defined $val) {
 		SCR->Write(".etc.smb.value.$share.$key", undef);
 	    } else {
-	        my $ret1 = SCR->Write(".etc.smb.value.$share.$key", String($val));
-	        my $ret  = SCR->Write(".etc.smb.value_type.$share.$key", Integer($commentout));
+		if (ref ($val) ne "ARRAY") {
+		    $val = [ String($val) ];
+		}
+	        my $ret1 = SCR->Write(".etc.smb.value.$share.$key", $val);
+	        my $ret  = SCR->Write(".etc.smb.value_type.$share.$key", [ Integer($commentout)]);
 	    }
 	};
 	
 	# write the type and comment of the section
-	SCR->Write(".etc.smb.section_type.$share", Integer($commentout));
+	SCR->Write(".etc.smb.section_type.$share", [Integer($commentout)]);
 	my $comment = $Config{$share}{_comment} || "";
 	$comment =~ s/\n*$//;
 	$comment =~ s/^\n*//;
@@ -245,7 +256,7 @@ sub Write {
 	}
 	$comment =~ s/^(?![#;])/; /mg if $comment;
 	$comment .= "\n" if $comment;
-	SCR->Write(".etc.smb.section_comment.$share", String("\n$comment"));
+	SCR->Write(".etc.smb.section_comment.$share", [String("\n$comment")]);
 
 	# remove modified flag
 	$Config{$share}{_modified} = undef;
@@ -291,7 +302,7 @@ sub Export {
 	    next unless defined $val;	# skip undefined values
 	    next if $key =~ /^_/;	# skip internal keys
 	    $key =~ tr/a-zA-Z/_/cs;
-	    $section{parameters}{lc $key} = $val;
+	    $section{parameters}{lc $key} = $val; # TODO check for ARRAY?
 	}
 	push @myconfig, \%section;
     }
@@ -378,10 +389,47 @@ sub ShareGetStr {
     $key = $Synonyms{$key} if exists $Synonyms{$key};
     if (exists $InvertedSynonyms{$key}) {
 	$key = $InvertedSynonyms{$key};
-	my $val = toboolean($Config{$share}{$key});
+	my $val	= $Config{$share}{$key};
+	if (ref $val eq "ARRAY") {
+	    $val= $Config{$share}{$key}[0];
+	}
+	$val = toboolean($val);
 	return defined $val ? ($val ? "No" : "Yes") : $default;
     }
-    return defined $Config{$share}{$key} ? $Config{$share}{$key} : $default;
+    if (defined $Config{$share}{$key}) {
+	if (ref $Config{$share}{$key} eq "ARRAY") {
+	    return $Config{$share}{$key}[0];
+	}
+	return $Config{$share}{$key};
+    }
+    return $default;
+}
+
+# add share key value: used when some key is used multiple times
+# no checks for InvertedSynonyms, no checking for changes
+BEGIN{ $TYPEINFO{ShareAddStr} = ["function", "boolean", "string", "string", "string"]; }
+sub ShareAddStr {
+    my ($self, $share, $key, $val) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    if (not defined $key) {
+	y2error("undefned key");
+	return undef;
+    }
+    $key = lc($key);
+    $key = $Synonyms{$key} if exists $Synonyms{$key};
+    
+    my $old = $Config{$share}{$key};
+    if (ref ($old) ne "ARRAY") {
+	$Config{$share}{$key} = [];
+	if (defined $old) {
+	    push @{$Config{$share}{$key}}, $old;
+	}
+    }
+    push @{$Config{$share}{$key}}, $val;
+    return 1;
 }
 
 # set share key value, return old value
@@ -520,7 +568,8 @@ sub ShareGetMap {
     my %ret;
     my $keys = $self->ShareKeys($share);
     foreach(@$keys) {
-	$ret{$_} = $Config{$share}{$_};
+	$ret{$_} = (ref $Config{$share}{$_} ne "ARRAY") ? $Config{$share}{$_} :
+	    $Config{$share}{$_}[0];
     }
     return \%ret;
 }

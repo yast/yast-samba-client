@@ -19,8 +19,9 @@ textdomain "samba-client";
 our %TYPEINFO;
 
 YaST::YCP::Import ("FileUtils");
-YaST::YCP::Import("SCR");
-YaST::YCP::Import("SambaConfig");
+YaST::YCP::Import ("Mode");
+YaST::YCP::Import ("SCR");
+YaST::YCP::Import ("SambaConfig");
 
 use constant {
     TRUE => 1,
@@ -46,6 +47,10 @@ sub GetADS {
     my ($self, $workgroup) 	= @_;
     my $server			= "";
 y2internal ("get ads: workgroup: $workgroup");
+    
+    if (Mode->config ()) {
+	return "";
+    }
 
     # use DNS for finding DC
     if (FileUtils->Exists ("/usr/bin/dig")) {
@@ -97,6 +102,18 @@ y2internal ("nmblookup $winsserver $workgroup#1b output: ", Dumper ($out));
 		if ($line =~ m/$workgroup/) {
 		    my @parts	= split (/[ \t]/, $line);
 		    $server	= $parts[0] || "";
+		}
+	    }
+	}
+    }
+    if ($server eq "") {
+	my $out = SCR->Execute (".target.bash_output", "LANG=C net LOOKUP DC $workgroup");
+y2internal ("net LOOKUP DC $workgroup: ", Dumper ($out));
+	if ($out->{"exit"} eq 0) {
+	    foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
+		if ($line ne "" && $server eq "") {
+		    $server	= $line;
+		    chomp $server;
 		}
 	    }
 	}
@@ -183,7 +200,7 @@ y2internal ("net ads info -S $server: ", Dumper ($out));
 	return "";
     }
     my $ret	= $out->{"stdout"};
-    chop $ret;
+    chomp $ret;
 y2internal ("realm: $ret");
 
     return $ret;
@@ -221,7 +238,11 @@ sub AdjustSambaConfig {
 	    "template shell" 		=> $remove ? undef : "/bin/bash",
 	    "template homedir"		=> $remove ? undef : "/home/%D/%U",
 	    "workgroup"			=> $remove ? undef : $workgroup,
-	    "use kerberos keytab"	=> $remove ? undef : "Yes"
+	    "use kerberos keytab"	=> $remove ? undef : "Yes",
+	    "pam_winbind:krb5_auth"	=> $remove ? undef : "yes",
+	    "pam_winbind:krb5_ccache_type"
+					=> $remove ? undef : "FILE",
+	    "winbind refresh tickets"	=> $remove ? undef : "yes"
 	});
     }
 }
@@ -234,14 +255,11 @@ BEGIN{$TYPEINFO{AdjustKerberos}=["function","boolean","boolean"]}
 sub AdjustKerberos {
 
     my ($self, $on) = @_;
-y2internal ("AdjustKerberos: on=$on, server=$ads");
     if (!$on || ($ads || "") eq "") { 
 	# check if it is AD domain
 	# when disabling, we do not have to change this configuration
 	return TRUE;
     }
-    my $workgroup	= SambaConfig->GlobalGetStr ("workgroup", "");
-
     my $domain	= "\L$realm";
 
     my $prev	= Progress->set (FALSE);
@@ -253,11 +271,9 @@ y2internal ("AdjustKerberos: on=$on, server=$ads");
 	"kerberos_client"	=> {
 	    "default_realm"	=> $realm, 
 	    "default_domain"	=> $domain,
-	    "kdc_server"	=> $ads,
-	    "mappings"		=> "$workgroup\\(.*) \$1\@$realm"
+	    "kdc_server"	=> $ads
 	}
     });
-y2internal ("kerberos export: ", Dumper (Kerberos->Expert ()));
     Kerberos->modified (TRUE);
     Kerberos->Write ();
     Progress->set ($prev);
