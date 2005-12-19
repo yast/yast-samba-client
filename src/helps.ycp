@@ -47,7 +47,7 @@ presents the list of all workgroups and domains found in the
 network.</p>
 ") +
 
-    _("<p><b>AD domain</b></p>") +
+    _("<p><b>AD Domain</b></p>") +
 
     _("<p><b>FIXME</b> no browsing available etc.</p>") +
 

@@ -24,6 +24,7 @@ YaST::YCP::Import("PamSettings");
 YaST::YCP::Import("PackageSystem");
 YaST::YCP::Import("Progress");
 YaST::YCP::Import("Service");
+YaST::YCP::Import("SCR");
 
 YaST::YCP::Import("SambaConfig");
 }
@@ -66,10 +67,11 @@ sub AdjustSambaConfig {
 # Change nsswitch configuration.
 #
 # @param on the status of the winbind to be configured (true=enabled, false=disabled)
+# @param if nscd for passwd and group should be enabled
 # @return boolean true on succed
-BEGIN{$TYPEINFO{AdjustNsswitch}=["function","boolean","boolean"]}
+BEGIN{$TYPEINFO{AdjustNsswitch}=["function","boolean","boolean","boolean"]}
 sub AdjustNsswitch {
-    my ($self, $on) = @_;
+    my ($self, $on, $nscd_enabled) = @_;
 
     foreach my $db ("passwd", "group") {
 	my $nsswitch = Nsswitch->ReadDb($db);
@@ -82,8 +84,33 @@ sub AdjustNsswitch {
 	Nsswitch->WriteDb($db, $nsswitch);
     };
 
+    # remove the passwd and group cache for nscd
+    if (PackageSystem->Installed ("nscd")) {
+	SCR->Execute (".target.bash", "/usr/sbin/nscd -i passwd");
+	SCR->Execute (".target.bash", "/usr/sbin/nscd -i group");
+    }
+    # TODO we might want to disable caching by editing /etc/nscd.conf
+    if (defined $nscd_enabled) { # change to check for package
+	my $new_value	= ($nscd_enabled) ? "yes" : "no";
+	my $org_value	= ($new_value eq "no") ? "yes" : "no";
+	my $enable_cache = SCR->Read (".etc.nscd_conf.v.enable-cache");
+	if (ref ($enable_cache) eq "ARRAY") {
+	    my @new_cache	= ();
+	    foreach my $sect (@{$enable_cache}) {
+		if ($sect =~ m/^(passwd|group)/) {
+		    $sect =~ s/$org_value/$new_value/;
+		}
+		push @new_cache, $sect;
+	    }
+	    my $count = @new_cache;
+	    if ($count > 0) {
+		SCR->Write (".etc.nscd_conf.v.enable-cache", \@new_cache);
+		SCR->Write (".etc.nscd_conf", "force");
+	    }
+	}
+    }
+
     return TRUE if Nsswitch->Write();
-# FIXME for AD, disable (or at least remove) NSCD cache for passwd
     y2error("Nsswitch->Write() fail");
     return FALSE;
 }

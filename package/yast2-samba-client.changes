@@ -1,4 +1,26 @@
 -------------------------------------------------------------------
+Mon Dec 19 12:55:51 CET 2005 - jsuchome@suse.cz
+
+- added support for multiple keys in smb.conf (#138555)
+- 2.13.1
+
+-------------------------------------------------------------------
+Thu Dec 15 08:23:15 CET 2005 - jsuchome@suse.cz
+
+- winbind options are now set in smb.conf
+
+-------------------------------------------------------------------
+Wed Dec 14 11:25:51 CET 2005 - jsuchome@suse.cz
+
+- AD support:
+    use temporary config file for kerberos during join
+    install kerberos packages
+    do not save "mappings" to kerberos config file
+    use 'net LOOKUP DC' for searching the server
+- initial support for disabling nscd (#137793)
+- initial support for enabling FAM (#118196)
+
+-------------------------------------------------------------------
 Thu Dec  1 17:54:48 CET 2005 - jsuchome@suse.cz
 
 - support joining AD domains (F122007)

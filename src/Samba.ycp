@@ -49,6 +49,17 @@ global boolean write_only = false;
  */
 global boolean winbind_enabled = false;
 
+
+/**
+ * Is name servcice cache enabled?
+ */
+global boolean nscd_enabled	= true;
+
+/**
+ * If FAM should be started
+ */
+global boolean start_fam	= true;
+
 /**
  * Data was modified?
  * @return true if modified
@@ -57,6 +68,48 @@ global boolean GetModified() {
     y2debug("modified=%1",modified);
     return modified || SambaConfig::GetModified();
 };
+
+/**
+ * Read the state of passwd and group cache in /etc/nscd
+ */
+define boolean ReadNscdState () {
+
+    nscd_enabled	= PackageSystem::Installed ("nscd");
+
+    list<string> enable_cache	=
+	(list<string>) SCR::Read (.etc.nscd_conf.v.enable-cache);
+    foreach (string sect, enable_cache, {
+	list<string> l_cache = filter (
+	    string part, splitstring (sect, " \t"), ``(part != ""));
+	if (l_cache[0]:"" == "passwd" || l_cache[0]:"" == "group")
+	{
+	    nscd_enabled	= nscd_enabled && l_cache[1]:"" == "yes";
+	}
+    });
+    return nscd_enabled;
+}
+
+/**
+ * Start/Stop and FAM service according to current settings
+ * @return success
+ */
+define boolean WriteFAM () {
+
+    if (start_fam)
+    {
+	if (!PackageSystem::InstalledAll (["fam","fam-server"]))
+	    return false;
+
+	Service::Enable ("fam");
+	Service::Start ("fam");
+    }
+    else
+    {
+	Service::Disable ("fam");
+	Service::Stop ("fam");
+    }
+    return true;
+}
 
 /**
  * Read all samba-client settings
@@ -104,7 +157,11 @@ global boolean Read() {
     if (!Mode::test()) {
 	SambaNmbLookup::Start();
     }
-    
+
+    ReadNscdState ();
+
+    start_fam = Service::Status ("fam") == 0;
+
     Autologin::Read();
 
     // finished
@@ -188,7 +245,7 @@ global boolean Write(boolean write_only) {
 	    ret = false;
 	}
     }
-    if (!SambaWinbind::AdjustNsswitch(winbind_enabled)) {
+    if (!SambaWinbind::AdjustNsswitch(winbind_enabled,nscd_enabled)) {
 	// translators: error message, %1 is filename
 	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/nsswitch.conf"));
 	ret = false;
@@ -206,6 +263,8 @@ global boolean Write(boolean write_only) {
     }
 
     Autologin::Write(write_only);	// see dialog.ycp
+
+    WriteFAM ();
 
     // finished    
     Progress::NextStage();
@@ -226,6 +285,7 @@ global boolean Import (map settings) {
 	winbind_enabled = settings["global","winbind"]:false;
 	globals_configured = true;
         modified = false;
+	// FIXME Active Directory... ???
     } else {
 	globals_configured = false;
     }
@@ -248,9 +308,7 @@ global map Export () {
 	"workgroup": SambaConfig::GlobalGetStr("workgroup", ""),
 	"winbind" : winbind_enabled,
     ];
-    
     modified = false;
-    
     return $[ "global": globals ];
 }
 
@@ -361,6 +419,34 @@ global define boolean GetWinbind() ``{
  */
 global define map AutoPackages() ``{
 	return ($["install": ["samba-client", "samba-winbind"], "remove": []]);
+}
+
+/**
+ * update the information if FAM should be started
+ * @return current fam status
+ */
+global define boolean SetStartFAM (boolean fam) {
+
+    if (fam != start_fam)
+    {
+	start_fam	= fam;
+	modified	= true;
+    }
+    return start_fam;
+}
+
+/**
+ * update the information if nscd should be enabled
+ * @return current nscd status
+ */
+global define boolean SetNscdState (boolean nscd) {
+
+    if (nscd != nscd_enabled)
+    {
+	nscd_enabled	= nscd;
+	modified	= true;
+    }
+    return nscd_enabled;
 }
 
 

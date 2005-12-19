@@ -14,6 +14,7 @@ import "Mode";
 import "Stage";
 import "Samba";
 import "Label";
+import "PackageSystem";
 import "Popup";
 import "Wizard";
 import "Autologin";
@@ -34,10 +35,21 @@ symbol MembershipDialog () {
 //    string default_template_homedir = "/home/%D/%U";
 //    if (template_homedir == nil) template_homedir = default_template_homedir;
 
+    term winbind_term	= Stage::cont() ? `Empty() : `VBox(
+	`Left(`CheckBox(`id(`winbind),
+	    // translators: checkbox label to enable winbind
+	    _("Also &Use SMB Information for Linux Authentication"),
+	    Samba::GetWinbind()
+	))
+    );
+
+    boolean start_fam	= Samba::start_fam;
+    boolean nscd	= Samba::nscd_enabled;
+
     Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
 	// translators: frame label
-	`Frame(_("Membership"), 
-	    `VBox(
+	`Frame (_("Membership"),
+	    `VBox (
 		`HBox(
 		    `TextEntry(`id(`workgroup), (Stage::cont() ?
 			// translators: text entry label
@@ -50,19 +62,28 @@ symbol MembershipDialog () {
 			`PushButton(`id(`browse), _("&Browse..."))
 		    )
 		),
-		Stage::cont() ? `Empty() : `VBox(
-		    // translators: checkbox label to enable winbind
-		    `Left(`CheckBox(`id(`winbind), _("Also &Use SMB Information for Linux Authentication"), 
-			Samba::GetWinbind()))))))),
-//	    	`TextEntry(`id(`template_homedir), _("&Home Directory Template"), template_homedir)
-	Stage::cont() ? HELPS["MembershipDialog_cont"]:"" : HELPS["MembershipDialog_nocont"]:"", 
+		winbind_term
+	    )
+	),
+	`VSpacing (),
+	`Left (
+	    // checkbox label
+	    `CheckBox (`id(`nscd), _("Disable Name Service Cache"), !nscd)
+	),
+	`Left (
+	    // checkbox label
+	    `CheckBox (`id(`fam), _("Start File Alteration Monitor"), start_fam)
+	)
+    )),
+	Stage::cont() ? HELPS["MembershipDialog_cont"]:"" : HELPS["MembershipDialog_nocont"]:"",
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
 
     if (!Stage::cont()) {
 	Wizard::HideBackButton();
     }
-
+UI::ChangeWidget (`id(`nscd), `Enabled, false);
+UI::ChangeWidget (`id(`fam), `Enabled, false);
     any ret = nil;
     while(true) {
 
@@ -132,8 +153,17 @@ symbol MembershipDialog () {
 	        // used outside this module for autologin function. must be complete sentence.
 	        Autologin::AskForDisabling(_("Samba is now enabled."));
 	    }
+
+	    Samba::SetStartFAM (
+		(boolean)UI::QueryWidget (`id(`fam), `Value) &&
+		PackageSystem::CheckAndInstallPackages (["fam","fam-server"])
+	    );
+//FIXME	    Samba::SetNscdState((boolean) UI::QueryWidget (`id(`nscd), `Value));
+	    if (SambaAD::ADS () != "")
+	    {
+		PackageSystem::CheckAndInstallPackages (["krb5","krb5-client"]);
+	    }
 	    break;
-	    
         } else if (ret == `browse) {
 	
 	    string new_workgroup = BrowseNeighbours( Stage::cont() );

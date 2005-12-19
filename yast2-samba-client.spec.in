@@ -2,7 +2,7 @@
 # neededforbuild yast2-devel-packages samba yast2-pam yast2-installation
 
 @HEADER@
-Requires:	yast2 yast2-pam
+Requires:	yast2 yast2-pam yast2-kerberos-client
 
 BuildArchitectures:	noarch
 
@@ -29,5 +29,5 @@ Summary:	Configuration of samba-client
 @moduledir@/Samba.ycp
 @moduledir@/Samba.ybc
 @desktopdir@/samba-client.desktop
-@scrconfdir@/cfg_smbconf.scr
+@scrconfdir@/*.scr
 %doc @docdir@
