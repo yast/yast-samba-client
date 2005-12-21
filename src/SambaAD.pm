@@ -19,6 +19,7 @@ textdomain "samba-client";
 our %TYPEINFO;
 
 YaST::YCP::Import ("FileUtils");
+YaST::YCP::Import ("Kerberos");
 YaST::YCP::Import ("Mode");
 YaST::YCP::Import ("SCR");
 YaST::YCP::Import ("SambaConfig");
@@ -145,6 +146,19 @@ sub ReadADS {
 BEGIN{$TYPEINFO{ADS}=["function","string"]}
 sub ADS {
     return $ads;
+}
+
+# Set the value of $ads
+# return true if the new value is different from the previous one
+BEGIN{$TYPEINFO{SetADS}=["function","boolean", "string"]}
+sub SetADS {
+
+    my ($self, $new_ads) 	= @_;
+    if ($new_ads eq $ads) {
+	return FALSE;
+    }
+    $ads = $new_ads;
+    return TRUE;
 }
 
     

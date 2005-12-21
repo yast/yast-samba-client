@@ -15,15 +15,18 @@
 module "Samba";
 textdomain "samba-client";
 
+import "Autologin";
+import "FileUtils";
+import "Mode";
+import "Package";
+import "PackageSystem";
 import "Progress";
 import "Report";
 import "Service";
-import "PackageSystem";
-import "Mode";
-import "Autologin";
 
 import "SambaConfig";
 import "SambaWinbind";
+import "SambaNetJoin";
 import "SambaNmbLookup";
 import "SambaAD";
 
@@ -61,6 +64,11 @@ global boolean nscd_enabled	= true;
 global boolean start_fam	= true;
 
 /**
+ * map with user name and password (used for autoinstallation only)
+ */
+global map<string,string> password_data	= $[];
+
+/**
  * Data was modified?
  * @return true if modified
  */
@@ -74,7 +82,7 @@ global boolean GetModified() {
  */
 define boolean ReadNscdState () {
 
-    nscd_enabled	= PackageSystem::Installed ("nscd");
+    nscd_enabled	= Package::Installed ("nscd");
 
     list<string> enable_cache	=
 	(list<string>) SCR::Read (.etc.nscd_conf.v.enable-cache);
@@ -91,22 +99,54 @@ define boolean ReadNscdState () {
 
 /**
  * Start/Stop and FAM service according to current settings
+ * @param write_only do not start/stop services
  * @return success
  */
-define boolean WriteFAM () {
+define boolean WriteFAM (boolean write_only) {
 
     if (start_fam)
     {
-	if (!PackageSystem::InstalledAll (["fam","fam-server"]))
+	if (!Package::InstalledAll (["fam","fam-server"]))
 	    return false;
 
 	Service::Enable ("fam");
-	Service::Start ("fam");
+	if (! write_only) Service::Start ("fam");
     }
     else
     {
 	Service::Disable ("fam");
-	Service::Stop ("fam");
+	if (!write_only) Service::Stop ("fam");
+    }
+    return true;
+}
+
+
+/**
+ * Tell displaymanager (KDM) to use special windbind greeter
+ * @param enable if  winbind is enabled
+ * @param write_only do not run SuSEconfig script
+ * @return success
+ */
+define boolean WriteDisplayManager (boolean enable, boolean write_only) {
+
+    if (!FileUtils::Exists ("/etc/sysconfig/displaymanager"))
+	return false;
+
+    if (enable)
+    {
+	if (!Package::Installed ("kdebase3-kdm"))
+	    return false;
+	if (SCR::Read (.sysconfig.displaymanager.KDM_GREETER) == "windbind")
+	    return true;
+    }
+
+    SCR::Write (.sysconfig.displaymanager.KDM_GREETER, enable ? "winbind" : "");
+    SCR::Write (.sysconfig.displaymanager, nil);
+
+    if (!write_only &&
+	SCR::Read(.sysconfig.displaymanager.DISPLAYMANAGER) == "kdm")
+    {
+	SCR::Execute (.target.bash, "/sbin/SuSEconfig --module kdm3");
     }
     return true;
 }
@@ -182,26 +222,35 @@ global boolean Write(boolean write_only) {
     /* Samba-client read dialog caption */
     string caption = _("Saving Samba Client Configuration");
 
-    // We do not set help text here, because it was set outside
-    Progress::New(caption, " ", 2, [
+    list<string> stages	= [
 	    // translators: write progress stage
 	    _("Write the settings"),
 	    // translators: write progress stage
-	    !winbind_enabled ? _("Disable Samba services") : 
+	    !winbind_enabled ? _("Disable Samba services") :
 		// translators: write progress stage
 		_("Enable Samba services")
-	], [
+    ];
+    list<string> steps	= [
 	    // translators: write progress step
 	    _("Writing the settings..."),
 	    // translators: write progress step
-	    !winbind_enabled ? _("Disabling Samba services...") 
+	    !winbind_enabled ? _("Disabling Samba services...")
 		// translators: write progress step
 		: _("Enabling Samba services..."),
 	    // translators: write progress finished
 	    _("Finished")
-	],
-	""
-    );
+    ];
+
+    if (SambaAD::ADS () != "" && winbind_enabled)
+    {
+	// write progress stage
+	stages	= add (stages, _("Write Kerberos configuration"));
+	// write progress step
+	steps	= add (steps, _("Writing Kerberos configuration..."));
+    }
+
+    // We do not set help text here, because it was set outside
+    Progress::New (caption, " ", size (stages), stages, steps, "");
 
     // write settings
     Progress::NextStage();
@@ -218,7 +267,7 @@ global boolean Write(boolean write_only) {
     // winbind
     Progress::NextStage();
     if (winbind_enabled) {
-	if (!PackageSystem::Installed("samba-winbind")) {
+	if (!Package::Installed("samba-winbind")) {
 	    if (!Mode::test() && !PackageSystem::CheckAndInstallPackagesInteractive(["samba-winbind"])) {
 		ret = false;
 	    }
@@ -256,17 +305,23 @@ global boolean Write(boolean write_only) {
 	ret = false;
     }
 
+    if (SambaAD::ADS () != "" && winbind_enabled)
+	Progress::NextStage();
+
     if (!SambaAD::AdjustKerberos (winbind_enabled)) {
 	// translators: error message, %1 is filename
 	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/krb5.conf"));
 	ret = false;
     }
 
+    // if autologin was modified, SuSEconfig script will be called there
+    WriteDisplayManager (winbind_enabled, write_only || Autologin::modified);
+
     Autologin::Write(write_only);	// see dialog.ycp
 
-    WriteFAM ();
+    WriteFAM (write_only);
 
-    // finished    
+    // finished
     Progress::NextStage();
     modified = false;
 
@@ -285,9 +340,27 @@ global boolean Import (map settings) {
 	winbind_enabled = settings["global","winbind"]:false;
 	globals_configured = true;
         modified = false;
-	// FIXME Active Directory... ???
     } else {
 	globals_configured = false;
+    }
+    if (haskey(settings, "active_directory"))
+    {
+	SambaAD::SetADS	(settings["active_directory","kdc"]:"");
+	if (!Mode::config ())
+	{
+	    SambaConfig::GlobalSetStr("workgroup",
+	      SambaAD::GetWorkgroup(SambaConfig::GlobalGetStr("workgroup","")));
+	    SambaAD::ReadRealm ();
+	}
+    }
+    if (haskey(settings, "join") && Mode::autoinst ())
+    {
+	y2milestone ("join result: %1",
+	    SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
+		"member",
+		settings["join","user"]:"",
+		settings["join","password"]:""
+	    ));
     }
 
     return true;
@@ -308,8 +381,23 @@ global map Export () {
 	"workgroup": SambaConfig::GlobalGetStr("workgroup", ""),
 	"winbind" : winbind_enabled,
     ];
+    map ret	= $[ "global": globals ];
+    if (SambaAD::ADS() != "")
+    {
+	ret["active_directory"]	= $[
+	    "kdc" : SambaAD::ADS()
+	];
+    }
+    // export user & password to "join" map
+    map joinmap	= $[];
+    foreach (string key, string val, password_data, {
+	if (val != nil && val != "")
+	    joinmap[key]	= val;
+    });
+    if (joinmap != $[])
+	ret["join"]	= joinmap;
     modified = false;
-    return $[ "global": globals ];
+    return ret;
 }
 
 /**
@@ -418,7 +506,10 @@ global define boolean GetWinbind() ``{
  * @return map of packages to be installed and to be removed
  */
 global define map AutoPackages() ``{
-	return ($["install": ["samba-client", "samba-winbind"], "remove": []]);
+    list to_install = ["samba-client", "samba-winbind"];
+    if (SambaAD::ADS () != "")
+	to_install = union (to_install, ["krb5", "krb5-client"]);
+    return $["install": to_install, "remove": []];
 }
 
 /**

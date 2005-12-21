@@ -41,36 +41,46 @@ An additional dialog informs you whether it is safe to do so.
     /* translators: Samba workgroup dialog help title */
     "MembershipDialog_nocont" : _("<p><b><big>Selecting Samba Membership</big></b></p>")
     /* translators: Samba workgroup dialog help 1/3 */
-+ _("<p>A Samba client can be a member of a workgroup or NT domain.
++ _("<p>A Samba client can be a member of a workgroup, NT domain or Active Directory domain.
 Here, specify the name of the membership. <b>Browse</b>
 presents the list of all workgroups and domains found in the
 network.</p>
 ") +
 
-    _("<p><b>AD Domain</b></p>") +
-
-    _("<p><b>FIXME</b> no browsing available etc.</p>") +
-
-    /* Samba role dialog help 2/3 */
+/*
 _("<p><b>Also Use SMB Information for Linux Authentication</b> allows 
 verification of passwords against the NT server.</p>
 ")+
+*/
+
+    /* Samba role dialog help 2/3 */
+_("<p><b>Also Use SMB Information for Linux Authentication</b> allows 
+verification of passwords against the NT server or the Kerberos server in case of joining AD domain.</p>")+
 
     /* Samba role dialog help 3/3 */
 _("<p>When you press <b>Finish</b>, the system verifies the membership and,
 if it is a NT domain, allows this host to join the domain.</p>
 "),
 
-    /* translators: Samba membership dialog help title (conf stage) */
+    /* translators: Samba membership dialog help title (installation) */
     "MembershipDialog_cont" : _("<p><b><big>Selecting Samba Membership</big></b></p>")
-    /* translators: Samba membership dialog help 1/2 (conf stage) */
-+ _("<p>Specify the name of the NT domain. <b>Browse</b>
+    /* translators: Samba membership dialog help 1/2 (installation) */
++ _("<p>Specify the name of the NT or Active Directory domain. <b>Browse</b>
 presents the list of all domains found in the network.</p>
 ")
-    /* translators: Samba membership dialog help 2/2 (conf stage) */
+    /* translators: Samba membership dialog help 2/2 (installation) */
 + _("<p>When you press <b>Next</b>, the system verifies the domain and
 allows this host to join the domain.</p>
-")
+"),
+
+    // Samba membership dialog - additional help for autoyast config
+    "MembershipDialog_config" : _("<p><b>Join Settings</b></p>") +
+
+    // Samba membership dialog - additional help for autoyast config
+    _("<p>Set the <b>Username</b> and <b>Password</b> that should be used for joining selected domain during autoinstallation. Note that the password will be saved to the profile in the cleartext (unencrypted) form.</p>") +
+
+    // Samba membership dialog - additional help for autoyast config
+    _("<p>Specify <b>Active Directory Server</b> that should be used for joining Active Directory domain. This will be used also as a value for KDC in Kerberos configuration</p>")
 
 ];
 
