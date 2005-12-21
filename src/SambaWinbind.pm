@@ -18,7 +18,6 @@ textdomain "samba-client";
 our %TYPEINFO;
 
 BEGIN{
-YaST::YCP::Import("Kerberos");
 YaST::YCP::Import("Nsswitch");
 YaST::YCP::Import("PamSettings");
 YaST::YCP::Import("PackageSystem");
@@ -109,6 +108,7 @@ sub AdjustNsswitch {
 	    }
 	}
     }
+#TODO restart service
 
     return TRUE if Nsswitch->Write();
     y2error("Nsswitch->Write() fail");

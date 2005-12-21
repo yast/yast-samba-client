@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec 20 15:10:09 CET 2005 - jsuchome@suse.cz
+
+- added autoyast support for joining and AD
+- saved KDM_GREETER value for special greeter with winbind (#139338)
+
+-------------------------------------------------------------------
 Mon Dec 19 12:55:51 CET 2005 - jsuchome@suse.cz
 
 - added support for multiple keys in smb.conf (#138555)

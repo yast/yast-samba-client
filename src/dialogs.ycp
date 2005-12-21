@@ -31,9 +31,6 @@ include "samba-client/routines.ycp";
 symbol MembershipDialog () {
     /* Samba-client workgroup dialog caption */
     string caption = _("Samba Membership");
-//    string template_homedir = SambaConfig::GlobalGetStr("template homedir", nil);
-//    string default_template_homedir = "/home/%D/%U";
-//    if (template_homedir == nil) template_homedir = default_template_homedir;
 
     term winbind_term	= Stage::cont() ? `Empty() : `VBox(
 	`Left(`CheckBox(`id(`winbind),
@@ -42,6 +39,20 @@ symbol MembershipDialog () {
 	    Samba::GetWinbind()
 	))
     );
+
+    term autoyast_term	= Mode::config () ? `VBox (
+	`VSpacing (),
+	// frame label
+	`Frame (_("Join settings"), `HBox (
+	    // text entry label
+	    `TextEntry (`id("username"), _("&Username")),
+	    // text entry label
+	    `Password (`id("passwd"), _("&Password"))
+	)),
+	`VSpacing (),
+	// text entry label
+	`TextEntry (`id(`ads), _("Active Directory Server"))
+    ) : `Empty ();
 
     boolean start_fam	= Samba::start_fam;
     boolean nscd	= Samba::nscd_enabled;
@@ -66,6 +77,7 @@ symbol MembershipDialog () {
 	    )
 	),
 	`VSpacing (),
+	/*
 	`Left (
 	    // checkbox label
 	    `CheckBox (`id(`nscd), _("Disable Name Service Cache"), !nscd)
@@ -73,17 +85,26 @@ symbol MembershipDialog () {
 	`Left (
 	    // checkbox label
 	    `CheckBox (`id(`fam), _("Start File Alteration Monitor"), start_fam)
-	)
+	),
+	*/
+	autoyast_term
     )),
-	Stage::cont() ? HELPS["MembershipDialog_cont"]:"" : HELPS["MembershipDialog_nocont"]:"",
+	Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
+	    HELPS["MembershipDialog_nocont"]:"" +
+	    (Mode::config () ? HELPS["MembershipDialog_config"]:"" : ""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
 
     if (!Stage::cont()) {
 	Wizard::HideBackButton();
     }
-UI::ChangeWidget (`id(`nscd), `Enabled, false);
-UI::ChangeWidget (`id(`fam), `Enabled, false);
+    if (Mode::config ()) {
+	UI::ChangeWidget (`id(`browse), `Enabled, false);
+	UI::ChangeWidget (`id(`fam), `Enabled, false);
+// FIXME for Mode::config, disable only when handling the service
+// UI::ChangeWidget (`id(`nscd), `Enabled, false);
+    }
+
     any ret = nil;
     while(true) {
 
@@ -113,7 +134,17 @@ UI::ChangeWidget (`id(`fam), `Enabled, false);
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup(workgroup);
 
-	    if (Mode::config()) break;
+	    if (Mode::config())
+	    {
+		foreach (string key, [ "username", "passwd" ], {
+		    string val = (string) UI::QueryWidget(`id(key),`Value);
+		    if (val != nil && val != "")
+			Samba::password_data[key]	= val;
+		});
+		if ((string)UI::QueryWidget(`id(`ads),`Value) != "")
+		    SambaAD::SetADS ((string)UI::QueryWidget(`id(`ads),`Value));
+		break;
+	    }
 
 	    if (Samba::GetWinbind() && workgroup_type == `workgroup ) {
 		// translators: error message, winbind cannot provide user information taken
@@ -154,11 +185,13 @@ UI::ChangeWidget (`id(`fam), `Enabled, false);
 	        Autologin::AskForDisabling(_("Samba is now enabled."));
 	    }
 
+	    /* FIXME waiting for NEEDINFO input
 	    Samba::SetStartFAM (
 		(boolean)UI::QueryWidget (`id(`fam), `Value) &&
 		PackageSystem::CheckAndInstallPackages (["fam","fam-server"])
 	    );
-//FIXME	    Samba::SetNscdState((boolean) UI::QueryWidget (`id(`nscd), `Value));
+	    Samba::SetNscdState((boolean) UI::QueryWidget (`id(`nscd), `Value));
+	    */
 	    if (SambaAD::ADS () != "")
 	    {
 		PackageSystem::CheckAndInstallPackages (["krb5","krb5-client"]);
