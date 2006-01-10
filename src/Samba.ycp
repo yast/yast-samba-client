@@ -122,7 +122,7 @@ define boolean WriteFAM (boolean write_only) {
 
 
 /**
- * Tell displaymanager (KDM) to use special windbind greeter
+ * Tell displaymanager (KDM/GDM) to use special windbind greeter
  * @param enable if  winbind is enabled
  * @param write_only do not run SuSEconfig script
  * @return success
@@ -134,19 +134,22 @@ define boolean WriteDisplayManager (boolean enable, boolean write_only) {
 
     if (enable)
     {
-	if (!Package::Installed ("kdebase3-kdm"))
+	if (!Package::InstalledAny (["kdebase3-kdm", "gdm"]))
 	    return false;
-	if (SCR::Read (.sysconfig.displaymanager.KDM_GREETER) == "windbind")
+	if (SCR::Read (.sysconfig.displaymanager.DISPLAYMANAGER_AD_INTEGRATION) == "yes")
 	    return true;
     }
 
-    SCR::Write (.sysconfig.displaymanager.KDM_GREETER, enable ? "winbind" : "");
+    SCR::Write (.sysconfig.displaymanager.DISPLAYMANAGER_AD_INTEGRATION,
+	enable ? "yes" : "no");
     SCR::Write (.sysconfig.displaymanager, nil);
 
-    if (!write_only &&
-	SCR::Read(.sysconfig.displaymanager.DISPLAYMANAGER) == "kdm")
+    string dm = (string) SCR::Read (.sysconfig.displaymanager.DISPLAYMANAGER);
+
+    if (!write_only && (dm == "kdm" || dm == "gdm"))
     {
-	SCR::Execute (.target.bash, "/sbin/SuSEconfig --module kdm3");
+	SCR::Execute (.target.bash,
+	    "/sbin/SuSEconfig --module " + (dm == "gdm" ? dm : "kdm3"));
     }
     return true;
 }
