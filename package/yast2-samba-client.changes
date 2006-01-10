@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan  6 15:30:53 CET 2006 - jsuchome@suse.cz
+
+- used DISPLAYMANAGER_AD_INTEGRATION instead of KDM_GREETER (#139338)
+- 2.13.2 
+
+-------------------------------------------------------------------
 Tue Dec 20 15:10:09 CET 2005 - jsuchome@suse.cz
 
 - added autoyast support for joining and AD
