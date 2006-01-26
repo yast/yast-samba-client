@@ -1,7 +1,7 @@
 @HEADER-COMMENT@
-# neededforbuild yast2-devel-packages samba yast2-pam yast2-installation
 
 @HEADER@
+BuildRequires:	samba yast2-devel-packages yast2-pam
 Requires:	yast2 yast2-pam yast2-kerberos-client
 
 BuildArchitectures:	noarch
