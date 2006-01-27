@@ -43,7 +43,7 @@ symbol MembershipDialog () {
     term autoyast_term	= Mode::config () ? `VBox (
 	`VSpacing (),
 	// frame label
-	`Frame (_("Join settings"), `HBox (
+	`Frame (_("Join Settings"), `HBox (
 	    // text entry label
 	    `TextEntry (`id("username"), _("&Username")),
 	    // text entry label
@@ -56,6 +56,15 @@ symbol MembershipDialog () {
 
     boolean start_fam	= Samba::start_fam;
     boolean nscd	= Samba::nscd_enabled;
+
+    // checkbox label
+    string text_nscd	= _("Disable Name Service Cache");
+    // checkbox label
+    string text_fam	= _("Start File Alteration Monitor");
+    // status line
+    string text_status	= _("Currently a member of this domain");
+    // checkbox label
+    string text_home	= _("Create Home Directory on Login");
 
     Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
 	// translators: frame label
@@ -78,14 +87,10 @@ symbol MembershipDialog () {
 	),
 	`VSpacing (),
 	/*
-	`Left (
-	    // checkbox label
-	    `CheckBox (`id(`nscd), _("Disable Name Service Cache"), !nscd)
-	),
-	`Left (
-	    // checkbox label
-	    `CheckBox (`id(`fam), _("Start File Alteration Monitor"), start_fam)
-	),
+	`Left (`CheckBox (`id(`nscd), text_nscd, !nscd)),
+	`Left (`CheckBox (`id(`fam), text_fam), start_fam)),
+	`Left (`Label (text_status)),
+	`Left (`CheckBox(`id(`home), text_home))
 	*/
 	autoyast_term
     )),
