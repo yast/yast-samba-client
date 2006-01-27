@@ -83,13 +83,15 @@ sub AdjustNsswitch {
 	Nsswitch->WriteDb($db, $nsswitch);
     };
 
+# FIXME no resolution about nscd: bug 137793
     # remove the passwd and group cache for nscd
-    if (PackageSystem->Installed ("nscd")) {
+    if (0 && PackageSystem->Installed ("nscd")) {
 	SCR->Execute (".target.bash", "/usr/sbin/nscd -i passwd");
 	SCR->Execute (".target.bash", "/usr/sbin/nscd -i group");
+	Service->Stop ("nscd");
     }
     # TODO we might want to disable caching by editing /etc/nscd.conf
-    if (defined $nscd_enabled) { # change to check for package
+    if (0 && defined $nscd_enabled) {
 	my $new_value	= ($nscd_enabled) ? "yes" : "no";
 	my $org_value	= ($new_value eq "no") ? "yes" : "no";
 	my $enable_cache = SCR->Read (".etc.nscd_conf.v.enable-cache");
@@ -108,7 +110,6 @@ sub AdjustNsswitch {
 	    }
 	}
     }
-#TODO restart service
 
     return TRUE if Nsswitch->Write();
     y2error("Nsswitch->Write() fail");

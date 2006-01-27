@@ -297,6 +297,7 @@ global boolean Write(boolean write_only) {
 	    ret = false;
 	}
     }
+// FIXME nscd_enabled = true, but check for write_only
     if (!SambaWinbind::AdjustNsswitch(winbind_enabled,nscd_enabled)) {
 	// translators: error message, %1 is filename
 	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/nsswitch.conf"));
