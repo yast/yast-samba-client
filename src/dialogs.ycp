@@ -32,11 +32,38 @@ symbol MembershipDialog () {
     /* Samba-client workgroup dialog caption */
     string caption = _("Samba Membership");
 
+    boolean start_fam	= Samba::start_fam;
+    boolean nscd	= Samba::nscd_enabled;
+    boolean mkhomedir	= Samba::mkhomedir;
+
+    term status_term	= `VBox(
+	`ReplacePoint (`id(`rpstatus), `Empty())
+    );
+
+    // internal function: update the status line
+    void check_domain_membership (string domain) {
+
+	if (!Stage::cont ())
+	    SambaAD::ReadADS (domain);
+
+	UI::ReplaceWidget (`id(`rpstatus),
+	    (Stage::cont () || CheckWorkgroup (domain) != `joined_domain) ?
+	    // status label
+	    `Empty() : `Left (`Label (_("Currently a member of this domain")))
+	);
+    }
+
+
     term winbind_term	= Stage::cont() ? `Empty() : `VBox(
-	`Left(`CheckBox(`id(`winbind),
+	`VSpacing (0.5),
+	`Left(`CheckBox(`id(`winbind), `opt (`notify),
 	    // translators: checkbox label to enable winbind
 	    _("Also &Use SMB Information for Linux Authentication"),
 	    Samba::GetWinbind()
+	)),
+	`Left(`CheckBox(`id(`mkhomedir),
+	    // checkbox label
+	    _("Create Home Directory on Login"), mkhomedir
 	))
     );
 
@@ -54,17 +81,10 @@ symbol MembershipDialog () {
 	`TextEntry (`id(`ads), _("Active Directory Server"))
     ) : `Empty ();
 
-    boolean start_fam	= Samba::start_fam;
-    boolean nscd	= Samba::nscd_enabled;
-
     // checkbox label
     string text_nscd	= _("Disable Name Service Cache");
     // checkbox label
     string text_fam	= _("Start File Alteration Monitor");
-    // status line
-    string text_status	= _("Currently a member of this domain");
-    // checkbox label
-    string text_home	= _("Create Home Directory on Login");
 
     Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
 	// translators: frame label
@@ -82,16 +102,11 @@ symbol MembershipDialog () {
 			`PushButton(`id(`browse), _("&Browse..."))
 		    )
 		),
+		status_term,
 		winbind_term
 	    )
 	),
 	`VSpacing (),
-	/*
-	`Left (`CheckBox (`id(`nscd), text_nscd, !nscd)),
-	`Left (`CheckBox (`id(`fam), text_fam), start_fam)),
-	`Left (`Label (text_status)),
-	`Left (`CheckBox(`id(`home), text_home))
-	*/
 	autoyast_term
     )),
 	Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
@@ -99,9 +114,11 @@ symbol MembershipDialog () {
 	    (Mode::config () ? HELPS["MembershipDialog_config"]:"" : ""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
+    UI::ChangeWidget (`id(`mkhomedir), `Enabled, Samba::GetWinbind());
 
     if (!Stage::cont()) {
 	Wizard::HideBackButton();
+	check_domain_membership (Samba::GetWorkgroupOrRealm());
     }
     if (Mode::config ()) {
 	UI::ChangeWidget (`id(`browse), `Enabled, false);
@@ -114,10 +131,15 @@ symbol MembershipDialog () {
     while(true) {
 
 	ret = UI::UserInput();
+	boolean use_winbind = (boolean)UI::QueryWidget(`id(`winbind), `Value);
+
 	/* abort? */
 	if(ret == `abort || ret == `cancel) {
 	    if(ReallyAbort()) break;
 	    else continue;
+	}
+	else if (ret == `winbind) {
+	    UI::ChangeWidget (`id(`mkhomedir), `Enabled, use_winbind);
 	}
         else if(ret == `next) {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
@@ -134,7 +156,7 @@ symbol MembershipDialog () {
 	    }
 	    Popup::ClearFeedback ();
 
-	    Samba::SetWinbind(Stage::cont() ? true : (boolean)UI::QueryWidget(`id(`winbind), `Value));
+	    Samba::SetWinbind(Stage::cont() ? true : use_winbind);
 
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup(workgroup);
@@ -201,14 +223,16 @@ symbol MembershipDialog () {
 	    {
 		PackageSystem::CheckAndInstallPackages (["krb5","krb5-client"]);
 	    }
+	    Samba::SetMkHomeDir (use_winbind &&
+		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));
 	    break;
         } else if (ret == `browse) {
 	
 	    string new_workgroup = BrowseNeighbours( Stage::cont() );
-	    
 	    if( new_workgroup != nil ) {
 		// fill in the new workgroup name
 		UI::ChangeWidget( `id(`workgroup), `Value, new_workgroup );
+		check_domain_membership (new_workgroup);
 	    }
 	    continue;
 	} else if (ret == `back ) {
