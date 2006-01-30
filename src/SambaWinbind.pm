@@ -123,7 +123,7 @@ BEGIN{$TYPEINFO{AdjustPam}=["function","boolean","boolean"]}
 sub AdjustPam {
     my ($self, $on) = @_;
 
-    foreach my $db ("auth", "account") {
+    foreach my $db ("auth", "account","password") {
 	my $values = PamSettings->GetValues("pam_unix2", $db);
 	my @values = grep {$_ !~ /^call_modules=/} ($values ? @$values : ());
 	my @modules = map {split(",",$_)} grep {s/^call_modules=//} ($values ? @$values : ());

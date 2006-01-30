@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Jan 30 17:43:04 CET 2006 - jsuchome@suse.cz
+
+- install samba-winbind at the same time as kerberos packages (#145256)
+- set also password value in /etc/security/pam_unix2.conf (#146653)
+- removed tmp path to /etc/pam.d file
+- more initialization for getting the status (#143911)
+- 2.13.4
+
+-------------------------------------------------------------------
 Mon Jan 30 16:12:14 CET 2006 - jsuchome@suse.cz
 
 - added checkbox for creating directories (#143519)

@@ -112,8 +112,8 @@ global define boolean ReadMkHomeDir () {
 
     // FIXME this is very ugly, but since we currently don't have other way...
     mkhomedir	= false;
-    string file_path	= "/tmp/common-session";
-    if (!FileUtils::Exists (file_path))
+    string file_path	= "/etc/pam.d/common-session";
+   if (!FileUtils::Exists (file_path))
     {
 	return false;
     }
@@ -137,8 +137,7 @@ global define boolean WriteMkHomeDir (boolean enabled) {
 	return true;
 
     string the_line	= "session optional\tpam_mkhomedir.so";
-//    string file_path	= "/etc/pam.d/common-session";
-    string file_path	= "/tmp/common-session";
+    string file_path	= "/etc/pam.d/common-session";
     if (!FileUtils::Exists (file_path))
     {
 	SCR::Write (.target.string, file_path, the_line);
@@ -283,7 +282,7 @@ global boolean Read() {
 	SambaNmbLookup::Start();
     }
 
-    ReadNscdState ();
+//    ReadNscdState ();
     ReadMkHomeDir ();
 
 //    start_fam = Service::Status ("fam") == 0;
@@ -353,10 +352,8 @@ global boolean Write(boolean write_only) {
     // winbind
     Progress::NextStage();
     if (winbind_enabled) {
-	if (!Package::Installed("samba-winbind")) {
-	    if (!Mode::test() && !PackageSystem::CheckAndInstallPackagesInteractive(["samba-winbind"])) {
+	if (!Package::Installed("samba-winbind") && !Mode::test()) {
 		ret = false;
-	    }
 	}
 	if (!SambaWinbind::AdjustService(true)) {
 	    // translators: error message, do not change winbind

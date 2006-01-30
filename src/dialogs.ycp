@@ -43,8 +43,18 @@ symbol MembershipDialog () {
     // internal function: update the status line
     void check_domain_membership (string domain) {
 
-	if (!Stage::cont ())
-	    SambaAD::ReadADS (domain);
+	Samba::SetWorkgroup(domain);
+
+	// busy popup text
+	Popup::ShowFeedback ("",_("Verifying domain membership..."));
+	SambaAD::ReadADS (domain);
+	if (SambaAD::ADS () != "")
+	{
+	    domain = SambaAD::GetWorkgroup (domain);
+	    Samba::SetWorkgroup(domain);
+	    SambaAD::ReadRealm ();
+	}
+	Popup::ClearFeedback ();
 
 	UI::ReplaceWidget (`id(`rpstatus),
 	    (Stage::cont () || CheckWorkgroup (domain) != `joined_domain) ?
@@ -143,18 +153,8 @@ symbol MembershipDialog () {
 	}
         else if(ret == `next) {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
-	    Samba::SetWorkgroup(workgroup);
-
-	    // busy popup text
-	    Popup::ShowFeedback ("",_("Verifying workgroup membership..."));
-	    SambaAD::ReadADS (workgroup);
-	    if (SambaAD::ADS () != "")
-	    {
-		workgroup = SambaAD::GetWorkgroup (workgroup);
-		Samba::SetWorkgroup(workgroup);
-		SambaAD::ReadRealm ();
-	    }
-	    Popup::ClearFeedback ();
+	    if (workgroup != Samba::GetWorkgroup ())
+		check_domain_membership (workgroup);
 
 	    Samba::SetWinbind(Stage::cont() ? true : use_winbind);
 
@@ -219,15 +219,17 @@ symbol MembershipDialog () {
 	    );
 	    Samba::SetNscdState((boolean) UI::QueryWidget (`id(`nscd), `Value));
 	    */
+	    list<string> packages	= ["samba-winbind"];
 	    if (SambaAD::ADS () != "")
 	    {
-		PackageSystem::CheckAndInstallPackages (["krb5","krb5-client"]);
+		packages = (list<string>)merge(packages,["krb5","krb5-client"]);
 	    }
+	    PackageSystem::CheckAndInstallPackages (packages);
 	    Samba::SetMkHomeDir (use_winbind &&
 		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));
 	    break;
         } else if (ret == `browse) {
-	
+
 	    string new_workgroup = BrowseNeighbours( Stage::cont() );
 	    if( new_workgroup != nil ) {
 		// fill in the new workgroup name
@@ -239,10 +241,9 @@ symbol MembershipDialog () {
 	    break;
 	}
     }
-    
+
     Wizard::RestoreNextButton();
     Wizard::RestoreBackButton();
-    
     return (symbol) ret;
 }
 
