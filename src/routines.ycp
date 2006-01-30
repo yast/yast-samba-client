@@ -207,7 +207,7 @@ define string BrowseNeighbours(boolean domains_only) ``{
     string sel = (string) UI::QueryWidget( `id(`selection), `CurrentItem );
     if ( sel != nil && issubstring (sel, _(" (Domain)") ) )
     {
-	integer pos = findfirstof (sel, _(" (Domain)") );
+	integer pos = find (sel, _(" (Domain)") );
 	sel = substring (sel, 0, pos);
     }
     UI::CloseDialog();
