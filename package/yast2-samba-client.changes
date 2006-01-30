@@ -1,5 +1,17 @@
 -------------------------------------------------------------------
-Fri Jan  6 15:30:53 CET 2006 - jsuchome@suse.cz
+Mon Jan 30 16:12:14 CET 2006 - jsuchome@suse.cz
+
+- added checkbox for creating directories (#143519)
+- added status line, saying if machine is joined (#143911)
+- 2.13.3 
+
+-------------------------------------------------------------------
+Fri Jan 27 08:57:12 CET 2006 - jsuchome@suse.cz
+
+- merged in proofread texts
+
+-------------------------------------------------------------------
+Fri Jan  6 15:30:53 CET 2006 - jsuchom e@suse.cz
 
 - used DISPLAYMANAGER_AD_INTEGRATION instead of KDM_GREETER (#139338)
 - 2.13.2 
