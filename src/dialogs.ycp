@@ -31,7 +31,6 @@ include "samba-client/routines.ycp";
 symbol MembershipDialog () {
     /* Samba-client workgroup dialog caption */
     string caption = _("Samba Membership");
-
     boolean start_fam	= Samba::start_fam;
     boolean nscd	= Samba::nscd_enabled;
     boolean mkhomedir	= Samba::mkhomedir;
@@ -64,13 +63,16 @@ symbol MembershipDialog () {
     }
 
 
-    term winbind_term	= Stage::cont() ? `Empty() : `VBox(
+    term winbind_term	= Stage::cont() ? `Empty () : `VBox(
 	`VSpacing (0.5),
 	`Left(`CheckBox(`id(`winbind), `opt (`notify),
 	    // translators: checkbox label to enable winbind
 	    _("Also &Use SMB Information for Linux Authentication"),
 	    Samba::GetWinbind()
-	)),
+	))
+    );
+
+    term mkhomedir_term	= `VBox (
 	`Left(`CheckBox(`id(`mkhomedir),
 	    // checkbox label
 	    _("Create Home Directory on Login"), mkhomedir
@@ -113,7 +115,8 @@ symbol MembershipDialog () {
 		    )
 		),
 		status_term,
-		winbind_term
+		winbind_term,
+		mkhomedir_term
 	    )
 	),
 	`VSpacing (),
@@ -124,7 +127,7 @@ symbol MembershipDialog () {
 	    (Mode::config () ? HELPS["MembershipDialog_config"]:"" : ""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
-    UI::ChangeWidget (`id(`mkhomedir), `Enabled, Samba::GetWinbind());
+    UI::ChangeWidget (`id(`mkhomedir), `Enabled, Samba::GetWinbind() || Stage::cont());
 
     if (!Stage::cont()) {
 	Wizard::HideBackButton();
@@ -141,7 +144,8 @@ symbol MembershipDialog () {
     while(true) {
 
 	ret = UI::UserInput();
-	boolean use_winbind = (boolean)UI::QueryWidget(`id(`winbind), `Value);
+	boolean use_winbind = Stage::cont() ? true :
+	    (boolean)UI::QueryWidget(`id(`winbind), `Value);
 
 	/* abort? */
 	if(ret == `abort || ret == `cancel) {
@@ -156,7 +160,7 @@ symbol MembershipDialog () {
 	    if (workgroup != Samba::GetWorkgroup ())
 		check_domain_membership (workgroup);
 
-	    Samba::SetWinbind(Stage::cont() ? true : use_winbind);
+	    Samba::SetWinbind (use_winbind);
 
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup(workgroup);

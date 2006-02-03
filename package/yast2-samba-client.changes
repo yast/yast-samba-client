@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Feb  2 15:07:20 CET 2006 - jsuchome@suse.cz
+
+- show "Create Home" checkbox during installation (#147596) 
+- save pam_winbind.so to /etc/pam.d/common-password (#146189)
+  (and revert behaviour introduced by #146653)
+- 2.13.5 
+
+-------------------------------------------------------------------
 Mon Jan 30 17:43:04 CET 2006 - jsuchome@suse.cz
 
 - install samba-winbind at the same time as kerberos packages (#145256)
