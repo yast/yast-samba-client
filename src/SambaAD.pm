@@ -4,7 +4,7 @@
 # Summary:	Manage AD issues for samba-client
 # Authors:	Jiri Suchomel <jsuchome@suse.cz>
 #
-# $Id: SambaNetJoin.pm 22266 2005-03-04 09:50:00Z mlazar $
+# $Id$
 #
 
 package SambaAD;
