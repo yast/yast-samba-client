@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 28 15:25:11 CET 2006 - jsuchome@suse.cz
+
+- offline authentication checkbox (#143927)
+- 2.13.6
+
+-------------------------------------------------------------------
 Thu Feb  2 15:07:20 CET 2006 - jsuchome@suse.cz
 
 - show "Create Home" checkbox during installation (#147596) 
