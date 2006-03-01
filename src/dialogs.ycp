@@ -19,8 +19,6 @@ import "Popup";
 import "Wizard";
 import "Autologin";
 
-import "SambaConfig";
-
 include "samba-client/helps.ycp";
 include "samba-client/routines.ycp";
 
@@ -116,18 +114,23 @@ symbol MembershipDialog () {
 		),
 		status_term,
 		winbind_term,
-		mkhomedir_term
+		mkhomedir_term,
+		// checkbox label
+		`Left(`CheckBox(`id(`caching), _("Off&line Authentication"),
+		    Samba::GetWinbindCaching ()))
 	    )
 	),
 	`VSpacing (),
 	autoyast_term
     )),
-	Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
-	    HELPS["MembershipDialog_nocont"]:"" +
-	    (Mode::config () ? HELPS["MembershipDialog_config"]:"" : ""),
+	(Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
+	    HELPS["MembershipDialog_nocont"]:"") +
+	HELPS["MembershipDialog_common"]:"" +
+	(Mode::config () ? HELPS["MembershipDialog_config"]:"" : ""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
     UI::ChangeWidget (`id(`mkhomedir), `Enabled, Samba::GetWinbind() || Stage::cont());
+    UI::ChangeWidget (`id(`caching), `Enabled, Samba::GetWinbind() || Stage::cont());
 
     if (!Stage::cont()) {
 	Wizard::HideBackButton();
@@ -135,8 +138,6 @@ symbol MembershipDialog () {
     }
     if (Mode::config ()) {
 	UI::ChangeWidget (`id(`browse), `Enabled, false);
-	UI::ChangeWidget (`id(`fam), `Enabled, false);
-// FIXME for Mode::config, disable only when handling the service
 // UI::ChangeWidget (`id(`nscd), `Enabled, false);
     }
 
@@ -154,6 +155,7 @@ symbol MembershipDialog () {
 	}
 	else if (ret == `winbind) {
 	    UI::ChangeWidget (`id(`mkhomedir), `Enabled, use_winbind);
+	    UI::ChangeWidget (`id(`caching), `Enabled, use_winbind);
 	}
         else if(ret == `next) {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
@@ -216,11 +218,7 @@ symbol MembershipDialog () {
 	        Autologin::AskForDisabling(_("Samba is now enabled."));
 	    }
 
-	    /* FIXME waiting for NEEDINFO input
-	    Samba::SetStartFAM (
-		(boolean)UI::QueryWidget (`id(`fam), `Value) &&
-		PackageSystem::CheckAndInstallPackages (["fam","fam-server"])
-	    );
+	    /*
 	    Samba::SetNscdState((boolean) UI::QueryWidget (`id(`nscd), `Value));
 	    */
 	    list<string> packages	= ["samba-winbind"];
@@ -231,6 +229,8 @@ symbol MembershipDialog () {
 	    PackageSystem::CheckAndInstallPackages (packages);
 	    Samba::SetMkHomeDir (use_winbind &&
 		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));
+	    Samba::SetWinbindCaching (use_winbind &&
+		(boolean)UI::QueryWidget(`id(`caching), `Value));
 	    break;
         } else if (ret == `browse) {
 

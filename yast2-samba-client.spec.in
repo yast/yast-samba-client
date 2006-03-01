@@ -1,7 +1,7 @@
 @HEADER-COMMENT@
 
 @HEADER@
-BuildRequires:	samba yast2-devel-packages yast2-pam
+BuildRequires:	yast2-pam yast2-devtools yast2-perl-bindings perl-XML-Writer yast2-testsuite update-desktop-files
 Requires:	yast2 yast2-pam yast2-kerberos-client
 
 BuildArchitectures:	noarch

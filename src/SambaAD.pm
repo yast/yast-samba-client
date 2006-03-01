@@ -47,7 +47,8 @@ sub GetADS {
 
     my ($self, $workgroup) 	= @_;
     my $server			= "";
-y2internal ("get ads: workgroup: $workgroup");
+
+    y2milestone ("get ads: workgroup: $workgroup");
     
     if (Mode->config ()) {
 	return "";
@@ -57,17 +58,17 @@ y2internal ("get ads: workgroup: $workgroup");
     if (FileUtils->Exists ("/usr/bin/dig")) {
 
 	my $out = SCR->Execute (".target.bash_output", "dig _ldap._tcp.pdc._msdcs.$workgroup +noall +answer +authority");
-y2internal ("dig output: ", Dumper ($out));
+	y2debug ("dig output: ", Dumper ($out));
 	foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
 	    
-y2warning ("line: $line");
+	    y2debug ("line: $line");
 	    next if $server ne "";
     if ($line =~ m/$workgroup/) {
 		$server		= (split (/[ \t]/, $line))[4] || ".";
 		chop $server;
 	    }
 	}
-y2internal ("server: $server");
+	y2debug ("server: $server");
     }
     
     # no success => try NETBIOS name resolution
@@ -85,17 +86,17 @@ y2internal ("server: $server");
 		    if ($line =~ m/^WINSSERVER=/) {
 			$winsserver	= $line;
 			$winsserver	=~ s/^WINSSERVER=//g;
-y2internal ("winsserver: $winsserver");
+			y2milestone ("winsserver: $winsserver");
 		    }
 		}
 	    }
 	}
-y2internal ("winsserver: $winsserver");
+	y2debug ("winsserver: $winsserver");
 
 	# unicast query using nmblookup
 	if ($winsserver ne "") {
 	    $out = SCR->Execute (".target.bash_output", "LANG=C nmblookup -R -U $winsserver $workgroup#1b");
-y2internal ("nmblookup $winsserver $workgroup#1b output: ", Dumper ($out));
+	    y2debug("nmblookup $winsserver $workgroup#1b output:",Dumper($out));
 	    foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
 		next if $server ne "";
 		next if $line =~ m/querying/;
@@ -109,7 +110,7 @@ y2internal ("nmblookup $winsserver $workgroup#1b output: ", Dumper ($out));
     }
     if ($server eq "") {
 	my $out = SCR->Execute (".target.bash_output", "LANG=C net LOOKUP DC $workgroup");
-y2internal ("net LOOKUP DC $workgroup: ", Dumper ($out));
+	y2debug ("net LOOKUP DC $workgroup: ", Dumper ($out));
 	if ($out->{"exit"} eq 0) {
 	    foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
 		if ($line ne "" && $server eq "") {
@@ -118,9 +119,6 @@ y2internal ("net LOOKUP DC $workgroup: ", Dumper ($out));
 		}
 	    }
 	}
-    }
-    if ($server ne "") {
-y2internal ("net ads lookup -S $server: ", Dumper (SCR->Execute (".target.bash_output", "net ads lookup -S $server"))); 
     }
     if ($server ne "" &&
 	SCR->Execute (".target.bash", "net ads lookup -S $server") ne 0) {
@@ -176,14 +174,14 @@ sub ADDomain2Workgroup {
     return "" if $server eq "";
 
     my $out	= SCR->Execute (".target.bash_output", "net ads lookup -S $server | grep 'Pre-Win2k Domain' | cut -f 2");
-y2internal ("net ads lookup -S $server: ", Dumper ($out));
+
+    y2debug ("net ads lookup -S $server: ", Dumper ($out));
     if ($out->{"exit"} ne 0 || $out->{"stdout"} eq "") {
 	return $domain;
     }
     my $workgroup	= $out->{"stdout"};
     chomp $workgroup;
-y2internal ("workgroup: $workgroup");
-
+    y2milestone ("workgroup: $workgroup");
     return $workgroup;
 }
 
@@ -209,14 +207,15 @@ sub GetRealm {
     return "" if $server eq "";
 
     my $out	= SCR->Execute (".target.bash_output", "net ads info -S $server | grep Realm | cut -f 2 -d ' '");
-y2internal ("net ads info -S $server: ", Dumper ($out));
+    
+    y2debug ("net ads info -S $server: ", Dumper ($out));
+
     if ($out->{"exit"} ne 0 || $out->{"stdout"} eq "") {
 	return "";
     }
     my $ret	= $out->{"stdout"};
     chomp $ret;
-y2internal ("realm: $ret");
-
+    y2milestone ("realm: $ret");
     return $ret;
 }
 

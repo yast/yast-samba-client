@@ -47,12 +47,6 @@ presents the list of all workgroups and domains found in the
 network.</p>
 ") +
 
-/*
-_("<p><b>Also Use SMB Information for Linux Authentication</b> allows 
-verification of passwords against the NT server.</p>
-")+
-*/
-
     /* Samba role dialog help 2/3 */
 _("<p><b>Also Use SMB Information for Linux Authentication</b> allows 
 verification of passwords with the NT server or the Kerberos server if joining an AD domain.</p>
@@ -73,6 +67,12 @@ presents the list of all domains found in the network.</p>
 + _("<p>When you press <b>Next</b>, the system verifies the domain and
 allows this host to join the domain.</p>
 "),
+
+    // Samba membership dialog help (common part 1/2)
+    "MembershipDialog_common" : _("<p>Check <b>Create Home Directory on Login</b> to have home directories created on the first login.</p>") +
+
+    // Samba membership dialog help (common part 2/2)
+    _("<p><b>Offline Authentication</b> enables the user to log in even if there is no connection to the domain controller. For this option to work, you must log in to your domain at least once. The user's credentials are then stored encrypted on your computer and are reused for a domain login when no connection to the domain controller can be established. This is especially useful for mobile users."),
 
     // Samba membership dialog - additional help for autoyast config
     "MembershipDialog_config" : _("<p><b>Join Settings</b></p>") +

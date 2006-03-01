@@ -179,6 +179,25 @@ global define boolean SetMkHomeDir (boolean new_value) {
 }
 
 /**
+ * Get the current status of winbind caching
+ */
+global define boolean GetWinbindCaching () {
+
+    return SambaConfig::GlobalGetStr("pam_winbind:cached_login", "") == "yes" &&
+	   SambaConfig::GlobalGetStr("winbind offline logon", "") == "yes";
+}
+
+/**
+ * Set the new value for winbind caching (see bug #143927)
+ */
+global define boolean SetWinbindCaching (boolean enable) {
+
+    SambaConfig::GlobalSetStr("pam_winbind:cached_login", enable ? "yes" : nil);
+    SambaConfig::GlobalSetStr("winbind offline logon", enable ? "yes" : nil);
+    return enable;
+}
+
+/**
  * Start/Stop and FAM service according to current settings
  * @param write_only do not start/stop services
  * @return success
