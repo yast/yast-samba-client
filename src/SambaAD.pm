@@ -63,7 +63,7 @@ sub GetADS {
 	    
 	    y2debug ("line: $line");
 	    next if $server ne "";
-    if ($line =~ m/$workgroup/) {
+	    if ($line =~ m/$workgroup/) {
 		$server		= (split (/[ \t]/, $line))[4] || ".";
 		chop $server;
 	    }
@@ -245,7 +245,7 @@ sub AdjustSambaConfig {
 	my $workgroup	= SambaConfig->GlobalGetStr ("workgroup", "");
 	# remove special AD values if AD is not used
 	my $remove	= (($ads || "") eq "");
-	SambaConfig->GlobalUpdateMap({
+	SambaConfig->GlobalSetMap({
 	    "security"			=> $remove ? undef : "ADS",
 	    "realm"			=> $remove ? undef : $realm,
 	    "template shell" 		=> $remove ? undef : "/bin/bash",
@@ -257,6 +257,12 @@ sub AdjustSambaConfig {
 					=> $remove ? undef : "FILE",
 	    "winbind refresh tickets"	=> $remove ? undef : "yes"
 	});
+	if (SambaConfig->GlobalGetTruth ("domain logons", 0)) {
+	    SambaConfig->GlobalSetTruth ("domain logons", 0)
+	}
+	if (SambaConfig->GlobalGetTruth ("domain master", 0)) {
+	    SambaConfig->GlobalSetStr ("domain master", "Auto")
+	}
     }
 }
 
@@ -279,7 +285,7 @@ sub AdjustKerberos {
     Kerberos->Read ();
     Kerberos->Import ({
 	"pam_login"		=> {
-	    "use_kerberos"	=> FALSE
+	    "use_kerberos"	=> YaST::YCP::Boolean (0)
 	},
 	"kerberos_client"	=> {
 	    "default_realm"	=> $realm, 

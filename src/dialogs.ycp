@@ -28,7 +28,7 @@ include "samba-client/routines.ycp";
  */
 symbol MembershipDialog () {
     /* Samba-client workgroup dialog caption */
-    string caption = _("Samba Membership");
+    string caption = _("Windows Domain Membership");
     boolean start_fam	= Samba::start_fam;
     boolean nscd	= Samba::nscd_enabled;
     boolean mkhomedir	= Samba::mkhomedir;
@@ -199,6 +199,14 @@ symbol MembershipDialog () {
 		// return `ok or `fail
 		in_domain = JoinDomain(workgroup);
 		if (in_domain == `fail) continue;
+	    }
+
+	    if (false) // we might use it to warn user (#155716)
+	    {
+		// continue/cancel popup
+		Popup::ContinueCancel (sformat (_("Configuring this system as a client for Active Directory resets the following
+settings in smb.conf to the default values:
+%1"), mergestring (["domain master", "domain logons"], "\n")));
 	    }
 	    if (!Stage::cont()) {
 		// return `ok, `fail or `nojoin
