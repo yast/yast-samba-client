@@ -21,6 +21,6 @@ X-SuSE-YaST-AutoInstRequires=lan
 Icon=yast-samba-client
 Exec=/sbin/yast2 samba-client 
 
-Name=Samba Client
-GenericName=Configure a Samba client
+Name=Windows Domain Membership
+GenericName=Configure the Windows Domain Membership
 X-KDE-SubstituteUID=true

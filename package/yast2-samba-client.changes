@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Thu Mar  9 14:31:27 CET 2006 - jsuchome@suse.cz
+
+- changed texts to use Windows
+- 2.13.8
+
+-------------------------------------------------------------------
+Wed Mar  8 09:39:08 CET 2006 - jsuchome@suse.cz
+
+- correctly save boolean value to Kerberos module (#155716)
+- write the new values to smb.conf even when some are present (#155716)
+- adapt "domain logons" and "domain master" values for AD (#155716)
+
+-------------------------------------------------------------------
 Tue Feb 28 15:25:11 CET 2006 - jsuchome@suse.cz
 
 - offline authentication checkbox (#143927)
