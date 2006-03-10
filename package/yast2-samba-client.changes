@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 10 16:34:14 CET 2006 - jsuchome@suse.cz
+
+- implement support for user shares (#143908, F300444)
+- 2.13.8 
+
+-------------------------------------------------------------------
 Thu Mar  9 14:31:27 CET 2006 - jsuchome@suse.cz
 
 - changed texts to use Windows

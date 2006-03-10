@@ -32,6 +32,14 @@ symbol MembershipDialog () {
     boolean start_fam	= Samba::start_fam;
     boolean nscd	= Samba::nscd_enabled;
     boolean mkhomedir	= Samba::mkhomedir;
+    boolean allow_share	= true;
+    integer max_shares	= Samba::GetMaxShares ();
+    if (max_shares == 0)
+    {
+	max_shares	= 100;
+	allow_share	= false;
+    }
+    string shares_group	= Samba::shares_group;
 
     term status_term	= `VBox(
 	`ReplacePoint (`id(`rpstatus), `Empty())
@@ -101,6 +109,7 @@ symbol MembershipDialog () {
 	`Frame (_("Membership"),
 	    `VBox (
 		`HBox(
+		    `HSpacing (0.2),
 		    `TextEntry(`id(`workgroup), (Stage::cont() ?
 			// translators: text entry label
 			_("&Domain") :
@@ -114,23 +123,53 @@ symbol MembershipDialog () {
 		),
 		status_term,
 		winbind_term,
-		mkhomedir_term,
-		// checkbox label
-		`Left(`CheckBox(`id(`caching), _("Off&line Authentication"),
-		    Samba::GetWinbindCaching ()))
+		`HBox (
+		    Stage::cont () ? `Empty : `HSpacing (2),
+		    `VBox (
+			mkhomedir_term,
+			`Left (
+			    // checkbox label
+			   `CheckBox(`id(`caching),_("Off&line Authentication"),
+			    Samba::GetWinbindCaching ())
+			),
+			`VSpacing (0.2)
+		    )
+		)
 	    )
 	),
 	`VSpacing (),
+	// frame label
+	`Frame (_("Sharing"),
+	    `VBox (
+		`VSpacing (0.4),
+		`Left (`CheckBox(`id(`share_ch), `opt(`notify),
+		    // checkbox label
+		    _("Allow Users to Share Their Directories"), allow_share)),
+		`HBox (`HSpacing (2), `VBox (
+		    // texty entry label
+		    `TextEntry (`id(`group), _("Permitted Group"),shares_group),
+		    // infield label
+		    `IntField (`id(`max_shares),_("Maximum Number of Shares"),
+			1, 99999, max_shares)
+		)),
+		`VSpacing (0.2)
+	    )
+	),
 	autoyast_term
     )),
 	(Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
 	    HELPS["MembershipDialog_nocont"]:"") +
 	HELPS["MembershipDialog_common"]:"" +
+	Samba::SharesHelp () +
 	(Mode::config () ? HELPS["MembershipDialog_config"]:"" : ""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
-    UI::ChangeWidget (`id(`mkhomedir), `Enabled, Samba::GetWinbind() || Stage::cont());
-    UI::ChangeWidget (`id(`caching), `Enabled, Samba::GetWinbind() || Stage::cont());
+    foreach (symbol t, [`mkhomedir, `caching], {
+	UI::ChangeWidget (`id(t), `Enabled, Samba::GetWinbind() || Stage::cont());
+    });
+    foreach (symbol t, [`group, `max_shares], {
+	UI::ChangeWidget (`id(t), `Enabled, allow_share);
+    });
 
     if (!Stage::cont()) {
 	Wizard::HideBackButton();
@@ -156,6 +195,13 @@ symbol MembershipDialog () {
 	else if (ret == `winbind) {
 	    UI::ChangeWidget (`id(`mkhomedir), `Enabled, use_winbind);
 	    UI::ChangeWidget (`id(`caching), `Enabled, use_winbind);
+	}
+	else if (ret == `share_ch) {
+	    foreach (symbol t, [`group, `max_shares], {
+		UI::ChangeWidget (`id(t), `Enabled,
+		    (boolean) UI::QueryWidget(`id(`share_ch),`Value)
+		);
+	    });
 	}
         else if(ret == `next) {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
@@ -239,11 +285,21 @@ settings in smb.conf to the default values:
 		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));
 	    Samba::SetWinbindCaching (use_winbind &&
 		(boolean)UI::QueryWidget(`id(`caching), `Value));
+
+	    boolean new_share = (boolean)UI::QueryWidget(`id(`share_ch),`Value);
+	    if (new_share && ! allow_share && SharesExist (Samba::shares_dir))
+	    {
+		Samba::remove_shares = AskForSharesRemoval ();
+	    }
+	    integer max_shares=(integer)UI::QueryWidget(`id(`max_share),`Value);
+	    if (!new_share) max_shares = 0;
+	    Samba::SetShares (max_shares,
+		(string)UI::QueryWidget(`id(`group),`Value));
 	    break;
         } else if (ret == `browse) {
 
 	    string new_workgroup = BrowseNeighbours( Stage::cont() );
-	    if( new_workgroup != nil ) {
+	    if( size (new_workgroup) > 0 ) {
 		// fill in the new workgroup name
 		UI::ChangeWidget( `id(`workgroup), `Value, new_workgroup );
 		check_domain_membership (new_workgroup);
