@@ -23,6 +23,7 @@ import "PackageSystem";
 import "Progress";
 import "Report";
 import "Service";
+import "String";
 
 import "SambaConfig";
 import "SambaWinbind";
@@ -71,10 +72,22 @@ global boolean mkhomedir	= false;
 // if it mkhomedir was modified
 boolean mkhomedir_modified	= false;
 
+// if shares config (actually group owner) was modified
+boolean shares_modified		= false;
+
 /**
  * map with user name and password (used for autoinstallation only)
  */
 global map<string,string> password_data	= $[];
+
+// dir with user shares
+global string shares_dir	= "/var/lib/samba/usershares";
+
+global boolean remove_shares	= false;
+
+global string shares_group	= "";
+
+string shares_separator		= "\\";
 
 /**
  * Data was modified?
@@ -82,7 +95,7 @@ global map<string,string> password_data	= $[];
  */
 global boolean GetModified() {
     y2debug("modified=%1",modified);
-    return modified || SambaConfig::GetModified();
+    return modified || mkhomedir_modified || shares_modified || SambaConfig::GetModified();
 };
 
 /**
@@ -179,6 +192,43 @@ global define boolean SetMkHomeDir (boolean new_value) {
 }
 
 /**
+ * get number of max shares from smb.conf; 0 mean shares are not enabled
+ */
+global define integer GetMaxShares () {
+
+    return SambaConfig::GlobalGetInteger ("usershare max shares", 0);
+}
+
+/**
+ * Read user shares settings
+ */
+global define boolean ReadSharesSetting () {
+
+    shares_dir	= SambaConfig::GlobalGetStr ("usershare path", shares_dir);
+    if (FileUtils::Exists (shares_dir))
+    {
+	map stat	= (map) SCR::Read (.target.stat, shares_dir);
+	map out		= (map) SCR::Execute (.target.bash_output, sformat ("getent group | grep \":%1:\" | /usr/bin/cut -f 1 -d :", stat["gid"]:100));
+	shares_group	= String::FirstChunk (out["stdout"]:"", "\n");
+    }
+    map out	= (map) SCR::Execute (.target.bash_output, "testparm -s --parameter-name 'winbind separator' 2>/dev/null");
+    shares_separator	= String::FirstChunk (out["stdout"]:"\\", "\n");;
+}
+
+/**
+ * set the new values for user shares
+ */
+global define boolean SetShares (integer max, string group)
+{
+    SambaConfig::GlobalSetStr ("usershare max shares", max > 0 ? max : nil);
+
+    if (shares_group != group)
+	shares_modified	= true;
+    shares_group	= group;
+    return true;
+}
+
+/**
  * Get the current status of winbind caching
  */
 global define boolean GetWinbindCaching () {
@@ -220,6 +270,23 @@ define boolean WriteFAM (boolean write_only) {
     return true;
 }
 
+/**
+ * create the shares directory with correct rights
+ */
+global boolean WriteShares () {
+
+    if (!FileUtils::Exists (shares_dir))
+    {
+	SCR::Execute (.target.mkdir, shares_dir);
+	if (shares_group == "") shares_group = "users";
+	SCR::Execute (.target.bash, sformat ("/bin/chmod 1770 %1; /bin/chgrp %2 %1", shares_dir, shares_group));
+    }
+    else if (remove_shares)
+    {
+	SCR::Execute (.target.bash, sformat ("/bin/rm -f %1/*", shares_dir));
+    }
+    return true;
+}
 
 /**
  * Tell displaymanager (KDM/GDM) to use special windbind greeter
@@ -304,7 +371,7 @@ global boolean Read() {
 //    ReadNscdState ();
     ReadMkHomeDir ();
 
-//    start_fam = Service::Status ("fam") == 0;
+    ReadSharesSetting ();
 
     Autologin::Read();
 
@@ -358,7 +425,7 @@ global boolean Write(boolean write_only) {
 
     // write settings
     Progress::NextStage();
-    
+
     // if nothing to write, quit (but show at least the progress bar :-)
     if (!GetModified()) return true;
 
@@ -643,6 +710,20 @@ global define boolean SetNscdState (boolean nscd) {
 	modified	= true;
     }
     return nscd_enabled;
+}
+
+/**
+ * return the help text for shares
+ */
+global string SharesHelp () {
+
+    return
+
+    // membership dialog help (common part 3/4), %1 is separator (e.g. '\')
+    sformat (_("<p><b>Allow Users to Share Their Directories</b> enables members of the group in <b>Permitted Group</b> to share directories they own with other users. For example, <tt>users</tt> for a local scope or <tt>DOMAIN%1Users</tt> for a domain scope.  The user also must make sure that the file system permissions allow access.</p>"), shares_separator) +
+
+    // membership dialog help (common part 3/4)
+    _("<p>With <b>Maximum Number of Shares</b>, limit the total amount of shares that may be created.</p>");
 }
 
 

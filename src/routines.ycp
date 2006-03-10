@@ -211,8 +211,35 @@ define string BrowseNeighbours(boolean domains_only) ``{
 	sel = substring (sel, 0, pos);
     }
     UI::CloseDialog();
-    
     return ret == `ok ? sel : nil;
+}
+
+
+/**
+ * Check if user shares already exist
+ * @param path to directory with shares
+ */
+define boolean SharesExist (string share_dir) {
+
+    map out = (map) SCR::Execute (.target.bash_output, sformat ("/usr/bin/find %1 -type f | wc -l", share_dir));
+    return (out["stdout"]:0 > 0);
+}
+
+/**
+ * ask user if existing shares should be removed
+ * @return true for removing
+ */
+define boolean AskForSharesRemoval () {
+
+    return !Popup::AnyQuestion (Popup::NoHeadline(),
+	    // popup question
+	    _("User shares already exist.  Keep or delete these shares?"),
+	    // button label
+	    _("&Keep"),
+	    // button label
+	    _("&Delete"),
+	    `focus_yes
+    );
 }
 
 /* EOF */
