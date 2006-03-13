@@ -16,8 +16,9 @@ import "Mode";
 import "Label";
 import "Stage";
 import "Popup";
-
 import "Service";
+import "String";
+
 import "Samba";
 import "SambaConfig";
 import "SambaNetJoin";
@@ -227,7 +228,8 @@ define boolean SharesExist (string share_dir) {
     if (!FileUtils::Exists (share_dir))
 	return false;
     map out = (map) SCR::Execute (.target.bash_output, sformat ("/usr/bin/find %1 -type f | wc -l", share_dir));
-    return (out["stdout"]:0 > 0);
+    integer count = tointeger (String::FirstChunk (out["stdout"]:"0", "\n"));
+    return (count != nil && count > 0);
 }
 
 /**
