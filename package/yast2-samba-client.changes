@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 13 16:46:28 CET 2006 - jsuchome@suse.cz
+
+- split of shares write function to be used by yast2-samba-server
+- 2.13.10
+
+-------------------------------------------------------------------
 Mon Mar 13 10:48:36 CET 2006 - jsuchome@suse.cz
 
 - set 'users' group as default shares group owner
