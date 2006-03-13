@@ -276,7 +276,7 @@ define boolean WriteFAM (boolean write_only) {
 /**
  * create the shares directory with correct rights
  */
-global boolean WriteShares (boolean write_only) {
+global boolean WriteShares () {
 
     if (!FileUtils::Exists (shares_dir))
     {
@@ -288,6 +288,14 @@ global boolean WriteShares (boolean write_only) {
     {
 	SCR::Execute (.target.bash, sformat ("/bin/rm -f %1/*", shares_dir));
     }
+    return true;
+}
+
+global boolean AdjustSharesServices (boolean write_only) {
+
+    if (write_only)
+	return true;
+
     if (GetMaxShares () > 0)
     {
 	Service::Enable ("nmb");
@@ -515,7 +523,8 @@ global boolean Write(boolean write_only) {
 
 //    WriteFAM (write_only);
 
-    WriteShares (write_only);
+    WriteShares ();
+    AdjustSharesServices (write_only);
 
     // finished
     Progress::NextStage();
