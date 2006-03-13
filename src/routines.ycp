@@ -11,12 +11,15 @@
 
 textdomain "samba-client";
 
+import "FileUtils";
 import "Mode";
 import "Label";
 import "Stage";
 import "Popup";
 
+import "Service";
 import "Samba";
+import "SambaConfig";
 import "SambaNetJoin";
 import "SambaNmbLookup";
 import "SambaAD";
@@ -221,6 +224,8 @@ define string BrowseNeighbours(boolean domains_only) ``{
  */
 define boolean SharesExist (string share_dir) {
 
+    if (!FileUtils::Exists (share_dir))
+	return false;
     map out = (map) SCR::Execute (.target.bash_output, sformat ("/usr/bin/find %1 -type f | wc -l", share_dir));
     return (out["stdout"]:0 > 0);
 }
@@ -240,7 +245,72 @@ define boolean AskForSharesRemoval () {
 	    _("&Delete"),
 	    `focus_yes
     );
+    // FIXME details
 }
+
+/**
+ * check if services should be stopped: only if there are more sections in
+ * smb.conf and if user confirms (bug #143908)
+ * @return true if smb+nmb should be stopped
+ */
+define boolean AskToStopServices () {
+
+    if (size (SambaConfig::GetShares()) < 1)
+	return false;
+
+    if (Service::Status("nmb") != 0 && Service::Status("smb") != 0)
+	return false;
+
+    // yes/no popup
+    return Popup::YesNo (_("Other Windows sharing services are available. Stop them as well?"));
+}
+
+
+/**
+ * return the term with shares settings
+ * @param allow if shares are allowed
+ * @param group name of group owning the shares dir
+ * @param max maximum number of allowed shares
+ */
+define term GetSharesTerm (boolean allow, string group, integer max) {
+
+    return `VBox (
+	`VSpacing (),
+	// frame label
+	`Frame (_("Sharing"),
+	    `VBox (
+		`VSpacing (0.4),
+		`Left (`CheckBox(`id(`share_ch), `opt(`notify),
+		    // checkbox label
+		    _("Allow Users to Share Their Directories"), allow)),
+		`HBox (`HSpacing (2), `VBox (
+		    // texty entry label
+		    `TextEntry (`id(`group), _("Permitted Group"), group),
+		    // infield label
+		    `IntField (`id(`max_shares),_("Maximum Number of Shares"),
+			1, 99999, max)
+		)),
+		`VSpacing (0.2)
+	    )
+	)
+    );
+}
+
+/**
+ * return the help text for shares
+ */
+define string SharesHelp () {
+
+    return
+
+    // membership dialog help (common part 3/4), %1 is separator (e.g. '\')
+    sformat (_("<p><b>Allow Users to Share Their Directories</b> enables members of the group in <b>Permitted Group</b> to share directories they own with other users. For example, <tt>users</tt> for a local scope or <tt>DOMAIN%1Users</tt> for a domain scope.  The user also must make sure that the file system permissions allow access.</p>"), Samba::shares_separator) +
+
+    // membership dialog help (common part 3/4)
+    _("<p>With <b>Maximum Number of Shares</b>, limit the total amount of shares that may be created.</p>");
+}
+
+
 
 /* EOF */
 }

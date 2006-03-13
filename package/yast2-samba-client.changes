@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 13 10:48:36 CET 2006 - jsuchome@suse.cz
+
+- set 'users' group as default shares group owner
+- start (and stop) smb and nmb services (#143908)
+- 2.13.9 
+
+-------------------------------------------------------------------
 Fri Mar 10 16:34:14 CET 2006 - jsuchome@suse.cz
 
 - implement support for user shares (#143908, F300444)
