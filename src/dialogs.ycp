@@ -137,30 +137,13 @@ symbol MembershipDialog () {
 		)
 	    )
 	),
-	`VSpacing (),
-	// frame label
-	`Frame (_("Sharing"),
-	    `VBox (
-		`VSpacing (0.4),
-		`Left (`CheckBox(`id(`share_ch), `opt(`notify),
-		    // checkbox label
-		    _("Allow Users to Share Their Directories"), allow_share)),
-		`HBox (`HSpacing (2), `VBox (
-		    // texty entry label
-		    `TextEntry (`id(`group), _("Permitted Group"),shares_group),
-		    // infield label
-		    `IntField (`id(`max_shares),_("Maximum Number of Shares"),
-			1, 99999, max_shares)
-		)),
-		`VSpacing (0.2)
-	    )
-	),
+	GetSharesTerm (allow_share, shares_group, max_shares),
 	autoyast_term
     )),
 	(Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
 	    HELPS["MembershipDialog_nocont"]:"") +
 	HELPS["MembershipDialog_common"]:"" +
-	Samba::SharesHelp () +
+	SharesHelp () +
 	(Mode::config () ? HELPS["MembershipDialog_config"]:"" : ""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
@@ -291,10 +274,13 @@ settings in smb.conf to the default values:
 	    {
 		Samba::remove_shares = AskForSharesRemoval ();
 	    }
-	    integer max_shares=(integer)UI::QueryWidget(`id(`max_share),`Value);
-	    if (!new_share) max_shares = 0;
-	    Samba::SetShares (max_shares,
-		(string)UI::QueryWidget(`id(`group),`Value));
+	    integer max = (integer)UI::QueryWidget(`id(`max_shares),`Value);
+	    if (!new_share)
+	    {
+		max = 0;
+		Samba::stop_services	= AskToStopServices ();
+	    }
+	    Samba::SetShares (max,(string)UI::QueryWidget(`id(`group),`Value));
 	    break;
         } else if (ret == `browse) {
 

@@ -83,11 +83,15 @@ global map<string,string> password_data	= $[];
 // dir with user shares
 global string shares_dir	= "/var/lib/samba/usershares";
 
+// if existing shares should be removed
 global boolean remove_shares	= false;
 
-global string shares_group	= "";
+// if smb + nmb services should be stopped
+global boolean stop_services	= false;
 
-string shares_separator		= "\\";
+global string shares_group	= "users";
+
+global string shares_separator	= "\\";
 
 /**
  * Data was modified?
@@ -211,8 +215,7 @@ global define boolean ReadSharesSetting () {
 	map out		= (map) SCR::Execute (.target.bash_output, sformat ("getent group | grep \":%1:\" | /usr/bin/cut -f 1 -d :", stat["gid"]:100));
 	shares_group	= String::FirstChunk (out["stdout"]:"", "\n");
     }
-    map out	= (map) SCR::Execute (.target.bash_output, "testparm -s --parameter-name 'winbind separator' 2>/dev/null");
-    shares_separator	= String::FirstChunk (out["stdout"]:"\\", "\n");;
+    shares_separator	= SambaConfig::GlobalGetStr ("winbind separator", "\\");
 }
 
 /**
@@ -273,7 +276,7 @@ define boolean WriteFAM (boolean write_only) {
 /**
  * create the shares directory with correct rights
  */
-global boolean WriteShares () {
+global boolean WriteShares (boolean write_only) {
 
     if (!FileUtils::Exists (shares_dir))
     {
@@ -284,6 +287,26 @@ global boolean WriteShares () {
     else if (remove_shares)
     {
 	SCR::Execute (.target.bash, sformat ("/bin/rm -f %1/*", shares_dir));
+    }
+    if (GetMaxShares () > 0)
+    {
+	Service::Enable ("nmb");
+	Service::Enable ("smb");
+	if (! write_only)
+	{
+	     Service::Start ("nmb");
+	     Service::Start ("smb");
+	}
+    }
+    else if (stop_services)
+    {
+	Service::Disable ("nmb");
+	Service::Disable ("smb");
+	if (! write_only)
+	{
+	     Service::Stop ("nmb");
+	     Service::Stop ("smb");
+	}
     }
     return true;
 }
@@ -425,7 +448,6 @@ global boolean Write(boolean write_only) {
 
     // write settings
     Progress::NextStage();
-
     // if nothing to write, quit (but show at least the progress bar :-)
     if (!GetModified()) return true;
 
@@ -491,7 +513,9 @@ global boolean Write(boolean write_only) {
 
     Autologin::Write(write_only);	// see dialog.ycp
 
-    WriteFAM (write_only);
+//    WriteFAM (write_only);
+
+    WriteShares (write_only);
 
     // finished
     Progress::NextStage();
@@ -711,21 +735,6 @@ global define boolean SetNscdState (boolean nscd) {
     }
     return nscd_enabled;
 }
-
-/**
- * return the help text for shares
- */
-global string SharesHelp () {
-
-    return
-
-    // membership dialog help (common part 3/4), %1 is separator (e.g. '\')
-    sformat (_("<p><b>Allow Users to Share Their Directories</b> enables members of the group in <b>Permitted Group</b> to share directories they own with other users. For example, <tt>users</tt> for a local scope or <tt>DOMAIN%1Users</tt> for a domain scope.  The user also must make sure that the file system permissions allow access.</p>"), shares_separator) +
-
-    // membership dialog help (common part 3/4)
-    _("<p>With <b>Maximum Number of Shares</b>, limit the total amount of shares that may be created.</p>");
-}
-
 
 /* EOF */
 }
