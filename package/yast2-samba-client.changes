@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Mar 16 14:52:01 CET 2006 - jsuchome@suse.cz
+
+- do not write "use kerberos keytab" (#154951)
+- quote group name (#143908)
+- fix dialog during installation (#158314)
+- 2.13.12
+
+-------------------------------------------------------------------
 Thu Mar 16 08:00:10 CET 2006 - jsuchome@suse.cz
 
 - restart nscd (#157902)

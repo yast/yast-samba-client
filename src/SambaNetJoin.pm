@@ -42,7 +42,8 @@ sub Test {
     if ($protocol eq "ads") {
 	$conf_file	= SCR->Read (".target.tmpdir")."/smb.conf";
 	my $realm	= SambaAD->Realm ();
-	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n\tuse kerberos keytab = Yes\n");
+#	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n\tuse kerberos keytab = Yes\n");
+	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
     }
 
     # FIXME -P is probably wrong, but suppresses password prompt
@@ -80,7 +81,8 @@ sub Join {
 	$conf_file	= $tmpdir."/smb.conf";
 	my $krb_file	= $tmpdir."/krb5.conf";
 	my $realm	= SambaAD->Realm ();
-	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n\tuse kerberos keytab = Yes\n");
+#	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n\tuse kerberos keytab = Yes\n");
+	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
 	$cmd		= "KRB5_CONFIG=$krb_file ";
 	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
     }

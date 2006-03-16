@@ -263,7 +263,7 @@ global boolean WriteShares () {
     if (FileUtils::Exists (shares_dir))
     {
 	if (shares_group == "") shares_group = "users";
-	SCR::Execute (.target.bash, sformat ("/bin/chmod 1770 %1; /bin/chgrp %2 %1", shares_dir, shares_group));
+	SCR::Execute (.target.bash, sformat ("/bin/chmod 1770 %1; /bin/chgrp '%2' %1", shares_dir, shares_group));
     }
     return true;
 }
