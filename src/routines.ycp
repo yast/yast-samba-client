@@ -277,12 +277,14 @@ define boolean AskToStopServices () {
 define term GetSharesTerm (boolean allow, string group, integer max) {
 
     // frame label
-    string label	= _("Sharing by Users");
+    string label	= true ? _("Sharing by Users") :
+	// frame label
+	_("Sharing");
 
     return `VBox (
 	`VSpacing (),
 	// frame label
-	`Frame (_("Sharing"),
+	`Frame (label,
 	    `VBox (
 		`VSpacing (0.4),
 		`Left (`CheckBox(`id(`share_ch), `opt(`notify),

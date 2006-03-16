@@ -66,11 +66,11 @@ sub AdjustSambaConfig {
 # Change nsswitch configuration.
 #
 # @param on the status of the winbind to be configured (true=enabled, false=disabled)
-# @param if nscd for passwd and group should be enabled
+# @param if services should not be altered
 # @return boolean true on succed
 BEGIN{$TYPEINFO{AdjustNsswitch}=["function","boolean","boolean","boolean"]}
 sub AdjustNsswitch {
-    my ($self, $on, $nscd_enabled) = @_;
+    my ($self, $on, $write_only) = @_;
 
     foreach my $db ("passwd", "group") {
 	my $nsswitch = Nsswitch->ReadDb($db);
@@ -82,35 +82,10 @@ sub AdjustNsswitch {
 	y2debug("Nsswitch->WriteDB($db, ".Dumper($nsswitch).")");
 	Nsswitch->WriteDb($db, $nsswitch);
     };
-
-# FIXME no resolution about nscd: bug 137793
     # remove the passwd and group cache for nscd
-    if (0 && PackageSystem->Installed ("nscd")) {
-	SCR->Execute (".target.bash", "/usr/sbin/nscd -i passwd");
-	SCR->Execute (".target.bash", "/usr/sbin/nscd -i group");
-	Service->Stop ("nscd");
+    if (!$write_only && Service->Status ("nscd") == 0) {
+	Service->Restart ("nscd");
     }
-    # TODO we might want to disable caching by editing /etc/nscd.conf
-    if (0 && defined $nscd_enabled) {
-	my $new_value	= ($nscd_enabled) ? "yes" : "no";
-	my $org_value	= ($new_value eq "no") ? "yes" : "no";
-	my $enable_cache = SCR->Read (".etc.nscd_conf.v.enable-cache");
-	if (ref ($enable_cache) eq "ARRAY") {
-	    my @new_cache	= ();
-	    foreach my $sect (@{$enable_cache}) {
-		if ($sect =~ m/^(passwd|group)/) {
-		    $sect =~ s/$org_value/$new_value/;
-		}
-		push @new_cache, $sect;
-	    }
-	    my $count = @new_cache;
-	    if ($count > 0) {
-		SCR->Write (".etc.nscd_conf.v.enable-cache", \@new_cache);
-		SCR->Write (".etc.nscd_conf", "force");
-	    }
-	}
-    }
-
     return TRUE if Nsswitch->Write();
     y2error("Nsswitch->Write() fail");
     return FALSE;

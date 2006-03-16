@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Mar 16 08:00:10 CET 2006 - jsuchome@suse.cz
+
+- restart nscd (#157902)
+- adapt smbconf agent to accept special characters
+- change group ownership if directory with shares already exists
+- changed Shares frame label to better fit samba-server needs
+- flush nscd cache (#157902)
+- 2.13.11 
+
+-------------------------------------------------------------------
 Mon Mar 13 16:46:28 CET 2006 - jsuchome@suse.cz
 
 - split of shares write function to be used by yast2-samba-server
