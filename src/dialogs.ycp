@@ -122,7 +122,7 @@ symbol MembershipDialog () {
 		status_term,
 		winbind_term,
 		`HBox (
-		    Stage::cont () ? `Empty : `HSpacing (2),
+		    Stage::cont () ? `Empty () : `HSpacing (2),
 		    `VBox (
 			mkhomedir_term,
 			`Left (
