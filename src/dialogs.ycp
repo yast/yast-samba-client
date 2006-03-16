@@ -29,8 +29,6 @@ include "samba-client/routines.ycp";
 symbol MembershipDialog () {
     /* Samba-client workgroup dialog caption */
     string caption = _("Windows Domain Membership");
-    boolean start_fam	= Samba::start_fam;
-    boolean nscd	= Samba::nscd_enabled;
     boolean mkhomedir	= Samba::mkhomedir;
     boolean allow_share	= true;
     integer max_shares	= Samba::GetMaxShares ();
@@ -160,7 +158,6 @@ symbol MembershipDialog () {
     }
     if (Mode::config ()) {
 	UI::ChangeWidget (`id(`browse), `Enabled, false);
-// UI::ChangeWidget (`id(`nscd), `Enabled, false);
     }
 
     any ret = nil;
@@ -255,9 +252,6 @@ settings in smb.conf to the default values:
 	        Autologin::AskForDisabling(_("Samba is now enabled."));
 	    }
 
-	    /*
-	    Samba::SetNscdState((boolean) UI::QueryWidget (`id(`nscd), `Value));
-	    */
 	    list<string> packages	= ["samba-winbind"];
 	    if (SambaAD::ADS () != "")
 	    {
@@ -278,7 +272,8 @@ settings in smb.conf to the default values:
 	    if (!new_share)
 	    {
 		max = 0;
-		Samba::stop_services	= AskToStopServices ();
+		if (allow_share)
+		    Samba::stop_services	= AskToStopServices ();
 	    }
 	    Samba::SetShares (max,(string)UI::QueryWidget(`id(`group),`Value));
 	    break;

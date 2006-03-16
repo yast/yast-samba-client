@@ -53,12 +53,6 @@ global boolean write_only = false;
  */
 global boolean winbind_enabled = false;
 
-
-/**
- * Is name servcice cache enabled?
- */
-global boolean nscd_enabled	= true;
-
 /**
  * If FAM should be started
  */
@@ -101,26 +95,6 @@ global boolean GetModified() {
     y2debug("modified=%1",modified);
     return modified || mkhomedir_modified || shares_modified || SambaConfig::GetModified();
 };
-
-/**
- * Read the state of passwd and group cache in /etc/nscd
- */
-define boolean ReadNscdState () {
-
-    nscd_enabled	= Package::Installed ("nscd");
-
-    list<string> enable_cache	=
-	(list<string>) SCR::Read (.etc.nscd_conf.v.enable-cache);
-    foreach (string sect, enable_cache, {
-	list<string> l_cache = filter (
-	    string part, splitstring (sect, " \t"), ``(part != ""));
-	if (l_cache[0]:"" == "passwd" || l_cache[0]:"" == "group")
-	{
-	    nscd_enabled	= nscd_enabled && l_cache[1]:"" == "yes";
-	}
-    });
-    return nscd_enabled;
-}
 
 /**
  * Read the state of mkhomedir in /etc/pam.d/common-session (bug #143519)
@@ -281,12 +255,15 @@ global boolean WriteShares () {
     if (!FileUtils::Exists (shares_dir))
     {
 	SCR::Execute (.target.mkdir, shares_dir);
-	if (shares_group == "") shares_group = "users";
-	SCR::Execute (.target.bash, sformat ("/bin/chmod 1770 %1; /bin/chgrp %2 %1", shares_dir, shares_group));
     }
     else if (remove_shares)
     {
 	SCR::Execute (.target.bash, sformat ("/bin/rm -f %1/*", shares_dir));
+    }
+    if (FileUtils::Exists (shares_dir))
+    {
+	if (shares_group == "") shares_group = "users";
+	SCR::Execute (.target.bash, sformat ("/bin/chmod 1770 %1; /bin/chgrp %2 %1", shares_dir, shares_group));
     }
     return true;
 }
@@ -399,7 +376,6 @@ global boolean Read() {
 	SambaNmbLookup::Start();
     }
 
-//    ReadNscdState ();
     ReadMkHomeDir ();
 
     ReadSharesSetting ();
@@ -493,8 +469,7 @@ global boolean Write(boolean write_only) {
 	    ret = false;
 	}
     }
-// FIXME nscd_enabled = true, but check for write_only
-    if (!SambaWinbind::AdjustNsswitch(winbind_enabled,nscd_enabled)) {
+    if (!SambaWinbind::AdjustNsswitch(winbind_enabled, write_only)) {
 	// translators: error message, %1 is filename
 	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/nsswitch.conf"));
 	ret = false;
@@ -520,8 +495,6 @@ global boolean Write(boolean write_only) {
     WriteDisplayManager (winbind_enabled, write_only || Autologin::modified);
 
     Autologin::Write(write_only);	// see dialog.ycp
-
-//    WriteFAM (write_only);
 
     WriteShares ();
     AdjustSharesServices (write_only);
@@ -729,20 +702,6 @@ global define boolean SetStartFAM (boolean fam) {
 	modified	= true;
     }
     return start_fam;
-}
-
-/**
- * update the information if nscd should be enabled
- * @return current nscd status
- */
-global define boolean SetNscdState (boolean nscd) {
-
-    if (nscd != nscd_enabled)
-    {
-	nscd_enabled	= nscd;
-	modified	= true;
-    }
-    return nscd_enabled;
 }
 
 /* EOF */
