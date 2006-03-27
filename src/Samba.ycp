@@ -268,20 +268,23 @@ global boolean WriteShares () {
     return true;
 }
 
+/**
+ * adjust the services for sharing
+ */
 global boolean AdjustSharesServices (boolean write_only) {
-
-    if (write_only)
-	return true;
 
     if (GetMaxShares () > 0)
     {
-	Service::Enable ("nmb");
-	Service::Enable ("smb");
-	if (! write_only)
-	{
-	     Service::Start ("nmb");
-	     Service::Start ("smb");
-	}
+	foreach (string service, [ "nmb", "smb"], {
+	    Service::Enable (service);
+	    if (! write_only)
+	    {
+		if (Service::Status (service) == 0)
+		    Service::Restart (service);
+		else
+		    Service::Start (service);
+	    }
+	});
     }
     else if (stop_services)
     {
