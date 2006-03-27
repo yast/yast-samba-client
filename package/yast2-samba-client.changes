@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Mon Mar 27 09:03:11 CEST 2006 - jsuchome@suse.cz
+
+- stop services automatically with only 1 section in smb.conf (#160517)
+- 2.13.13
+
+-------------------------------------------------------------------
+Fri Mar 17 10:50:11 CET 2006 - jsuchome@suse.cz
+
+- restart smb and nmb if they are running (#143908)
+
+-------------------------------------------------------------------
 Thu Mar 16 14:52:01 CET 2006 - jsuchome@suse.cz
 
 - do not write "use kerberos keytab" (#154951)

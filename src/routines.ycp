@@ -257,11 +257,11 @@ define boolean AskForSharesRemoval () {
  */
 define boolean AskToStopServices () {
 
-    if (size (SambaConfig::GetShares()) < 1)
-	return false;
-
     if (Service::Status("nmb") != 0 && Service::Status("smb") != 0)
 	return false;
+
+    if (size (SambaConfig::GetShares()) < 1)
+	return true;
 
     // yes/no popup
     return Popup::YesNo (_("Other Windows sharing services are available. Stop them as well?"));
