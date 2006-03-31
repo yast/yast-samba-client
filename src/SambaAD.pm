@@ -57,14 +57,14 @@ sub GetADS {
     # use DNS for finding DC
     if (FileUtils->Exists ("/usr/bin/dig")) {
 
-	my $out = SCR->Execute (".target.bash_output", "dig _ldap._tcp.pdc._msdcs.$workgroup +noall +answer +authority");
+	my $out = SCR->Execute (".target.bash_output", "dig -t srv _ldap._tcp.pdc._msdcs.$workgroup +noall +answer");
 	y2debug ("dig output: ", Dumper ($out));
 	foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
 	    
 	    y2debug ("line: $line");
 	    next if $server ne "";
 	    if ($line =~ m/$workgroup/) {
-		$server		= (split (/[ \t]/, $line))[4] || ".";
+		$server		= (split (/[ \t]/, $line))[7] || ".";
 		chop $server;
 	    }
 	}

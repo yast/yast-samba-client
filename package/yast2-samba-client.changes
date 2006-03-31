@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 29 20:03:15 CEST 2006 - jsuchome@suse.cz
+
+- fixed dig call (#158726)
+- 2.13.14 
+
+-------------------------------------------------------------------
 Mon Mar 27 09:03:11 CEST 2006 - jsuchome@suse.cz
 
 - stop services automatically with only 1 section in smb.conf (#160517)
