@@ -251,11 +251,11 @@ sub AdjustSambaConfig {
 	    "template shell" 		=> $remove ? undef : "/bin/bash",
 	    "template homedir"		=> $remove ? undef : "/home/%D/%U",
 	    "workgroup"			=> $remove ? undef : $workgroup,
-#	    "use kerberos keytab"	=> $remove ? undef : "Yes",
-	    "pam_winbind:krb5_auth"	=> $remove ? undef : "yes",
-	    "pam_winbind:krb5_ccache_type"
-					=> $remove ? undef : "FILE",
 	    "winbind refresh tickets"	=> $remove ? undef : "yes"
+	});
+	SambaConfig->WinbindGlobalSetMap({
+	    "krb5_auth"			=> $remove ? undef : "yes",
+	    "krb5_ccache_type"		=> $remove ? undef : "FILE"
 	});
 	if (SambaConfig->GlobalGetTruth ("domain logons", 0)) {
 	    SambaConfig->GlobalSetTruth ("domain logons", 0)

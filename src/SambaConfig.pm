@@ -30,6 +30,7 @@ YaST::YCP::Import("SCR");
 # variables
 my %Config;	# configuration hash
 
+my %WinbindConfig;	# configuration hash for /etc/security/pam_winbind.conf
 
 ###########################################################################
 # global (static) variables (constants)
@@ -99,6 +100,9 @@ sub GetModified {
     foreach (keys %Config) {
 	return 1 if $Config{$_}{_modified};
     }
+    foreach (keys %WinbindConfig) {
+	return 1 if $WinbindConfig{$_}{_modified};
+    }
     return 0;
 }
 
@@ -107,6 +111,7 @@ BEGIN{ $TYPEINFO{SetModified} = ["function", "boolean"]; }
 sub SetModified {
     my ($self) = @_;
     $Config{"global"}{_modified} = 1;
+    $WinbindConfig{"global"}{_modified} = 1;
     return 1;
 }
 
@@ -116,6 +121,9 @@ sub UnsetModified {
     my ($self) = @_;
     foreach (keys %Config) {
 	delete $Config{$_}{_modified};
+    }
+    foreach (keys %WinbindConfig) {
+	delete $WinbindConfig{$_}{_modified};
     }
 }
 
@@ -136,16 +144,18 @@ sub Dump {
     print "\n";
 }
 
-# read configuration from file
+# read configuration from files:
+# /etc/samba/smb.conf, /etc/security/pam_winbind.conf
 BEGIN{ $TYPEINFO{Read} = ["function", "boolean", "boolean"]; }
 sub Read {
     my ($self, $forceReRead) = @_;
 
     # coniguraton already readed
-    return 1 if not $forceReRead and %Config;
+    return 1 if not $forceReRead and %Config and %WinbindConfig;
     
     # forget previous configuration
     %Config = ();
+    %WinbindConfig = ();
 
     # read the complete global section
     my $AllAtOnce = SCR->Read(".etc.smb.all");
@@ -176,9 +186,128 @@ sub Read {
 	    }
 	}
     }
+
+    # read the complete global section
+    $AllAtOnce = SCR->Read(".etc.security_winbind.all");
+
+    # convert .ini agent all-at-once map to %WinbindConfig
+    foreach my $section (@{$AllAtOnce->{value}}) {
+	next if $section->{kind} ne "section";
+	my $share = $section->{name};
+
+	# disabled (comment-out) share
+	$WinbindConfig{$share}{_disabled} = 1 if $section->{type};
+	my $comment = $section->{comment};
+	$comment =~ s/^[ \t]*[;#]+[ \t]*//gm if $comment;
+	$comment =~ s/^Share disabled by YaST$//mgi if $comment;
+	$comment =~ s/^\n*// if $comment;
+	$comment =~ s/\n*$// if $comment;
+	$WinbindConfig{$share}{_comment} = $comment if $comment;
+
+	foreach my $line (@{$section->{value}}) {
+	    next if $line->{kind} ne "value";
+	    next if $line->{type} and not $section->{type}; # commented line
+
+	    if (defined $WinbindConfig{$share}{$line->{name}}) {
+		$self->WinbindShareAddStr($share, $line->{name},$line->{value});
+	    }
+	    else {
+		$self->WinbindShareSetStr($share, $line->{name},$line->{value});
+	    }
+	}
+    }
     $self->UnsetModified();
 
     y2debug("Readed config: ".Dumper(\%Config));
+    y2debug("Readed config: ".Dumper(\%WinbindConfig));
+
+    return 1;
+}
+
+# write /etc/security/pam_winbind.conf.
+BEGIN{ $TYPEINFO{WriteWinbind} = ["function", "boolean", "boolean"]; }
+sub WriteWinbind {
+    my ($self, $forceWrite) = @_;
+
+    y2debug("modified flag is ".($self->GetModified()?"set":"not set"));
+    return 1 unless $forceWrite or $self->GetModified();
+
+    # first, write the global settings complete
+    if ($forceWrite or $WinbindConfig{global}{_modified}) {
+	foreach my $key (sort keys %{$WinbindConfig{global}}) {
+	    next if $key =~ /^_/;	# skip internal keys
+	    my $val = $WinbindConfig{global}{$key};
+	    if (!defined $val) {
+		SCR->Write(".etc.security_winbind.value.global.$key", undef);
+	    } else {
+		if (ref ($val) ne "ARRAY") {
+		    $val = [ String($val) ];
+		}
+	        SCR->Write(".etc.security_winbind.value.global.$key", $val);
+	        # ensure option is not commented
+		SCR->Write(".etc.security_winbind.value_type.global.$key", [Integer(0)]);
+	    }
+	}
+
+	# ensure global section is not commented
+	SCR->Write(".etc.security_winbind.section_type.global", [Integer(0)]);
+	
+	# remove modified flag
+	$WinbindConfig{global}{_modified} = undef;
+    }
+
+    # remove removed shares first
+    foreach my $share (sort grep {!$WinbindConfig{$_}} keys %WinbindConfig) {
+	SCR->Write(".etc.security_winbind.section.$share", undef);
+    };
+    $WinbindConfig{_removed} = undef; # remove modified flag
+
+    # write shares
+    foreach my $share (sort keys %WinbindConfig) {
+	next unless $WinbindConfig{$share};	# skip removed shares
+	next if $share eq "global";	# skip global section
+	next if $share =~ /^_/;		# skip internal shares
+	next unless $forceWrite || $WinbindConfig{$share}{_modified};
+
+	# prepare the right type for writing out the value
+	my $commentout = $WinbindConfig{$share}{_disabled} ? 1 : 0;
+	
+	# write all the options
+	foreach my $key (sort keys %{$WinbindConfig{$share}}) {
+	    next if $key =~ /^_/;	# skip our internal options
+	    my $val = $WinbindConfig{$share}{$key};
+	    if (!defined $val) {
+		SCR->Write(".etc.security_winbind.value.$share.$key", undef);
+	    } else {
+		if (ref ($val) ne "ARRAY") {
+		    $val = [ String($val) ];
+		}
+	        my $ret1 = SCR->Write(".etc.security_winbind.value.$share.$key", $val);
+	        my $ret  = SCR->Write(".etc.security_winbind.value_type.$share.$key", [ Integer($commentout)]);
+	    }
+	};
+	
+	# write the type and comment of the section
+	SCR->Write(".etc.security_winbind.section_type.$share", [Integer($commentout)]);
+	my $comment = $WinbindConfig{$share}{_comment} || "";
+	$comment =~ s/\n*$//;
+	$comment =~ s/^\n*//;
+	if ($commentout && $comment !~ /.*Share.*Disabled.*/i) {
+	    $comment = ($comment?"$comment\n":"") . "## Share disabled by YaST";
+	}
+	$comment =~ s/^(?![#;])/; /mg if $comment;
+	$comment .= "\n" if $comment;
+	SCR->Write(".etc.security_winbind.section_comment.$share", [String("\n$comment")]);
+
+	# remove modified flag
+	$WinbindConfig{$share}{_modified} = undef;
+    };
+    
+    # commit the changes
+    if (!SCR->Write(".etc.security_winbind", undef)) {
+	y2error("Cannot write settings to /etc/samba/smb.conf");
+	return 0;
+    }
     return 1;
 }
 
@@ -267,8 +396,8 @@ sub Write {
 	y2error("Cannot write settings to /etc/samba/smb.conf");
 	return 0;
     }
-
-    return 1;
+    
+    return $self->WriteWinbind ($forceWrite);
 }
 
 # return list of shares
@@ -758,6 +887,134 @@ sub GlobalSetModified { return ShareSetModified(shift, "global", @_); }
 
 BEGIN{ $TYPEINFO{GlobalGetModified} = ["function", "boolean"]; }
 sub GlobalGetModified { return ShareGetModified(shift, "global", @_); }
+
+##############################################################################
+####### functions related to /etc/security/pam_winbind.conf
+
+# set share modified
+BEGIN{ $TYPEINFO{WinbindShareSetModified} = ["function", "boolean", "string"]; }
+sub WinbindShareSetModified {
+    my ($self, $share) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    return 0 if $WinbindConfig{$share}{_modified};
+    $WinbindConfig{$share}{_modified} = 1;
+    return 1;
+}
+
+# get share modified
+BEGIN{ $TYPEINFO{WinbindShareGetModified} = ["function", "boolean", "string"]; }
+sub WinbindShareGetModified {
+    my ($self, $share) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    return $WinbindConfig{$share}{_modified} ? 1 : 0;
+}
+
+# get share key value from /etc/security/pam_winbind.conf
+BEGIN{ $TYPEINFO{WinbindShareGetStr} = ["function", "string", "string", "string", "string"]; }
+sub WinbindShareGetStr {
+    my ($self, $share, $key, $default) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    if (not defined $key) {
+	y2error("undefned key");
+	return undef;
+    }
+    $key = lc($key);
+    $key = $Synonyms{$key} if exists $Synonyms{$key};
+    if (defined $WinbindConfig{$share}{$key}) {
+	if (ref $WinbindConfig{$share}{$key} eq "ARRAY") {
+	    return $WinbindConfig{$share}{$key}[0];
+	}
+	return $WinbindConfig{$share}{$key};
+    }
+    return $default;
+}
+
+# add share key value: used when some key is used multiple times
+BEGIN{ $TYPEINFO{WinbindShareAddStr} = ["function", "boolean", "string", "string", "string"]; }
+sub WinbindShareAddStr {
+    my ($self, $share, $key, $val) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    if (not defined $key) {
+	y2error("undefned key");
+	return undef;
+    }
+    $key = lc($key);
+    $key = $Synonyms{$key} if exists $Synonyms{$key};
+    
+    my $old = $WinbindConfig{$share}{$key};
+    if (ref ($old) ne "ARRAY") {
+	$WinbindConfig{$share}{$key} = [];
+	if (defined $old) {
+	    push @{$WinbindConfig{$share}{$key}}, $old;
+	}
+    }
+    push @{$WinbindConfig{$share}{$key}}, $val;
+    return 1;
+}
+
+# set share key value, return old value
+BEGIN{ $TYPEINFO{WinbindShareSetStr} = ["function", "boolean", "string", "string", "string"]; }
+sub WinbindShareSetStr {
+    my ($self, $share, $key, $val) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    if (not defined $key) {
+	y2error("undefned key");
+	return undef;
+    }
+    my $modified = 0;
+    $key = lc($key);
+    $key = $Synonyms{$key} if exists $Synonyms{$key};
+    my $old = $WinbindConfig{$share}{$key};
+    if (defined $val) {
+	    $modified = 1 unless defined $old and $old eq $val;
+	    $WinbindConfig{$share}{$key} = $val;
+    } else {
+    	    $modified = 1 if defined $old;
+	    $WinbindConfig{$share}{$key} = undef;
+    }
+    $self->WinbindShareSetModified($share) if $modified;
+    y2debug("WinbindShareSetStr($share, $key, ".($val||"<undef>").")") if $modified;
+    return $modified;
+}
+
+# set share for /etc/security/pam_winbind.conf.
+BEGIN{ $TYPEINFO{WinbindShareSetMap} = ["function", "boolean", "string", ["map", "string", "string"]]; }
+sub WinbindShareSetMap {
+    my ($self, $share, $map) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    my $modified = 0;
+    foreach(keys %$map) {
+	$modified |= $self->WinbindShareSetStr($share, $_, $map->{$_});
+    }
+    return $modified;
+}
+
+BEGIN{ $TYPEINFO{WinbindGlobalGetStr} = ["function", "string", "string", "string"]; }
+sub WinbindGlobalGetStr { return WinbindShareGetStr(shift, "global", @_); }
+
+BEGIN{ $TYPEINFO{WinbindGlobalSetStr} = ["function", "boolean", "string", "string"]; }
+sub WinbindGlobalSetStr { return WinbindShareSetStr(shift, "global", @_); }
+
+BEGIN{ $TYPEINFO{WinbindGlobalSetMap} = ["function", "boolean", ["map", "string", "string"]]; }
+sub WinbindGlobalSetMap { return WinbindShareSetMap(shift, "global", @_); }
 
 
 1;

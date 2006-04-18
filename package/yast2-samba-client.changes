@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 13 14:31:41 CEST 2006 - jsuchome@suse.cz
+
+- use /etc/security/pam_winbind.conf for winbind config (#165775)
+- 2.13.15 
+
+-------------------------------------------------------------------
 Wed Mar 29 20:03:15 CEST 2006 - jsuchome@suse.cz
 
 - fixed dig call (#158726)

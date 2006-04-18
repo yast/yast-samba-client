@@ -1,0 +1,43 @@
+#
+
+.etc.security_winbind
+
+`ag_ini(
+    `IniAgent("/etc/security/pam_winbind.conf", $[
+	"options" : [ "no_nested_sections", "ignore_case", "line_can_continue", "comments_last", "repeat_names" ],
+	"comments": [ 
+	    "^[ \t]*$",	// empty line
+	    "^[ \t]+[;#].*$", // comment char is not first char
+	    "^[;#][ \t]*$", // only comment chars
+	    "^[;#][ \t]*\\[[^]]*$", // comment chars followed by '[' without matching ']'
+	    "^[;#][^ \t[]", // comment char followed by non-blank nor '['
+	    "^[;#][ \t]+[^[a-z \t].*$", // comment chars followed by non a-z char nor '[' nor blank
+	    "^[;#][ \t]+[a-z ]*[a-z][ \t]*$", // comment chars followed by a-z or blank chars
+	    "^[;#][ \t]+[a-z ]*[a-z][ \t]*[^a-z \t=].*$", // like above, but followed by non a-z nor blank nor '=' chars
+	],
+	"sections" : [
+	    $[
+		"begin" : [ "^[ \t]*\\[[ \t]*(.*[^ \t])[ \t]*\\][ \t]*", "[%s]" ],
+	    ], $[
+		// this is a special type for commenting out the values
+		"begin" : [ "^[#;][ \t]*\\[[ \t]*(.*[^ \t])[ \t]*\\][ \t]*", "# [%s]" ],
+	    ]
+	],
+	// we need to exclude ; because of the second matching rule
+	"params" : [
+	    $[
+		"match" : [ "^[ \t]*([a-z:_ ]*[a-z])[ \t]*=[ \t]*(.*[^ \t])[ \t]*$" , "\t%s = %s"],
+	    ], $[
+		// this is a special type for commenting out the values
+//		"match" : [ "^[;#]+[ \t]*([a-z ]*[a-z])[ \t]*=[ \t]*(.*[^ \t])[ \t]*$" , "#\t%s = %s"],
+		"match" : [ "^[#;][ \t]+([a-z ]*[a-z])[ \t]*=[ \t]*(.*[^ \t])[ \t]*$" , "#\t%s = %s"],
+	    ], $[
+		// rule only for writting
+		// comment key/value pairs with '##' instead of one '#' used for disabled items
+		"match" : [ "^# FAKE MATCH RULE - ONLY FOR WRITTING$" , "##\t%s = %s"],
+	    ]
+	]
+    ]
+  )
+)
+

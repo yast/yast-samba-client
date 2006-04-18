@@ -280,7 +280,7 @@ settings in smb.conf to the default values:
         } else if (ret == `browse) {
 
 	    string new_workgroup = BrowseNeighbours( Stage::cont() );
-	    if( size (new_workgroup) > 0 ) {
+	    if( new_workgroup != nil && new_workgroup != "" ) {
 		// fill in the new workgroup name
 		UI::ChangeWidget( `id(`workgroup), `Value, new_workgroup );
 		check_domain_membership (new_workgroup);
