@@ -210,7 +210,7 @@ global define boolean SetShares (integer max, string group)
  */
 global define boolean GetWinbindCaching () {
 
-    return SambaConfig::GlobalGetStr("pam_winbind:cached_login", "") == "yes" &&
+    return SambaConfig::WinbindGlobalGetStr("cached_login", "") == "yes" &&
 	   SambaConfig::GlobalGetStr("winbind offline logon", "") == "yes";
 }
 
@@ -219,7 +219,7 @@ global define boolean GetWinbindCaching () {
  */
 global define boolean SetWinbindCaching (boolean enable) {
 
-    SambaConfig::GlobalSetStr("pam_winbind:cached_login", enable ? "yes" : nil);
+    SambaConfig::WinbindGlobalSetStr("cached_login", enable ? "yes" : nil);
     SambaConfig::GlobalSetStr("winbind offline logon", enable ? "yes" : nil);
     return enable;
 }

@@ -195,6 +195,7 @@ define string BrowseNeighbours(boolean domains_only) ``{
 
     UI::CloseDialog ();
     if( groups == nil ) return nil;
+    groups = filter (string group, groups, ``(size (group) > 0));
 
     // let the user choose a workgroup
     UI::OpenDialog( `VBox(
