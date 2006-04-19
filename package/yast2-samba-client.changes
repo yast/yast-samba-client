@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 19 10:27:19 CEST 2006 - jsuchome@suse.cz
+
+- skip reading of pam_winbind if it was read before
+  (-> and fix the failing testsuite of yast2-samba-server)
+- 2.13.16
+
+-------------------------------------------------------------------
 Thu Apr 13 14:31:41 CEST 2006 - jsuchome@suse.cz
 
 - use /etc/security/pam_winbind.conf for winbind config (#165775)

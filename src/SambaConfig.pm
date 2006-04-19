@@ -150,12 +150,11 @@ BEGIN{ $TYPEINFO{Read} = ["function", "boolean", "boolean"]; }
 sub Read {
     my ($self, $forceReRead) = @_;
 
-    # coniguraton already readed
-    return 1 if not $forceReRead and %Config and %WinbindConfig;
+    # configuraton already read
+    return 1 if not $forceReRead and %Config;
     
     # forget previous configuration
     %Config = ();
-    %WinbindConfig = ();
 
     # read the complete global section
     my $AllAtOnce = SCR->Read(".etc.smb.all");
@@ -186,6 +185,12 @@ sub Read {
 	    }
 	}
     }
+    $self->UnsetModified();
+    y2debug ("Read config: ".Dumper(\%Config));
+
+    # configuraton already read
+    return 1 if not $forceReRead and %WinbindConfig;
+    %WinbindConfig = ();
 
     # read the complete global section
     $AllAtOnce = SCR->Read(".etc.security_winbind.all");
@@ -218,8 +223,7 @@ sub Read {
     }
     $self->UnsetModified();
 
-    y2debug("Readed config: ".Dumper(\%Config));
-    y2debug("Readed config: ".Dumper(\%WinbindConfig));
+    y2debug ("Read config: ".Dumper(\%WinbindConfig));
 
     return 1;
 }
@@ -442,7 +446,8 @@ sub Export {
 BEGIN{$TYPEINFO{Import} = ["function", "void", "any"]}
 sub Import {
     my ($self, $config) = @_;
-    %Config = ();
+    %Config 		= ();
+    %WinbindConfig	= (); #FIXME fill WinbindConfig
     if ($config && ref $config eq "ARRAY") { # normal import
 	foreach my $section (@$config) {
 	    my $name = $section->{name};
