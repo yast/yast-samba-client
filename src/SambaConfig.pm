@@ -76,6 +76,14 @@ my %InvertedSynonyms = (
     "writable" => "read only",
 );
 
+# keys in /etc/security/pam_winbind.conf
+my %winbind_params = (
+    "cached_login"		=> 1,
+    "krb5_auth"			=> 1,
+    "krb5_ccache_type"		=> 1,
+    "require_membership_of"	=> 1
+);
+
 
 ###########################################################################
 # helper functions
@@ -434,8 +442,16 @@ sub Export {
 	while(my ($key, $val) = each %{$Config{$share}}) {
 	    next unless defined $val;	# skip undefined values
 	    next if $key =~ /^_/;	# skip internal keys
-	    $key =~ tr/a-zA-Z/_/cs;
+	    $key =~ tr/a-zA-Z0-9/_/cs;
 	    $section{parameters}{lc $key} = $val; # TODO check for ARRAY?
+	}
+	if (defined $WinbindConfig{$share}) {
+	    while(my ($key, $val) = each %{$WinbindConfig{$share}}) {
+		next unless defined $val;	# skip undefined values
+		next if $key =~ /^_/;	# skip internal keys
+		$key =~ tr/a-zA-Z0-9/_/cs;
+		$section{parameters}{lc $key} = $val;
+	    }
 	}
 	push @myconfig, \%section;
     }
@@ -447,7 +463,7 @@ BEGIN{$TYPEINFO{Import} = ["function", "void", "any"]}
 sub Import {
     my ($self, $config) = @_;
     %Config 		= ();
-    %WinbindConfig	= (); #FIXME fill WinbindConfig
+    %WinbindConfig	= ();
     if ($config && ref $config eq "ARRAY") { # normal import
 	foreach my $section (@$config) {
 	    my $name = $section->{name};
@@ -455,8 +471,13 @@ sub Import {
 	    $self->ShareSetComment($name, $section->{comment}) if $section->{comment};
 	    $self->ShareDisable($name) if $section->{disabled};
 	    while(my ($key, $val) = each %{$section->{parameters}}) {
-		$key =~ tr/_/ /;
-		$self->ShareSetStr($name, $key, $val);
+		if (exists $winbind_params{$key}) {
+		    $self->WinbindShareSetStr($name, $key, $val);
+		}
+		else {
+		    $key =~ tr/_/ /;
+		    $self->ShareSetStr($name, $key, $val);
+		}
 	    }
 	}
 	$self->UnsetModified();
