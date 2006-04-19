@@ -26,7 +26,7 @@
 	// we need to exclude ; because of the second matching rule
 	"params" : [
 	    $[
-		"match" : [ "^[ \t]*([a-z:_ ]*[a-z])[ \t]*=[ \t]*(.*[^ \t])[ \t]*$" , "\t%s = %s"],
+		"match" : [ "^[ \t]*([a-z:_0-9 ]*[a-z])[ \t]*=[ \t]*(.*[^ \t])[ \t]*$" , "\t%s = %s"],
 	    ], $[
 		// this is a special type for commenting out the values
 //		"match" : [ "^[;#]+[ \t]*([a-z ]*[a-z])[ \t]*=[ \t]*(.*[^ \t])[ \t]*$" , "#\t%s = %s"],

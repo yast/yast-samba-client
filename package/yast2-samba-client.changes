@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 19 16:28:21 CEST 2006 - jsuchome@suse.cz
+
+- fixed Import/Export for keys in /etc/security/pam_winbind.conf
+- 2.13.17 
+
+-------------------------------------------------------------------
 Wed Apr 19 10:27:19 CEST 2006 - jsuchome@suse.cz
 
 - skip reading of pam_winbind if it was read before
