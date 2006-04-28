@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Apr 26 14:59:30 CEST 2006 - jsuchome@suse.cz
+
+- use tmp samba config file for joining as workaround for #168300
+- do not remove workgroup key when AD is not used
+- use "domain" value for "security" key for non-AD setups (#168300)
+- 2.13.18 
+
+-------------------------------------------------------------------
 Wed Apr 19 16:28:21 CEST 2006 - jsuchome@suse.cz
 
 - fixed Import/Export for keys in /etc/security/pam_winbind.conf

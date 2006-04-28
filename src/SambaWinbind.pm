@@ -58,7 +58,6 @@ sub AdjustSambaConfig {
 	    "idmap uid" => "10000-20000",
 	    "idmap gid" => "10000-20000"
 	});
-#	SambaConfig::GlobalSetStr("security", "domain");
     }
 }
 
