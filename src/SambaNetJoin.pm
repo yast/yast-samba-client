@@ -37,13 +37,14 @@ sub Test {
 
     my $protocol	= SambaAD->ADS () ne "" ? "ads" : "rpc";
     my $netbios_name 	= SambaConfig->GlobalGetStr("netbios name", undef);
-    my $conf_file	= "/dev/zero";
+    my $conf_file	= SCR->Read (".target.tmpdir")."/smb.conf";
 
     if ($protocol eq "ads") {
-	$conf_file	= SCR->Read (".target.tmpdir")."/smb.conf";
 	my $realm	= SambaAD->Realm ();
-#	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n\tuse kerberos keytab = Yes\n");
 	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
+    }
+    else {
+	SCR->Write (".target.string", $conf_file, "[global]\n\tsecurity = domain\n\tworkgroup = $domain\n");
     }
 
     # FIXME -P is probably wrong, but suppresses password prompt
@@ -74,18 +75,21 @@ sub Join {
     my $netbios_name	= SambaConfig->GlobalGetStr("netbios name", undef);
     my $server		= SambaAD->ADS ();
     my $protocol	= $server ne "" ? "ads" : "rpc";
-    my $conf_file	= "/dev/zero";
+    my $tmpdir	= SCR->Read (".target.tmpdir");
+    my $conf_file	= $tmpdir."/smb.conf";
     my $cmd		= "";
+
     if ($protocol eq "ads") {
-	my $tmpdir	= SCR->Read (".target.tmpdir");
-	$conf_file	= $tmpdir."/smb.conf";
 	my $krb_file	= $tmpdir."/krb5.conf";
 	my $realm	= SambaAD->Realm ();
-#	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n\tuse kerberos keytab = Yes\n");
 	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
 	$cmd		= "KRB5_CONFIG=$krb_file ";
 	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
     }
+    else {
+	SCR->Write (".target.string", $conf_file, "[global]\n\tsecurity = domain\n\tworkgroup = $domain\n");
+    }
+
     $cmd = $cmd."net $protocol join "
 	. ($protocol ne "ads" ? lc($join_level||"") : "")
 	. ($protocol ne "ads" ? " -w '$domain'" : "")

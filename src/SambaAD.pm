@@ -246,11 +246,10 @@ sub AdjustSambaConfig {
 	# remove special AD values if AD is not used
 	my $remove	= (($ads || "") eq "");
 	SambaConfig->GlobalSetMap({
-	    "security"			=> $remove ? undef : "ADS",
+	    "security"			=> $remove ? "domain" : "ADS",
 	    "realm"			=> $remove ? undef : $realm,
 	    "template shell" 		=> $remove ? undef : "/bin/bash",
 	    "template homedir"		=> $remove ? undef : "/home/%D/%U",
-	    "workgroup"			=> $remove ? undef : $workgroup,
 	    "winbind refresh tickets"	=> $remove ? undef : "yes"
 	});
 	SambaConfig->WinbindGlobalSetMap({
