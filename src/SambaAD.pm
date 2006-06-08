@@ -248,7 +248,6 @@ sub AdjustSambaConfig {
 	SambaConfig->GlobalSetMap({
 	    "security"			=> $remove ? "domain" : "ADS",
 	    "realm"			=> $remove ? undef : $realm,
-	    "template shell" 		=> $remove ? undef : "/bin/bash",
 	    "template homedir"		=> $remove ? undef : "/home/%D/%U",
 	    "winbind refresh tickets"	=> $remove ? undef : "yes"
 	});
