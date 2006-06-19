@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 19 17:55:12 CEST 2006 - jsuchome@suse.cz
+
+- show info about services to restart (#174589)
+- 2.13.20 
+
+-------------------------------------------------------------------
 Thu Jun  8 13:04:57 CEST 2006 - jsuchome@suse.cz
 
 - set the "template shell" value also for non-AD domain (#176222)

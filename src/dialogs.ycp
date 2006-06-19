@@ -66,6 +66,8 @@ symbol MembershipDialog () {
 	);
     }
 
+    // winbind enabled on start
+    boolean was_winbind	= Samba::GetWinbind();
 
     term winbind_term	= Stage::cont() ? `Empty () : `VBox(
 	`VSpacing (0.5),
@@ -276,6 +278,14 @@ settings in smb.conf to the default values:
 		    Samba::stop_services	= AskToStopServices ();
 	    }
 	    Samba::SetShares (max,(string)UI::QueryWidget(`id(`group),`Value));
+	    if(!Stage::cont() && !Mode::config() && use_winbind&& !was_winbind){
+		// message popup, part 1/2
+		Popup::Message (
+_("This change only affects newly created processes and not already
+running services. Restart your services manually or reboot 
+the machine to enable it for all services.
+"));
+	    }
 	    break;
         } else if (ret == `browse) {
 
