@@ -85,13 +85,18 @@ sub AdjustNsswitch {
 	y2debug("Nsswitch->WriteDB($db, ".Dumper($nsswitch).")");
 	Nsswitch->WriteDb($db, $nsswitch);
     };
+    my $ret = Nsswitch->Write();
+    y2error("Nsswitch->Write() failed") if (!$ret);
+
     # remove the passwd and group cache for nscd
     if (!$write_only && Service->Status ("nscd") == 0) {
 	Service->Restart ("nscd");
     }
-    return TRUE if Nsswitch->Write();
-    y2error("Nsswitch->Write() fail");
-    return FALSE;
+    # restart D-BUS (#174589) FIXME this should be elsewhere
+    if (!$write_only && Service->Status ("dbus") == 0) {
+	Service->Restart ("dbus");
+    }
+    return $ret;
 }
     
 # Change PAM configuration.
