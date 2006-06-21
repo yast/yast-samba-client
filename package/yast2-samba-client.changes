@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 20 11:27:29 CEST 2006 - jsuchome@suse.cz
+
+- restart D-BUS after nscd (#174589)
+- 2.13.21 
+
+-------------------------------------------------------------------
 Mon Jun 19 17:55:12 CEST 2006 - jsuchome@suse.cz
 
 - show info about services to restart (#174589)
