@@ -96,6 +96,10 @@ sub AdjustNsswitch {
     if (!$write_only && Service->Status ("dbus") == 0) {
 	Service->Restart ("dbus");
     }
+    # restart zmd (#174589) FIXME this should be elsewhere
+    if (!$write_only && Service->Status ("novell-zmd") == 0) {
+	Service->RunInitScript ("novell-zmd", "try-restart");
+    }
     return $ret;
 }
     
