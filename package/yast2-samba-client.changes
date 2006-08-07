@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 28 13:03:19 CEST 2006 - jsuchome@suse.cz
+
+- fixed key names used for joining during autoinstallation (#188864)
+- 2.13.23
+
+-------------------------------------------------------------------
 Thu Jun 22 09:10:10 CEST 2006 - jsuchome@suse.cz
 
 - restart also zmd after dbus (#174589)
