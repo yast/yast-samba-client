@@ -104,7 +104,7 @@ global define boolean ReadMkHomeDir () {
     // FIXME this is very ugly, but since we currently don't have other way...
     mkhomedir	= false;
     string file_path	= "/etc/pam.d/common-session";
-   if (!FileUtils::Exists (file_path))
+    if (!FileUtils::Exists (file_path))
     {
 	return false;
     }
@@ -539,8 +539,8 @@ global boolean Import (map settings) {
 	y2milestone ("join result: %1",
 	    SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
 		"member",
-		settings["join","user"]:"",
-		settings["join","password"]:""
+		settings["join","user"]:settings["join","username"]:"",
+		settings["join","password"]:settings["join","passwd"]:""
 	    ));
     }
 
