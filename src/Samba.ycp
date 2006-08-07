@@ -539,8 +539,8 @@ global boolean Import (map settings) {
 	y2milestone ("join result: %1",
 	    SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
 		"member",
-		settings["join","user"]:"",
-		settings["join","password"]:""
+		settings["join","user"]:settings["join","username"]:"",
+		settings["join","password"]:settings["join","passwd"]:""
 	    ));
     }
 

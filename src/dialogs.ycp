@@ -195,7 +195,7 @@ symbol MembershipDialog () {
 
 	    if (Mode::config())
 	    {
-		foreach (string key, [ "username", "passwd" ], {
+		foreach (string key, [ "user", "password" ], {
 		    string val = (string) UI::QueryWidget(`id(key),`Value);
 		    if (val != nil && val != "")
 			Samba::password_data[key]	= val;
