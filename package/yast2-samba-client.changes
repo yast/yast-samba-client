@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug  7 15:06:55 CEST 2006 - jsuchome@suse.cz
+
+- fixed key names used for joining during autoinstallation (#188864)
+- 2.13.18.1
+
+-------------------------------------------------------------------
 Wed Apr 26 14:59:30 CEST 2006 - jsuchome@suse.cz
 
 - use tmp samba config file for joining as workaround for #168300
