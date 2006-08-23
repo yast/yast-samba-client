@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug 21 13:36:45 CEST 2006 - jsuchome@suse.cz
+
+- autoyast: join to domain during Write, not during Import (#188917)
+- 2.13.24 
+
+-------------------------------------------------------------------
 Wed Jun 28 13:03:19 CEST 2006 - jsuchome@suse.cz
 
 - fixed key names used for joining during autoinstallation (#188864)
