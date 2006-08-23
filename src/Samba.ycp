@@ -438,6 +438,16 @@ global boolean Write(boolean write_only) {
     // if nothing to write, quit (but show at least the progress bar :-)
     if (!GetModified()) return true;
 
+    // join the domain during autoinstallation
+    if (Mode::autoinst () && password_data != $[])
+    {
+	SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
+	    "member",
+	    password_data["user"]:password_data["username"]:"",
+	    password_data["password"]:password_data["passwd"]:""
+	);
+    }
+
     if (!SambaConfig::Write(write_only)) {
 	// translators: error message, %1 is filename
 	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/samba/smb.conf") );
@@ -520,7 +530,7 @@ global boolean Import (map settings) {
 	SambaConfig::GlobalSetStr("workgroup", settings["global","workgroup"]:"WORKGROUP");
 	winbind_enabled = settings["global","winbind"]:false;
 	globals_configured = true;
-        modified = false;
+        modified = true;
     } else {
 	globals_configured = false;
     }
@@ -534,14 +544,9 @@ global boolean Import (map settings) {
 	    SambaAD::ReadRealm ();
 	}
     }
-    if (haskey(settings, "join") && Mode::autoinst ())
+    if (haskey(settings, "join"))
     {
-	y2milestone ("join result: %1",
-	    SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
-		"member",
-		settings["join","user"]:settings["join","username"]:"",
-		settings["join","password"]:settings["join","passwd"]:""
-	    ));
+	password_data	= settings["join"]:$[];
     }
 
     return true;
