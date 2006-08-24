@@ -210,10 +210,11 @@ define string BrowseNeighbours(boolean domains_only) ``{
 
     any ret = UI::UserInput();
     string sel = (string) UI::QueryWidget( `id(`selection), `CurrentItem );
+    // textentry constant (automatically added to some kind of values)
     if ( sel != nil && issubstring (sel, _(" (Domain)") ) )
     {
-	integer pos = find (sel, _(" (Domain)") );
-	sel = substring (sel, 0, pos);
+	integer pos = search (sel, _(" (Domain)") );
+	sel = (pos == nil) ? sel : substring (sel, 0, pos);
     }
     UI::CloseDialog();
     return ret == `ok ? sel : nil;
@@ -268,20 +269,21 @@ define boolean AskToStopServices () {
     return Popup::YesNo (_("Other Windows sharing services are available. Stop them as well?"));
 }
 
-
 /**
  * return the term with shares settings
- * @param allow if shares are allowed
- * @param group name of group owning the shares dir
- * @param max maximum number of allowed shares
+ * @param settings map with parameters to show in term
  */
-define term GetSharesTerm (boolean allow, string group, integer max) {
+define term SharesTerm (map settings) {
+
+    boolean allow	= settings["allow_share"]:false;
+    string group	= settings["group"]:"";
+    integer max		= settings["max_shares"]:100;
+    boolean guest	= settings["guest_access"]:false;
 
     // frame label
     string label	= true ? _("Sharing by Users") :
 	// frame label
 	_("Sharing");
-
     return `VBox (
 	`VSpacing (),
 	// frame label
@@ -290,18 +292,37 @@ define term GetSharesTerm (boolean allow, string group, integer max) {
 		`VSpacing (0.4),
 		`Left (`CheckBox(`id(`share_ch), `opt(`notify),
 		    // checkbox label
-		    _("Allow Users to Share Their Directories"), allow)),
+		    _("&Allow Users to Share Their Directories"), allow)),
+		haskey (settings, "guest_access") ?
+		`Left (`CheckBox(`id(`guest_ch), `opt(`notify),
+		    // checkbox label
+		    _("Allow &Guest Access"), guest)) : `VSpacing (0),
 		`HBox (`HSpacing (2), `VBox (
 		    // texty entry label
-		    `TextEntry (`id(`group), _("Permitted Group"), group),
+		    `TextEntry (`id(`group), _("&Permitted Group"), group),
 		    // infield label
-		    `IntField (`id(`max_shares),_("Maximum Number of Shares"),
+		    `IntField (`id(`max_shares),_("&Maximum Number of Shares"),
 			1, 99999, max)
 		)),
 		`VSpacing (0.2)
 	    )
 	)
     );
+}
+
+/**
+ * return the term with shares settings
+ * @param allow if shares are allowed
+ * @param group name of group owning the shares dir
+ * @param max maximum number of allowed shares
+ */
+define term GetSharesTerm (boolean allow, string group, integer max) {
+y2warning ("GetSharesTerm is obsolete, use SharesTerm instead");
+    return SharesTerm ($[
+	    "allow_share"	: allow,
+	    "shares_group"	: group,
+	    "max_shares"	: max
+    ]);
 }
 
 /**
@@ -315,7 +336,10 @@ define string SharesHelp () {
     sformat (_("<p><b>Allow Users to Share Their Directories</b> enables members of the group in <b>Permitted Group</b> to share directories they own with other users. For example, <tt>users</tt> for a local scope or <tt>DOMAIN%1Users</tt> for a domain scope.  The user also must make sure that the file system permissions allow access.</p>"), Samba::shares_separator) +
 
     // membership dialog help (common part 3/4)
-    _("<p>With <b>Maximum Number of Shares</b>, limit the total amount of shares that may be created.</p>");
+    _("<p>With <b>Maximum Number of Shares</b>, limit the total amount of shares that may be created.</p>") +
+
+    // membership dialog help common part
+    _("<p>To permit access to user shares without authentication, enable <b>Allow Guest Access</b>.</p>");
 }
 
 
