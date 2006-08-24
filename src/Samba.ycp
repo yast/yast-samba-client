@@ -23,13 +23,13 @@ import "PackageSystem";
 import "Progress";
 import "Report";
 import "Service";
-import "String";
-
+import "SambaAD";
 import "SambaConfig";
 import "SambaWinbind";
 import "SambaNetJoin";
 import "SambaNmbLookup";
-import "SambaAD";
+import "String";
+import "Summary";
 
 
 /**
@@ -178,6 +178,23 @@ global define integer GetMaxShares () {
 }
 
 /**
+ * check if shares guest access is allowed
+ */
+global define boolean GetGuessAccess () {
+
+    return SambaConfig::GlobalGetTruth ("usershare allow guests", false);
+}
+
+/**
+ * Set the new value for guest access (#144787)
+ */
+global define boolean SetGuessAccess (boolean guest) {
+
+    SambaConfig::GlobalSetTruth ("usershare allow guests", guest);
+    return true;
+}
+
+/**
  * Read user shares settings
  */
 global define boolean ReadSharesSetting () {
@@ -194,6 +211,8 @@ global define boolean ReadSharesSetting () {
 
 /**
  * set the new values for user shares
+ * @param max maximum number of shares (0 is for disabling)
+ * @param group permited group
  */
 global define boolean SetShares (integer max, string group)
 {
@@ -527,10 +546,17 @@ global boolean Write(boolean write_only) {
  */
 global boolean Import (map settings) {
     if (haskey(settings, "global")) {
-	SambaConfig::GlobalSetStr("workgroup", settings["global","workgroup"]:"WORKGROUP");
-	winbind_enabled = settings["global","winbind"]:false;
+	map globals	= settings["global"]:$[];
+	SambaConfig::GlobalSetStr("workgroup",globals["workgroup"]:"WORKGROUP");
+	winbind_enabled = globals["winbind"]:false;
+	SetMkHomeDir (globals["mkhomedir"]:mkhomedir);
+	if (haskey (globals, "winbind_caching"))
+	    SetWinbindCaching (globals["winbind_caching"]:false);
+	if (haskey (globals, "guest_access"))
+	    SetGuessAccess (globals["guest_access"]:false);
+	SetShares(globals["max_shares"]:0,globals["shares_group"]:shares_group);
 	globals_configured = true;
-        modified = true;
+        modified	= true;
     } else {
 	globals_configured = false;
     }
@@ -564,9 +590,22 @@ global map Export () {
     }
 
     map globals = $[
-	"workgroup": SambaConfig::GlobalGetStr("workgroup", ""),
-	"winbind" : winbind_enabled,
+	"workgroup"	: SambaConfig::GlobalGetStr("workgroup", ""),
+	"winbind"	: winbind_enabled,
     ];
+    if (mkhomedir_modified)
+	globals["mkhomedir"]	= mkhomedir;
+    if (winbind_enabled)
+	globals["winbind_caching"]	= GetWinbindCaching ();
+
+    if (GetMaxShares () > 0)
+    {
+	globals["max_shares"]	= GetMaxShares ();
+	globals["shares_group"]	= shares_group;
+	if (GetGuessAccess ())
+	    globals["guest_access"]		= true;
+    }
+
     map ret	= $[ "global": globals ];
     if (SambaAD::ADS() != "")
     {
@@ -591,22 +630,43 @@ global map Export () {
  * @return summary of the current configuration
  */
 global string Summary() {
-    import "Summary";
-    
+
     string summary = "";
     string nc = Summary::NotConfigured();
     string workgroup = SambaConfig::GlobalGetStr("workgroup", "");
-    
+
     // summary header
     summary = Summary::AddHeader(summary, _("Global Configuration"));
-    
-    if( globals_configured ) {
-	// autoyast summary item: configured workgroup 
-	summary = Summary::AddLine(summary, sformat(_("Workgroup or Domain: %1"), workgroup ) );
-    } else {
+
+    if (globals_configured)
+    {
+	summary = Summary::AddLine (summary, sformat (
+	    // autoyast summary item: configured workgroup
+	    _("Workgroup or Domain: %1"), workgroup)
+	);
+
+	if (mkhomedir)
+	    summary = Summary::AddLine (summary,
+		// autoyast summary item
+		_("Create Home Directory on Login")
+	    );
+	if (GetWinbindCaching ())
+	    summary = Summary::AddLine (summary,
+		// autoyast summary item
+		_("Offline Authentication Enabled")
+	    );
+	if (GetMaxShares () > 0)
+	{
+	    summary = Summary::AddLine (summary, sformat (
+		// autoyast summary item
+		_("Maximum Number of Shares: %1"), GetMaxShares ())
+	    );
+	}
+    }
+    else
+    {
 	summary = Summary::AddLine(summary, nc );
     }
-    
     return summary;
 }
 
@@ -615,7 +675,6 @@ global string Summary() {
  * @return summary of the current configuration
  */
 global string ShortSummary() {
-    import "Summary";
 
     string summary = "";
     string workgroup = SambaConfig::GlobalGetStr("workgroup", "");

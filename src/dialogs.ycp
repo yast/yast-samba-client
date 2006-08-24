@@ -14,7 +14,7 @@ import "Mode";
 import "Stage";
 import "Samba";
 import "Label";
-import "PackageSystem";
+import "Package";
 import "Popup";
 import "Wizard";
 import "Autologin";
@@ -38,13 +38,16 @@ symbol MembershipDialog () {
 	allow_share	= false;
     }
     string shares_group	= Samba::shares_group;
-
+    boolean guest	= allow_share && Samba::GetGuessAccess ();
     term status_term	= `VBox(
 	`ReplacePoint (`id(`rpstatus), `Empty())
     );
 
     // internal function: update the status line
     void check_domain_membership (string domain) {
+
+	if (Mode::config ())
+	    return;
 
 	Samba::SetWorkgroup(domain);
 
@@ -81,7 +84,7 @@ symbol MembershipDialog () {
     term mkhomedir_term	= `VBox (
 	`Left(`CheckBox(`id(`mkhomedir),
 	    // checkbox label
-	    _("Create Home Directory on Login"), mkhomedir
+	    _("&Create Home Directory on Login"), mkhomedir
 	))
     );
 
@@ -136,7 +139,12 @@ symbol MembershipDialog () {
 		)
 	    )
 	),
-	GetSharesTerm (allow_share, shares_group, max_shares),
+	SharesTerm ($[
+	    "allow_share"	: allow_share,
+	    "shares_group"	: shares_group,
+	    "max_shares"	: max_shares,
+	    "guest_access"	: guest
+	]),
 	autoyast_term
     )),
 	(Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
@@ -149,7 +157,7 @@ symbol MembershipDialog () {
     foreach (symbol t, [`mkhomedir, `caching], {
 	UI::ChangeWidget (`id(t), `Enabled, Samba::GetWinbind() || Stage::cont());
     });
-    foreach (symbol t, [`group, `max_shares], {
+    foreach (symbol t, [`group, `max_shares, `guest_ch], {
 	UI::ChangeWidget (`id(t), `Enabled, allow_share);
     });
 
@@ -178,7 +186,7 @@ symbol MembershipDialog () {
 	    UI::ChangeWidget (`id(`caching), `Enabled, use_winbind);
 	}
 	else if (ret == `share_ch) {
-	    foreach (symbol t, [`group, `max_shares], {
+	    foreach (symbol t, [`group, `max_shares, `guest_ch], {
 		UI::ChangeWidget (`id(t), `Enabled,
 		    (boolean) UI::QueryWidget(`id(`share_ch),`Value)
 		);
@@ -203,14 +211,16 @@ symbol MembershipDialog () {
 		});
 		if ((string)UI::QueryWidget(`id(`ads),`Value) != "")
 		    SambaAD::SetADS ((string)UI::QueryWidget(`id(`ads),`Value));
-		break;
 	    }
+	    else
+	    {
 
-	    if (Samba::GetWinbind() && workgroup_type == `workgroup ) {
-		// translators: error message, winbind cannot provide user information taken
-		// from a workgroup, must be a domain; %1 is the workgroup name
-		Popup::Error(
-		    // translators: 1st part of an error message, winbind cannot provide user information taken from a workgroup, must be a domain; %1 is the workgroup name
+		if (Samba::GetWinbind() && workgroup_type == `workgroup)
+		{
+		    Popup::Error(
+		    // 1st part of an error message:
+		    // winbind cannot provide user information taken from
+		    // a workgroup, must be a domain; %1 is the workgroup name
 		    sformat( _("Cannot use the workgroup\n'%1' for Linux authentication."), workgroup)
 		    + "\n\n"
 		    + (Stage::cont()
@@ -218,39 +228,43 @@ symbol MembershipDialog () {
 			? _("Enter a valid domain.")
 			// translators: 2nd part of an error message
 			: _("Enter a domain or disable\nusing SMB for Linux authentication.")));
-		continue;
-	    }
-
-	    symbol in_domain = nil;
-	    if (Stage::cont() && workgroup_type != `joined_domain) {
-		// return `ok or `fail
-		in_domain = JoinDomain(workgroup);
-		if (in_domain == `fail) continue;
-	    }
-
-	    if (false) // we might use it to warn user (#155716)
-	    {
-		// continue/cancel popup
-		Popup::ContinueCancel (sformat (_("Configuring this system as a client for Active Directory resets the following
-settings in smb.conf to the default values:
-%1"), mergestring (["domain master", "domain logons"], "\n")));
-	    }
-	    if (!Stage::cont()) {
-		// return `ok, `fail or `nojoin
-		in_domain = AskJoinDomain(workgroup, workgroup_type);
-		if (in_domain == `fail) continue;
-		if (in_domain != `ok && Samba::GetWinbind()) {
-		    // translators: 1st part of an error message, winbind cannot provide user information if the host is not in a domain
-		    Popup::Error( _("The host must be a member of a domain\nfor Linux authentication using SMB.")
-			+ "\n\n"
-		        // translators: 2nd part of an error message
-		        + _("Join a domain or disable use of SMB\nfor Linux authentication."));
 		    continue;
 		}
-	    }
-	    if (Samba::GetWinbind()) {
-	        // used outside this module for autologin function. must be complete sentence.
-	        Autologin::AskForDisabling(_("Samba is now enabled."));
+
+		symbol in_domain = nil;
+		if (Stage::cont() && workgroup_type != `joined_domain)
+		{
+		    // return `ok or `fail
+		    in_domain = JoinDomain(workgroup);
+		    if (in_domain == `fail) continue;
+		}
+
+		if (false) // we might use it to warn user (#155716)
+		{
+		    // continue/cancel popup
+		    Popup::ContinueCancel (sformat (_("Configuring this system as a client for Active Directory resets the following
+settings in smb.conf to the default values:
+%1"), mergestring (["domain master", "domain logons"], "\n")));
+		}
+		if (!Stage::cont()) {
+		    // return `ok, `fail or `nojoin
+		    in_domain = AskJoinDomain(workgroup, workgroup_type);
+		    if (in_domain == `fail) continue;
+		    if (in_domain != `ok && Samba::GetWinbind()) {
+			// 1st part of an error message:
+			// winbind cannot provide user information if the host
+			// is not in a domain
+			Popup::Error( _("The host must be a member of a domain\nfor Linux authentication using SMB.")
+			    + "\n\n"
+			    // translators: 2nd part of an error message
+			    + _("Join a domain or disable use of SMB\nfor Linux authentication."));
+			continue;
+		    }
+		}
+		if (Samba::GetWinbind()) {
+		    // used outside this module for autologin function. must be complete sentence.
+		    Autologin::AskForDisabling(_("Samba is now enabled."));
+		}
 	    }
 
 	    list<string> packages	= ["samba-winbind"];
@@ -258,7 +272,9 @@ settings in smb.conf to the default values:
 	    {
 		packages = (list<string>)merge(packages,["krb5","krb5-client"]);
 	    }
-	    PackageSystem::CheckAndInstallPackages (packages);
+	    if (!Package::InstalledAll (packages))
+		Package::InstallAll (packages);
+
 	    Samba::SetMkHomeDir (use_winbind &&
 		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));
 	    Samba::SetWinbindCaching (use_winbind &&
@@ -277,6 +293,8 @@ settings in smb.conf to the default values:
 		    Samba::stop_services	= AskToStopServices ();
 	    }
 	    Samba::SetShares (max,(string)UI::QueryWidget(`id(`group),`Value));
+	    Samba::SetGuessAccess (new_share &&
+		(boolean)UI::QueryWidget(`id(`guest_ch), `Value));
 	    if(!Stage::cont() && !Mode::config() && use_winbind&& !was_winbind){
 		// message popup, part 1/2
 		Popup::Message (

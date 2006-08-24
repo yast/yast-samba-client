@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 23 12:17:06 CEST 2006 - jsuchome@suse.cz
+
+- new checkbox for Guest Access to shares (#144787)
+- added more options for autoyast (#188917)
+- 2.13.25 
+
+-------------------------------------------------------------------
 Mon Aug 21 13:36:45 CEST 2006 - jsuchome@suse.cz
 
 - autoyast: join to domain during Write, not during Import (#188917)
