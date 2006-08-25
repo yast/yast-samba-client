@@ -7,7 +7,7 @@
  * $Id$
  *
  * Representation of the configuration of samba-client.
- * Input and output routines. 
+ * Input and output routines.
  */
 
 {
@@ -20,6 +20,7 @@ import "FileUtils";
 import "Mode";
 import "Package";
 import "PackageSystem";
+import "Pam";
 import "Progress";
 import "Report";
 import "Service";
@@ -101,20 +102,7 @@ global boolean GetModified() {
  */
 global define boolean ReadMkHomeDir () {
 
-    // FIXME this is very ugly, but since we currently don't have other way...
-    mkhomedir	= false;
-    string file_path	= "/etc/pam.d/common-session";
-    if (!FileUtils::Exists (file_path))
-    {
-	return false;
-    }
-    string file = (string) SCR::Read (.target.string, file_path);
-    foreach (string line, splitstring (file, "\n"), {
-	if (regexpmatch (line, "[\t ]*#"))
-	    return;
-	if (issubstring (line,"pam_mkhomedir.so"))
-	    mkhomedir = true;
-    });
+    mkhomedir	= Pam::Enabled ("mkhomedir");
     return mkhomedir;
 }
 
@@ -126,33 +114,7 @@ global define boolean WriteMkHomeDir (boolean enabled) {
 
     if (!mkhomedir_modified)
 	return true;
-
-    string the_line	= "session optional\tpam_mkhomedir.so";
-    string file_path	= "/etc/pam.d/common-session";
-    if (!FileUtils::Exists (file_path))
-    {
-	SCR::Write (.target.string, file_path, the_line);
-	return true;
-    }
-    string cont = (string) SCR::Read(.target.string, file_path);
-    list<string> new_cont	= [];
-    boolean done		= false;
-    foreach (string line, splitstring (cont, "\n"), {
-	if (regexpmatch (line, "[\t ]*#"))
-	{
-	    new_cont	= add (new_cont, line);
-	    return;
-	}
-	else if (!done && enabled)
-	{
-	    new_cont	= add (new_cont, the_line);
-	    done	= true;
-	}
-	if (enabled || !issubstring (line,"pam_mkhomedir.so"))
-	    new_cont	= add (new_cont, line);
-    });
-    SCR::Execute (.target.bash, sformat ("/bin/cp %1 %1.YaST2save", file_path));
-    return SCR::Write (.target.string, file_path, mergestring (new_cont, "\n"));
+    return Pam::Set ("mkhomedir", enabled);
 }
 
 /**

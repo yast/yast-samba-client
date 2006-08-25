@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 25 13:52:35 CEST 2006 - jsuchome@suse.cz
+
+- adapted for pam-config usage (F300956)
+- API of PamSettings module is obsolete
+- 2.14.0
+
+-------------------------------------------------------------------
 Wed Aug 23 12:17:06 CEST 2006 - jsuchome@suse.cz
 
 - new checkbox for Guest Access to shares (#144787)

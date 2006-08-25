@@ -19,7 +19,7 @@ our %TYPEINFO;
 
 BEGIN{
 YaST::YCP::Import("Nsswitch");
-YaST::YCP::Import("PamSettings");
+YaST::YCP::Import("Pam");
 YaST::YCP::Import("PackageSystem");
 YaST::YCP::Import("Progress");
 YaST::YCP::Import("Service");
@@ -110,53 +110,7 @@ BEGIN{$TYPEINFO{AdjustPam}=["function","boolean","boolean"]}
 sub AdjustPam {
     my ($self, $on) = @_;
 
-    foreach my $db ("auth", "account") {
-	my $values = PamSettings->GetValues("pam_unix2", $db);
-	my @values = grep {$_ !~ /^call_modules=/} ($values ? @$values : ());
-	my @modules = map {split(",",$_)} grep {s/^call_modules=//} ($values ? @$values : ());
-
-	if ($on) {
-	    push @modules, "winbind" unless grep {$_ eq "winbind"} @modules;
-	} else {
-	    @modules = grep {$_ ne "winbind"} @modules;
-	}
-	
-	push @values, "call_modules=".join(",",@modules) if @modules;
-	PamSettings->SetValues("pam_unix2", $db, \@values);
-    }
-    # for password changing, we must adapt /etc/pam.d/common-password (#146189)
-    my $file_path	= "/etc/pam.d/common-password";
-    my $write		= 1;
-    my @new_cont	= ();
-    if (FileUtils->Exists ($file_path)) {
-	my $cont 	= SCR->Read(".target.string", $file_path);
-	my $done	= 0;
-	foreach my $line (split(/\n/,$cont)) {
-	    if ($line =~ m/^#/ || $line eq "") {
-		push @new_cont, $line;
-		next;
-	    }
-	    if ($line =~ m/pam_winbind/) {
-		if ($on) {
-		    $write	= 0;
-		    last;
-		}
-	    } else {
-		if ($on && !$done) {
-		    push @new_cont, "password sufficient\tpam_winbind.so";
-		    $done	= 1;
-		}
-		push @new_cont, $line;
-	    }
-	}
-    }
-    else {
-	push @new_cont, "password sufficient\tpam_winbind.so"
-    }
-    if ($write) {
-	SCR->Write (".target.string", $file_path, join("\n",@new_cont));
-    }
-    return TRUE;
+    return Pam->Set ("winbind", $on);
 }
 
 
