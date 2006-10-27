@@ -131,6 +131,12 @@ boolean ChangeConfiguration( map<string, any> options ) {
     return true;
 }
 
+// command line handler for writing
+boolean SambaWrite () {
+
+    return Samba::Write (true);
+}
+
 /* The main () */
 y2milestone ("----------------------------------------");
 y2milestone ("Samba-client module started");
@@ -148,7 +154,7 @@ map cmdline = $[
 See Samba documentation for details."),
     "guihandler" 	: SambaClientSequence,
     "initialize"	: Samba::Read,
-    "finish"		: Samba::Write,
+    "finish"		: SambaWrite,
     "actions"		: $[
 	"winbind" :$[
 	    "handler"	: WinbindEnableHandler,
