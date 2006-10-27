@@ -408,7 +408,6 @@ sub Write {
 	y2error("Cannot write settings to /etc/samba/smb.conf");
 	return 0;
     }
-    
     return $self->WriteWinbind ($forceWrite);
 }
 
@@ -435,6 +434,7 @@ sub Export {
     foreach my $share (keys %Config) {
 	next unless $Config{$share};	# skip removed shares
 	next if $share =~ /^_/;		# skip internal shares
+	next if not $Config{$share}{_modified};	# skip untouched shares
 	my %section;
 	$section{name} = $share;
 	$section{comment} = $Config{$share}{_comment} if $Config{$share}{_comment};

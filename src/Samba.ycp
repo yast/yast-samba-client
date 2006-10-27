@@ -394,6 +394,21 @@ global boolean Read() {
 }
 
 /**
+ * Set a windind status
+ *
+ * @param group	a new winbind status
+ */
+global define void SetWinbind(boolean status) ``{
+    if (status != winbind_enabled) {
+	modified = true;
+	winbind_enabled = status;
+    }
+    SambaAD::AdjustSambaConfig(status);
+    SambaWinbind::AdjustSambaConfig(status);
+}
+
+
+/**
  * Write all samba-client settings
  * @return true on success
  */
@@ -438,16 +453,24 @@ global boolean Write(boolean write_only) {
     // if nothing to write, quit (but show at least the progress bar :-)
     if (!GetModified()) return true;
 
-    // join the domain during autoinstallation
-    if (Mode::autoinst () && password_data != $[])
+    if (Mode::autoinst ())
     {
-	SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
-	    "member",
-	    password_data["user"]:password_data["username"]:"",
-	    password_data["password"]:password_data["passwd"]:""
-	);
+	if (SambaAD::ADS () != "")
+	{
+	    SambaConfig::GlobalSetStr("workgroup",
+	      SambaAD::GetWorkgroup(SambaConfig::GlobalGetStr("workgroup","")));
+	    SambaAD::ReadRealm ();
+	}
+	// join the domain during autoinstallation
+	if (password_data != $[])
+	{
+	    SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
+		"member",
+		password_data["user"]:password_data["username"]:"",
+		password_data["password"]:password_data["passwd"]:""
+	    );
+	}
     }
-
     if (!SambaConfig::Write(write_only)) {
 	// translators: error message, %1 is filename
 	Report::Error (sformat(_("Cannot write settings to %1."), "/etc/samba/smb.conf") );
@@ -528,7 +551,6 @@ global boolean Write(boolean write_only) {
 global boolean Import (map settings) {
     if (haskey(settings, "global")) {
 	SambaConfig::GlobalSetStr("workgroup", settings["global","workgroup"]:"WORKGROUP");
-	winbind_enabled = settings["global","winbind"]:false;
 	globals_configured = true;
         modified = true;
     } else {
@@ -537,12 +559,12 @@ global boolean Import (map settings) {
     if (haskey(settings, "active_directory"))
     {
 	SambaAD::SetADS	(settings["active_directory","kdc"]:"");
-	if (!Mode::config ())
-	{
-	    SambaConfig::GlobalSetStr("workgroup",
-	      SambaAD::GetWorkgroup(SambaConfig::GlobalGetStr("workgroup","")));
-	    SambaAD::ReadRealm ();
-	}
+    }
+    // call this _after_ evaluation if AD is used
+    boolean winbind = settings["winbind"]:settings["global","winbind"]:false;
+    if (winbind != nil)
+    {
+	SetWinbind (winbind);
     }
     if (haskey(settings, "join"))
     {
@@ -563,11 +585,14 @@ global map Export () {
 	return $[];
     }
 
-    map globals = $[
-	"workgroup": SambaConfig::GlobalGetStr("workgroup", ""),
-	"winbind" : winbind_enabled,
+    map ret	= $[
+	"winbind"	: winbind_enabled
     ];
-    map ret	= $[ "global": globals ];
+    foreach (map sect, (list<map>) SambaConfig::Export (), {
+	string name	= sect["name"]:"";
+	ret[name]	= sect["parameters"]:$[];
+    });
+
     if (SambaAD::ADS() != "")
     {
 	ret["active_directory"]	= $[
@@ -663,20 +688,6 @@ global string GetWorkgroupOrRealm() {
     return workgroup;
 }
 
-
-/**
- * Set a windind status
- *
- * @param group	a new winbind status
- */
-global define void SetWinbind(boolean status) ``{
-    if (status != winbind_enabled) {
-	modified = true;
-	winbind_enabled = status;
-    }
-    SambaAD::AdjustSambaConfig(status);
-    SambaWinbind::AdjustSambaConfig(status);
-}
 
 /**
  * Get a winbind status

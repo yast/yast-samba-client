@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Oct 27 16:43:22 CEST 2006 - jsuchome@suse.cz
+
+- save smb.conf during autoinstallation (#188864)
+- read realm during write instead of import
+- export all modified shares from SambaConfig
+- fix writing changes in command line mode (#207268)
+- 2.13.24.1 
+
+-------------------------------------------------------------------
 Wed Aug 23 10:33:03 CEST 2006 - jsuchome@suse.cz
 
 - autoyast: join to domain during Write, not during Import (#188917)
