@@ -42,14 +42,15 @@ symbol MembershipDialog () {
     term status_term	= `VBox(
 	`ReplacePoint (`id(`rpstatus), `Empty())
     );
+    map pw_data	= Samba::password_data;
 
     // internal function: update the status line
     void check_domain_membership (string domain) {
 
+	Samba::SetWorkgroup(domain);
+
 	if (Mode::config ())
 	    return;
-
-	Samba::SetWorkgroup(domain);
 
 	// busy popup text
 	Popup::ShowFeedback ("",_("Verifying domain membership..."));
@@ -93,7 +94,8 @@ symbol MembershipDialog () {
 	// frame label
 	`Frame (_("Join Settings"), `HBox (
 	    // text entry label
-	    `TextEntry (`id("user"), _("&Username")),
+	    `TextEntry (`id("user"), _("&Username"),
+		pw_data["user"]:"" != "" ? pw_data["user"]:"" : ""),
 	    // text entry label
 	    `Password (`id("password"), _("&Password"))
 	)),
@@ -141,7 +143,7 @@ symbol MembershipDialog () {
 	),
 	SharesTerm ($[
 	    "allow_share"	: allow_share,
-	    "shares_group"	: shares_group,
+	    "group"		: shares_group,
 	    "max_shares"	: max_shares,
 	    "guest_access"	: guest
 	]),

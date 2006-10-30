@@ -375,6 +375,20 @@ global boolean Read() {
 }
 
 /**
+ * Set a windind status
+ *
+ * @param group	a new winbind status
+ */
+global define void SetWinbind(boolean status) ``{
+    if (status != winbind_enabled) {
+	modified = true;
+	winbind_enabled = status;
+    }
+    SambaAD::AdjustSambaConfig(status);
+    SambaWinbind::AdjustSambaConfig(status);
+}
+
+/**
  * Write all samba-client settings
  * @return true on success
  */
@@ -419,14 +433,23 @@ global boolean Write(boolean write_only) {
     // if nothing to write, quit (but show at least the progress bar :-)
     if (!GetModified()) return true;
 
-    // join the domain during autoinstallation
-    if (Mode::autoinst () && password_data != $[])
+    if (Mode::autoinst ())
     {
-	SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
-	    "member",
-	    password_data["user"]:password_data["username"]:"",
-	    password_data["password"]:password_data["passwd"]:""
-	);
+	if (SambaAD::ADS () != "")
+	{
+	    SambaConfig::GlobalSetStr("workgroup",
+	      SambaAD::GetWorkgroup(SambaConfig::GlobalGetStr("workgroup","")));
+	    SambaAD::ReadRealm ();
+	}
+	// join the domain during autoinstallation
+	if (password_data != $[])
+	{
+	    SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
+		"member",
+		password_data["user"]:password_data["username"]:"",
+		password_data["password"]:password_data["passwd"]:""
+	    );
+	}
     }
 
     if (!SambaConfig::Write(write_only)) {
@@ -507,34 +530,48 @@ global boolean Write(boolean write_only) {
  * @return boolean True on success
  */
 global boolean Import (map settings) {
+
     if (haskey(settings, "global")) {
 	map globals	= settings["global"]:$[];
 	SambaConfig::GlobalSetStr("workgroup",globals["workgroup"]:"WORKGROUP");
-	winbind_enabled = globals["winbind"]:false;
-	SetMkHomeDir (globals["mkhomedir"]:mkhomedir);
-	if (haskey (globals, "winbind_caching"))
-	    SetWinbindCaching (globals["winbind_caching"]:false);
-	if (haskey (globals, "guest_access"))
-	    SetGuessAccess (globals["guest_access"]:false);
-	SetShares(globals["max_shares"]:0,globals["shares_group"]:shares_group);
+
+	if (tolower (globals["winbind_offline_logon"]:"") == "yes" &&
+	    tolower (globals["cached_login"]:"") == "yes")
+	    SetWinbindCaching (true);
+
+	if (haskey (globals, "usershare_max_shares") ||
+	    haskey (settings, "shares_group"))
+	    SetShares (tointeger (globals["usershare_max_shares"]:"0"),
+		settings["shares_group"]:shares_group);
+
+	if (tolower (globals["usershare_allow_guests"]:"") == "yes")
+	    SetGuessAccess (true);
+
 	globals_configured = true;
         modified	= true;
     } else {
 	globals_configured = false;
     }
+    if (haskey (settings, "shares_group"))
+	shares_group	= settings["shares_group"]:shares_group;
+
     if (haskey(settings, "active_directory"))
     {
 	SambaAD::SetADS	(settings["active_directory","kdc"]:"");
-	if (!Mode::config ())
-	{
-	    SambaConfig::GlobalSetStr("workgroup",
-	      SambaAD::GetWorkgroup(SambaConfig::GlobalGetStr("workgroup","")));
-	    SambaAD::ReadRealm ();
-	}
+    }
+    // call this _after_ evaluation if AD is used
+    boolean winbind = settings["winbind"]:settings["global","winbind"]:false;
+    if (winbind != nil)
+    {
+	SetWinbind (winbind);
     }
     if (haskey(settings, "join"))
     {
 	password_data	= settings["join"]:$[];
+    }
+    if (haskey (settings, "mkhomedir"))
+    {
+	SetMkHomeDir (settings["mkhomedir"]:mkhomedir);
     }
 
     return true;
@@ -550,25 +587,20 @@ global map Export () {
     if (!globals_configured) {
 	return $[];
     }
-
-    map globals = $[
-	"workgroup"	: SambaConfig::GlobalGetStr("workgroup", ""),
-	"winbind"	: winbind_enabled,
+    map ret	= $[
+	"winbind"	: winbind_enabled
     ];
     if (mkhomedir_modified)
-	globals["mkhomedir"]	= mkhomedir;
-    if (winbind_enabled)
-	globals["winbind_caching"]	= GetWinbindCaching ();
+	ret["mkhomedir"]	= mkhomedir;
 
-    if (GetMaxShares () > 0)
-    {
-	globals["max_shares"]	= GetMaxShares ();
-	globals["shares_group"]	= shares_group;
-	if (GetGuessAccess ())
-	    globals["guest_access"]		= true;
-    }
+    if (shares_modified && shares_group != "")
+	ret["shares_group"]	= shares_group;
 
-    map ret	= $[ "global": globals ];
+    foreach (map sect, (list<map>) SambaConfig::Export (), {
+	string name	= sect["name"]:"";
+	ret[name]	= sect["parameters"]:$[];
+    });
+
     if (SambaAD::ADS() != "")
     {
 	ret["active_directory"]	= $[
@@ -684,20 +716,6 @@ global string GetWorkgroupOrRealm() {
     return workgroup;
 }
 
-
-/**
- * Set a windind status
- *
- * @param group	a new winbind status
- */
-global define void SetWinbind(boolean status) ``{
-    if (status != winbind_enabled) {
-	modified = true;
-	winbind_enabled = status;
-    }
-    SambaAD::AdjustSambaConfig(status);
-    SambaWinbind::AdjustSambaConfig(status);
-}
 
 /**
  * Get a winbind status
