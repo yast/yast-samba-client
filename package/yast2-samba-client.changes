@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Oct 27 17:04:39 CEST 2006 - jsuchome@suse.cz
+
+- save smb.conf during autoinstallation (#188864)
+- read realm during write instead of import
+- export all modified shares from SambaConfig 
+- fixed writing in command line mode (#207268)
+- 2.13.26
+
+-------------------------------------------------------------------
 Wed Aug 23 12:17:06 CEST 2006 - jsuchome@suse.cz
 
 - new checkbox for Guest Access to shares (#144787)
