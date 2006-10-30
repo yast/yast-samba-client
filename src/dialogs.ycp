@@ -104,6 +104,12 @@ symbol MembershipDialog () {
 	`TextEntry (`id(`ads), _("Active Directory Server"))
     ) : `Empty ();
 
+    term ntp_term	= Mode::config () ? `Empty () : `VBox (
+	`VSpacing (),
+	// button label (run YaST client for NTP)
+	`Right (`PushButton (`id(`ntp), _("&NTP Configuration...")))
+    );
+
     // checkbox label
     string text_nscd	= _("Disable Name Service Cache");
     // checkbox label
@@ -147,13 +153,15 @@ symbol MembershipDialog () {
 	    "max_shares"	: max_shares,
 	    "guest_access"	: guest
 	]),
-	autoyast_term
+	autoyast_term,
+	ntp_term
     )),
 	(Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
 	    HELPS["MembershipDialog_nocont"]:"") +
 	HELPS["MembershipDialog_common"]:"" +
 	SharesHelp () +
-	(Mode::config () ? HELPS["MembershipDialog_config"]:"" : ""),
+	(Mode::config () ? HELPS["MembershipDialog_config"]:"" :
+	    HELPS["MembershipDialog_NTP"]:""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
     foreach (symbol t, [`mkhomedir, `caching], {
@@ -193,6 +201,13 @@ symbol MembershipDialog () {
 		    (boolean) UI::QueryWidget(`id(`share_ch),`Value)
 		);
 	    });
+	}
+	else if (ret == `ntp)
+	{
+	    if (Package::InstallAll ( ["yast2-ntp-client"]))
+	    {
+		WFM::CallFunction ("ntp-client", []);
+	    }
 	}
         else if(ret == `next) {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
