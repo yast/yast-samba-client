@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 30 16:26:18 CET 2006 - jsuchome@suse.cz
+
+- offer the option to run NTP confiuration (#215645)
+- 2.14.2
+
+-------------------------------------------------------------------
 Mon Oct 30 13:14:21 CET 2006 - jsuchome@suse.cz
 
 - save smb.conf during autoinstallation (#188864)

@@ -81,7 +81,14 @@ allows this host to join the domain.</p>
     _("<p>Set the <b>Username</b> and <b>Password</b> that should be used for joining selected domain during autoinstallation. Note that the password will be saved to the profile in the cleartext (unencrypted) form.</p>") +
 
     // Samba membership dialog - additional help for autoyast config
-    _("<p>Specify the <b>Active Directory Server</b> to use for joining an Active Directory domain. This is also used as the value for KDC in the Kerberos configuration.</p>")
+    _("<p>Specify the <b>Active Directory Server</b> to use for joining an Active Directory domain. This is also used as the value for KDC in the Kerberos configuration.</p>"),
+
+    // Samba membership dialog - additional help for possible NTP configuration
+    "MembershipDialog_NTP" : _("<p>
+To synchronize your time with an NTP server, configure your computer
+as an NTP client. Access the configuration with <b>NTP Configuration</b>.
+</p>
+")
 
 ];
 
