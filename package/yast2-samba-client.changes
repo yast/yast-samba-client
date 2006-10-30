@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Oct 30 13:14:21 CET 2006 - jsuchome@suse.cz
+
+- save smb.conf during autoinstallation (#188864)
+- read realm during write instead of import
+- export all modified shares from SambaConfig
+- fixed writing in command line mode (#207268)
+- 2.14.1
+
+-------------------------------------------------------------------
 Fri Aug 25 13:52:35 CEST 2006 - jsuchome@suse.cz
 
 - adapted for pam-config usage (F300956)

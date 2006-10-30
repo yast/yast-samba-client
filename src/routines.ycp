@@ -276,7 +276,7 @@ define boolean AskToStopServices () {
 define term SharesTerm (map settings) {
 
     boolean allow	= settings["allow_share"]:false;
-    string group	= settings["group"]:"";
+    string group	= settings["group"]:settings["shares_group"]:"";
     integer max		= settings["max_shares"]:100;
     boolean guest	= settings["guest_access"]:false;
 
