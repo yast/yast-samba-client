@@ -10,6 +10,7 @@
 
 textdomain "samba-client";
 
+import "Directory";
 import "Mode";
 import "Stage";
 import "Samba";
@@ -206,13 +207,23 @@ symbol MembershipDialog () {
 	{
 	    if (Package::InstallAll ( ["yast2-ntp-client"]))
 	    {
+		string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
+		string ads = SambaAD::ReadADS(workgroup);
+		string tmpfile = Directory::vardir + "/ad_ntp_data.ycp";
+		map <string, string> ad_data = $[
+		    "ads" : ads,
+		];
+		SCR::Write(.target.ycp, tmpfile, ad_data);
 		WFM::CallFunction ("ntp-client", []);
 	    }
 	}
         else if(ret == `next) {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
 	    if (workgroup != Samba::GetWorkgroup ())
+	    {
 		check_domain_membership (workgroup);
+		workgroup       = Samba::GetWorkgroup ();
+	    }
 
 	    Samba::SetWinbind (use_winbind);
 

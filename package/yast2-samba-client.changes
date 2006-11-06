@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov  6 11:03:54 CET 2006 - jsuchome@suse.cz
+
+- use correct AD domain name for joining (#214463, #214641)
+- give NTP client module information about server (#215645) 
+- 2.13.28
+
+-------------------------------------------------------------------
 Mon Oct 30 16:28:35 CET 2006 - jsuchome@suse.cz
 
 - offer the option to run NTP confiuration (#215645)
