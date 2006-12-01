@@ -15,6 +15,7 @@
 module "Samba";
 textdomain "samba-client";
 
+import "Arch";
 import "Autologin";
 import "FileUtils";
 import "Mode";
@@ -87,6 +88,44 @@ global boolean stop_services	= false;
 global string shares_group	= "users";
 
 global string shares_separator	= "\\";
+
+// packages to install for specific arhitectures (#224418)
+global map arch_packages	= $[
+    "krb5"	: $[
+        "ia64"		: [ "krb5-x86" ],
+        "ppc64"		: [ "krb5-64bit" ],
+        "s390_64"	: [ "krb5-32bit" ],
+        "x86_64"	: [ "krb5-32bit" ],
+    ],
+    "samba-client"	: $[
+        "ia64"		: [ "samba-client-x86" ],
+        "ppc64"		: [ "samba-client-64bit" ],
+        "s390_64"	: [ "samba-client-32bit" ],
+        "x86_64"	: [ "samba-client-32bit" ],
+    ],
+    "samba-winbind"	: $[
+        "ia64"		: [ "samba-winbind-x86" ],
+        "ppc64"		: [ "samba-winbind-64bit" ],
+        "s390_64"	: [ "samba-winbind-32bit" ],
+        "x86_64"	: [ "samba-winbind-32bit" ],
+    ],
+];
+
+/**
+ * Return list of architecture specific packages (derived from package list
+ * given as parameter) merged with the packages in parameter
+ */
+global define list<string> UpdatedArchPackages (list<string> packages) {
+
+    list<string> ret	= packages;
+    string arch		= Arch::architecture ();
+
+    foreach (string package, packages, {
+        ret	= (list<string>) union (ret, arch_packages[package,arch]:[]);
+    });
+    return ret;
+}
+
 
 /**
  * Data was modified?
@@ -346,7 +385,9 @@ global boolean Read() {
     SambaConfig::Read(false);
 
     // check installed packages
-    if (!PackageSystem::CheckAndInstallPackagesInteractive(["samba-client"])) {
+    if (!PackageSystem::CheckAndInstallPackagesInteractive(
+	UpdatedArchPackages (["samba-client"])))
+    {
 	y2warning("package samba-client not installed");
         return false;
     }
@@ -492,8 +533,8 @@ global boolean Write(boolean write_only) {
 	ret = false;
     }
     if (!SambaWinbind::AdjustPam(winbind_enabled)) {
-	// translators: error message, %1 is filename
-	Report::Error(sformat(_("Cannot write settings to %1."), "/etc/security/pam_unix2.conf"));
+	// translators: error message
+	Report::Error (_("Cannot write PAM settings."));
 	ret = false;
     }
 
@@ -731,10 +772,13 @@ global define boolean GetWinbind() ``{
  * @return map of packages to be installed and to be removed
  */
 global define map AutoPackages() ``{
-    list to_install = ["samba-client", "samba-winbind"];
+    list<string> to_install = ["samba-client", "samba-winbind"];
     if (SambaAD::ADS () != "")
-	to_install = union (to_install, ["krb5", "krb5-client"]);
-    return $["install": to_install, "remove": []];
+	to_install = (list<string>) union (to_install, ["krb5", "krb5-client"]);
+    return $[
+	"install"	: UpdatedArchPackages (to_install),
+	"remove"	: []
+    ];
 }
 
 /**

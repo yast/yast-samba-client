@@ -121,7 +121,7 @@ sub GetADS {
 	}
     }
     if ($server ne "" &&
-	SCR->Execute (".target.bash", "net ads lookup -S $server") ne 0) {
+	SCR->Execute (".target.bash", "net ads lookup -U% -S $server") ne 0) {
 	$server	= "";
     }
     return $server;
