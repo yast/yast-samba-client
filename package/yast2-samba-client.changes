@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov 30 13:41:31 CET 2006 - jsuchome@suse.cz
+
+- install architecture-specific packages (#224418)
+- prevent 'net' asking for root's pw (#225224)
+- 2.14.4
+
+-------------------------------------------------------------------
 Mon Nov  6 08:24:12 CET 2006 - jsuchome@suse.cz
 
 - use correct AD domain name for joining (#214463, #214641)
