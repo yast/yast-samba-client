@@ -300,6 +300,7 @@ settings in smb.conf to the default values:
 	    {
 		packages = (list<string>)merge(packages,["krb5","krb5-client"]);
 	    }
+	    packages	= Samba::UpdatedArchPackages (packages);
 	    if (!Package::InstalledAll (packages))
 		Package::InstallAll (packages);
 
