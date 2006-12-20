@@ -24,6 +24,7 @@ textdomain "samba-client";
 our %TYPEINFO;
 
 YaST::YCP::Import("SCR");
+YaST::YCP::Import("Mode");
 
 
 ###########################################################################
@@ -435,7 +436,7 @@ sub Export {
     foreach my $share (keys %Config) {
 	next unless $Config{$share};	# skip removed shares
 	next if $share =~ /^_/;		# skip internal shares
-	next if not $Config{$share}{_modified}; # skip untouched shares
+	next if Mode->config () && not $Config{$share}{_modified}; # skip untouched shares
 	my %section;
 	$section{name} = $share;
 	$section{comment} = $Config{$share}{_comment} if $Config{$share}{_comment};
