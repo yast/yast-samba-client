@@ -14,6 +14,7 @@ import "Directory";
 import "Mode";
 import "Stage";
 import "Samba";
+import "SambaConfig";
 import "Label";
 import "Package";
 import "Popup";
@@ -22,6 +23,89 @@ import "Autologin";
 
 include "samba-client/helps.ycp";
 include "samba-client/routines.ycp";
+
+/**
+ * popup for setting various expert settings, like winbind uid/gid keys (F301518)
+ */
+symbol ExpertSettingsPopup () {
+
+    string winbind_uid	= SambaConfig::GlobalGetStr ("winbind uid","10000-20000");
+    list l		= splitstring (winbind_uid, "-");
+    integer uid_min	= tointeger (l[0]:"10000");
+    if (uid_min == nil) uid_min = 10000;
+    integer uid_max	= tointeger (l[1]:"20000");
+    if (uid_max == nil) uid_max = 20000;
+
+    string winbind_gid	= SambaConfig::GlobalGetStr ("winbind gid","10000-20000");
+    l			= splitstring (winbind_gid, "-");
+    integer gid_min	= tointeger (l[0]:"10000");
+    if (gid_min == nil) gid_min = 10000;
+    integer gid_max	= tointeger (l[1]:"20000");
+    if (gid_max == nil) gid_max = 20000;
+
+    // help text, do not translate 'winbind uid', 'winbind gid'
+    string help_text	= _("Specify the range for Samba user and group IDs (<tt>winbind uid</tt> and <tt>winbind gid</tt> values).");
+
+    UI::OpenDialog (`opt (`decorated), `HBox (
+	`HWeight (1, `RichText (`id (`help), help_text)),
+	`HSpacing (),
+	`HWeight (3, `VBox (
+	    `VSpacing (0.5),
+	    // frame label
+	    `Frame (_("&UID Range"), `HBox (
+		// int field label
+		`IntField (`id (`uid_min), _("&Minimum"), 0, 99999, uid_min),
+		// int field label
+		`IntField (`id (`uid_max), _("Ma&ximum"), 0, 99999, uid_max)
+	    )),
+	    `VSpacing (0.5),
+	    // frame label
+	    `Frame (_("&GID Range"), `HBox (
+		// int field label
+		`IntField (`id (`gid_min), _("M&inimum"), 0, 99999, gid_min),
+		// int field label
+		`IntField (`id (`gid_max), _("M&aximum"), 0, 99999, gid_max)
+	    )),
+	    `VSpacing (),
+	    `HBox (
+		`PushButton (`id(`ok), Label::OKButton()),
+		`PushButton (`id(`cancel), Label::CancelButton())
+	    )
+	)),
+	`HSpacing ()
+    ));
+
+    any ret	= `cancel;
+    while (true)
+    {
+	any ret	= UI::UserInput ();
+	if (ret == `cancel)
+	    break;
+	if (ret == `ok)
+	{
+	    uid_min	= (integer) UI::QueryWidget (`id (`uid_min),`Value);
+	    uid_max	= (integer) UI::QueryWidget (`id (`uid_max),`Value);
+	    gid_min	= (integer) UI::QueryWidget (`id (`gid_min),`Value);
+	    gid_max	= (integer) UI::QueryWidget (`id (`gid_max),`Value);
+	    if (uid_min >= uid_max || gid_min >= gid_max)
+	    {
+		// error popup: min >= max
+		Popup::Error (_("The minimal value in the range cannot be be
+larger than maximal one."));
+		continue;
+	    }
+	    string winbind_uid_new = sformat ("%1-%2", uid_min, uid_max);
+	    string winbind_gid_new = sformat ("%1-%2", gid_min, gid_max);
+	    if (winbind_uid_new != winbind_uid)
+		SambaConfig::GlobalSetStr ("winbind uid", winbind_uid_new);
+	    if (winbind_gid_new != winbind_gid)
+		SambaConfig::GlobalSetStr ("winbind gid", winbind_gid_new);
+	    break;
+	}
+    }
+    UI::CloseDialog ();
+    return (symbol) ret;
+}
 
 /**
  * Samba memberhip dialog
@@ -106,7 +190,7 @@ symbol MembershipDialog () {
     ) : `Empty ();
 
     term ntp_term	= Mode::config () ? `Empty () : `VBox (
-	`VSpacing (),
+	`VSpacing (0.5),
 	// button label (run YaST client for NTP)
 	`Right (`PushButton (`id(`ntp), _("&NTP Configuration...")))
     );
@@ -129,7 +213,7 @@ symbol MembershipDialog () {
 		    `VBox (
 			`Label(""),
 			// translators: push button label
-			`PushButton(`id(`browse), _("&Browse..."))
+			`PushButton(`id(`browse), _("Br&owse..."))
 		    )
 		),
 		status_term,
@@ -148,6 +232,9 @@ symbol MembershipDialog () {
 		)
 	    )
 	),
+	`VSpacing (0.5),
+	// button label
+	`Right (`PushButton (`id(`expert), _("&Expert Settings..."))),
 	SharesTerm ($[
 	    "allow_share"	: allow_share,
 	    "group"		: shares_group,
@@ -202,6 +289,10 @@ symbol MembershipDialog () {
 		    (boolean) UI::QueryWidget(`id(`share_ch),`Value)
 		);
 	    });
+	}
+	else if (ret == `expert)
+	{
+	    ExpertSettingsPopup ();
 	}
 	else if (ret == `ntp)
 	{
