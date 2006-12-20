@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Dec 19 10:15:30 CET 2006 - jsuchome@suse.cz
+
+- Expert Settings Popup for uid and gid ranges (F301518)
+- SambaConfig: export modified entries only in config mode
+- 2.15.0 
+
+-------------------------------------------------------------------
 Thu Nov 30 13:41:31 CET 2006 - jsuchome@suse.cz
 
 - install architecture-specific packages (#224418)
