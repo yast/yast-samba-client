@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan  9 16:17:10 CET 2007 - jsuchome@suse.cz
+
+- install samba-client before reading smb.conf (#229246)
+- 2.13.31 
+
+-------------------------------------------------------------------
 Wed Dec 20 14:40:19 CET 2006 - jsuchome@suse.cz
 
 - Expert Settings Popup for uid and gid ranges (F301518)
