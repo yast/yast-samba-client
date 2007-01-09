@@ -382,7 +382,6 @@ global boolean Read() {
 
     // read global settings
     Progress::NextStage();
-    SambaConfig::Read(false);
 
     // check installed packages
     if (!PackageSystem::CheckAndInstallPackagesInteractive(
@@ -391,6 +390,8 @@ global boolean Read() {
 	y2warning("package samba-client not installed");
         return false;
     }
+
+    SambaConfig::Read(false);
 
     // read winbind status
     Progress::NextStage();
