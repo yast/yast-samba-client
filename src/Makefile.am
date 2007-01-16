@@ -3,6 +3,7 @@
 #
 
 yncludedir = @yncludedir@/samba-client
+rncdir =  $(schemadir)/autoyast/rnc
 
 client_DATA =			\
 	samba-client.ycp		\
@@ -26,12 +27,15 @@ module_DATA =			\
 	SambaConfig.pm		\
 	SambaAD.pm
 
+rnc_DATA =              \
+        samba-client.rnc
+
 samba-client:
 	ln -sf . samba-client
 
 ycpchook = samba-client
 
-EXTRA_DIST = $(client_DATA) $(ynclude_DATA) $(module_DATA) $(desktop_DATA)
+EXTRA_DIST = $(client_DATA) $(ynclude_DATA) $(module_DATA) $(desktop_DATA) $(rnc_DATA)
 
 include $(top_srcdir)/Makefile.am.common
 

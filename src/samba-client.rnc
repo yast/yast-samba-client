@@ -1,0 +1,56 @@
+default namespace = "http://www.suse.com/1.0/yast2ns"
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+namespace config = "http://www.suse.com/1.0/configns"
+
+
+samba-client = element samba-client {
+    element active_directory   {
+        element kdc { text }?
+    }? &
+    element global             {
+        element cached_login           { text }? &
+        element idmap_gid              { text }? &
+        element idmap_uid              { text }? &
+        element security               { text }? &
+        element template_shell         { text }? &
+        element usershare_allow_guests { text }? &
+        element usershare_max_shares   { text }? &
+        element winbind_offline_logon  { text }? &
+        element workgroup              { text }?
+    }? &
+    element join               {
+        element password { text }? &
+        element user     { text }?
+    }? &
+    element mkhomedir { BOOLEAN }? &
+    element winbind   { BOOLEAN }?
+}
+
+default namespace = "http://www.suse.com/1.0/yast2ns"
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+namespace config = "http://www.suse.com/1.0/configns"
+
+
+samba-client = element samba-client {
+    element active_directory   {
+        element kdc { text }?
+    }? &
+    element global             {
+        element cached_login           { text }? &
+        element idmap_gid              { text }? &
+        element idmap_uid              { text }? &
+        element security               { text }? &
+        element template_shell         { text }? &
+        element usershare_allow_guests { text }? &
+        element usershare_max_shares   { text }? &
+        element winbind_offline_logon  { text }? &
+        element workgroup              { text }?
+    }? &
+    element join               {
+        element password { text }? &
+        element user     { text }?
+    }? &
+    element mkhomedir { BOOLEAN }? &
+    element winbind   { BOOLEAN }?
+}
+

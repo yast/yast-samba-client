@@ -30,4 +30,5 @@ Summary:	Configuration of samba-client
 @moduledir@/Samba.ybc
 @desktopdir@/samba-client.desktop
 @scrconfdir@/*.scr
+@schemadir@/autoyast/rnc/samba-client.rnc
 %doc @docdir@
