@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 16 15:16:25 CET 2007 - jsuchome@suse.cz
+
+- added missing schema file for autoyast (#235316)
+- 2.13.32 
+
+-------------------------------------------------------------------
 Tue Jan  9 16:17:10 CET 2007 - jsuchome@suse.cz
 
 - install samba-client before reading smb.conf (#229246)
