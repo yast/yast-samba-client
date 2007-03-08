@@ -269,6 +269,17 @@ define boolean AskToStopServices () {
     return Popup::YesNo (_("Other Windows sharing services are available. Stop them as well?"));
 }
 
+
+/**
+ * return the term with DHCP support check box
+ * @param dhcp_support current value of DHCP support in smb.conf
+ */
+define term DHCPSupportTerm (boolean dhcp_support) {
+
+    // check box label
+    return `Left (`CheckBox (`id (`dhcp), _("Retrieve WINS server via &DHCP"), dhcp_support));
+}
+
 /**
  * return the term with shares settings
  * @param settings map with parameters to show in term

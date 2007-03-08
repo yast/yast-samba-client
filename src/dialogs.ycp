@@ -42,6 +42,7 @@ symbol ExpertSettingsPopup () {
     if (gid_min == nil) gid_min = 10000;
     integer gid_max	= tointeger (l[1]:"20000");
     if (gid_max == nil) gid_max = 20000;
+    boolean dhcp_support	= Samba::GetDHCP ();
 
     // help text, do not translate 'winbind uid', 'winbind gid'
     string help_text	= _("Specify the range for Samba user and group IDs (<tt>winbind uid</tt> and <tt>winbind gid</tt> values).");
@@ -66,6 +67,8 @@ symbol ExpertSettingsPopup () {
 		// int field label
 		`IntField (`id (`gid_max), _("M&aximum"), 0, 99999, gid_max)
 	    )),
+	    `VSpacing (),
+	    DHCPSupportTerm (dhcp_support),
 	    `VSpacing (),
 	    `HBox (
 		`PushButton (`id(`ok), Label::OKButton()),
@@ -100,6 +103,7 @@ larger than maximal one."));
 		SambaConfig::GlobalSetStr ("winbind uid", winbind_uid_new);
 	    if (winbind_gid_new != winbind_gid)
 		SambaConfig::GlobalSetStr ("winbind gid", winbind_gid_new);
+	    Samba::SetDHCP ((boolean)UI::QueryWidget (`id (`dhcp), `Value));
 	    break;
 	}
     }

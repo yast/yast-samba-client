@@ -79,6 +79,9 @@ global map<string,string> password_data	= $[];
 // dir with user shares
 global string shares_dir	= "/var/lib/samba/usershares";
 
+// path to config file with DHCP settings
+string dhcp_path		= "/etc/samba/dhcp.conf";
+
 // if existing shares should be removed
 global boolean remove_shares	= false;
 
@@ -176,6 +179,35 @@ global define boolean SetMkHomeDir (boolean new_value) {
 global define integer GetMaxShares () {
 
     return SambaConfig::GlobalGetInteger ("usershare max shares", 0);
+}
+
+/**
+ * Check if dhcp.conf is included in smb.conf
+ */
+global define boolean GetDHCP () {
+
+    list<string> include_list	= SambaConfig::GlobalGetList ("include", []);
+    return contains (include_list, dhcp_path);
+}
+
+/**
+ * Set the support of DHCP (include dhcp.conf in smb.conf)
+ * @return if status was changed
+ */
+global define boolean SetDHCP (boolean new) {
+
+    list<string> include_list	= SambaConfig::GlobalGetList ("include", []);
+    if (new && !contains (include_list, dhcp_path))
+    {
+	include_list	= (list<string>) union (include_list, [dhcp_path]);
+    }
+    else if (!new && contains (include_list, dhcp_path))
+    {
+	include_list	= filter (string i, include_list, ``(i != dhcp_path));
+    }
+    else return false;
+    SambaConfig::GlobalSetList ("include", include_list);
+    return true;
 }
 
 /**
@@ -412,7 +444,6 @@ global boolean Read() {
     Progress::NextStage();
     globals_configured = true;
     modified = false;
-
     return true;
 }
 

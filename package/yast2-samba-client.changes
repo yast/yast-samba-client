@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar  8 10:47:56 CET 2007 - jsuchome@suse.cz
+
+- added support for DHCP (F120090)
+- 2.15.3
+
+-------------------------------------------------------------------
 Tue Jan 16 14:43:44 CET 2007 - jsuchome@suse.cz
 
 - added missing schema file for autoyast (#235316) 
