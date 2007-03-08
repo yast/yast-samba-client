@@ -562,6 +562,73 @@ sub ShareGetStr {
     return $default;
 }
 
+# get share key values (return a list of values for given key)
+BEGIN{ $TYPEINFO{ShareGetList} = ["function", ["list", "string"], "string", "string", ["list", "string"]]; }
+sub ShareGetList {
+    my ($self, $share, $key, $default) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    if (not defined $key) {
+	y2error("undefned key");
+	return undef;
+    }
+    $key = lc($key);
+    $key = $Synonyms{$key} if exists $Synonyms{$key};
+    if (exists $InvertedSynonyms{$key}) {
+	$key = $InvertedSynonyms{$key};
+	if (defined $Config{$share}{$key}) {
+	    my $val	= $Config{$share}{$key};
+	    if (ref $val eq "ARRAY") {
+		return $val;
+	    }
+	    return [$val];
+	}
+    }
+    if (defined $Config{$share}{$key}) {
+	if (ref $Config{$share}{$key} eq "ARRAY") {
+	    return $Config{$share}{$key};
+	}
+	else {
+	    return [$Config{$share}{$key}];
+	}
+    }
+    return $default;
+}
+
+# set share key values
+# (no check for InvertedSynonyms)
+BEGIN{ $TYPEINFO{ShareSetList} = ["function", "boolean", "string", "string", ["list", "string"]]; }
+sub ShareSetList {
+    my ($self, $share, $key, $val) = @_;
+    if (not defined $share) {
+	y2error("undefned share");
+	return undef;
+    }
+    if (not defined $key) {
+	y2error("undefned key");
+	return undef;
+    }
+    my $modified = 0;
+    $key = lc($key);
+    $key = $Synonyms{$key} if exists $Synonyms{$key};
+    my $old = $Config{$share}{$key};
+    if (defined $val) {
+	if (defined $old && ref ($old) eq "ARRAY" && ref ($val) eq "ARRAY") {
+	    return 0 if @$old eq @$val;
+	}
+	$modified = 1;
+	$Config{$share}{$key} = $val;
+    } else {
+    	$modified = 1 if defined $old;
+	$Config{$share}{$key} = undef;
+    }
+    $self->ShareSetModified($share) if $modified;
+    y2debug ("ShareSetList($share, $key, ".($val||"<undef>").")") if $modified;
+    return $modified;
+}
+
 # add share key value: used when some key is used multiple times
 # no checks for InvertedSynonyms, no checking for changes
 BEGIN{ $TYPEINFO{ShareAddStr} = ["function", "boolean", "string", "string", "string"]; }
@@ -586,10 +653,11 @@ sub ShareAddStr {
 	}
     }
     push @{$Config{$share}{$key}}, $val;
-    return 1;
+    $self->ShareSetModified($share);
+    return 1; # allways modified, since we're always adding
 }
 
-# set share key value, return old value
+# set share key value, return modified boolean
 BEGIN{ $TYPEINFO{ShareSetStr} = ["function", "boolean", "string", "string", "string"]; }
 sub ShareSetStr {
     my ($self, $share, $key, $val) = @_;
@@ -888,6 +956,12 @@ sub GlobalGetInteger { return ShareGetInteger(shift, "global", @_); }
 
 BEGIN{ $TYPEINFO{GlobalSetInteger} = ["function", "boolean", "string", "integer"]; }
 sub GlobalSetInteger { return ShareSetInteger(shift, "global", @_); }
+
+BEGIN{ $TYPEINFO{GlobalGetList} = ["function", ["list", "string"], "string", ["list", "string"]]; }
+sub GlobalGetList { return ShareGetList(shift, "global", @_); }
+
+BEGIN{ $TYPEINFO{GlobalSetList} = ["function", "boolean", "string", ["list", "string"]]; }
+sub GlobalSetList { return ShareSetList(shift, "global", @_); }
 
 BEGIN{ $TYPEINFO{GlobalEnable} = ["function", "boolean"]; }
 sub GlobalEnable { ShareEnable(shift, "global", @_); }
