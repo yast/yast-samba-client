@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 12 17:05:19 CET 2007 - jsuchome@suse.cz
+
+- added site-aware search for AD controllers (#253609)
+- 2.13.34
+
+-------------------------------------------------------------------
 Mon Jan 22 15:14:16 CET 2007 - jsuchome@suse.cz
 
 - removed duplicates from schema file (#235316)
