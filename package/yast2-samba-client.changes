@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 13 11:07:54 CET 2007 - jsuchome@suse.cz
+
+- added site-aware search for AD controllers (#253609)
+- 2.15.4 
+
+-------------------------------------------------------------------
 Thu Mar  8 10:47:56 CET 2007 - jsuchome@suse.cz
 
 - added support for DHCP (F120090)
