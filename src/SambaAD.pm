@@ -57,15 +57,55 @@ sub GetADS {
     # use DNS for finding DC
     if (FileUtils->Exists ("/usr/bin/dig")) {
 
-	my $out = SCR->Execute (".target.bash_output", "dig -t srv _ldap._tcp.pdc._msdcs.$workgroup +noall +answer");
+	# we have to select server from correct site - see bug #238249.
+	my $out = SCR->Execute (".target.bash_output", "dig -t srv _ldap._tcp.dc._msdcs.$workgroup +noall +answer");
 	y2debug ("dig output: ", Dumper ($out));
+	my $tmpserver	= "";
+	my @sites	= ();
 	foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
 	    
 	    y2debug ("line: $line");
 	    next if $server ne "";
 	    if ($line =~ m/$workgroup/) {
-		$server		= (split (/[ \t]/, $line))[7] || ".";
-		chop $server;
+		$tmpserver   = "";
+		$tmpserver	= (split (/[ \t]/, $line))[7] || ".";
+		chop $tmpserver;
+	    }
+	    if ($tmpserver) {
+		my $cmd	= "LANG=C net ads lookup -S $tmpserver";
+		$out	= SCR->Execute (".target.bash_output", $cmd);
+		if ($out->{"exit"} eq 0) {
+		    foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
+			next if $server;
+			$server = $tmpserver if ($line =~ m/Is the closest DC/ && $line =~ m/yes/);
+			if ($line =~ m/Client Site Name/ && $line !~ m/Default-First-Site-Name/) {
+			    my $site	= $line;
+			    $site	=~ s/^Client Site Name:([\t ]*)//g;
+			}
+		    }
+		}
+	    }
+	}
+	y2debug ("server: $server");
+	# there were no sites not "closest DC" -> take the only one result
+	if (!$server && $tmpserver && not @sites) {
+	    $server	= $tmpserver;
+	}
+	# we still don't know which server to choose, but we know list of sites
+        elsif ($server eq "" && @sites) {
+	    foreach my $site (@sites) {
+		next if $server;
+		$out	= SCR->Execute (".target.bash_output", "dig -t _ldap._tcp.$site._sites.dc._msdcs.$workgroup +noall +answer");
+		y2debug ("dig output: ", Dumper ($out));
+		if ($out->{"exit"} eq 0) {
+		    foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
+			next if $server;
+			if ($line =~ m/$workgroup/) {
+			    $server      = (split (/[ \t]/, $line))[7] || ".";
+			    chop $server;
+			}
+		    }
+		}
 	    }
 	}
 	y2debug ("server: $server");
@@ -124,6 +164,7 @@ sub GetADS {
 	SCR->Execute (".target.bash", "net ads lookup -U% -S $server") ne 0) {
 	$server	= "";
     }
+    y2milestone ("returning server: $server");
     return $server;
 }
 
