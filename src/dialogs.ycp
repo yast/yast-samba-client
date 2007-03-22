@@ -355,6 +355,7 @@ symbol MembershipDialog () {
 		{
 		    // return `ok or `fail
 		    in_domain = JoinDomain(workgroup);
+		    Samba::in_domain	= in_domain;
 		    if (in_domain == `fail) continue;
 		}
 

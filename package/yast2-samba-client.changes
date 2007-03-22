@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar 20 17:28:54 CET 2007 - jsuchome@suse.cz
+
+- after join to AD domain, ask user if DHCLIENT_SET_HOSTNAME
+  should be set to "no" (#169260)
+- 2.13.35
+
+-------------------------------------------------------------------
 Mon Mar 12 17:05:19 CET 2007 - jsuchome@suse.cz
 
 - added site-aware search for AD controllers (#253609)

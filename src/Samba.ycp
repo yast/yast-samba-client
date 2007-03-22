@@ -19,8 +19,10 @@ import "Arch";
 import "Autologin";
 import "FileUtils";
 import "Mode";
+import "NetworkConfig";
 import "Package";
 import "PackageSystem";
+import "Popup";
 import "Progress";
 import "Report";
 import "Service";
@@ -29,6 +31,7 @@ import "SambaConfig";
 import "SambaWinbind";
 import "SambaNetJoin";
 import "SambaNmbLookup";
+import "Stage";
 import "String";
 import "Summary";
 
@@ -87,6 +90,9 @@ global boolean stop_services	= false;
 global string shares_group	= "users";
 
 global string shares_separator	= "\\";
+
+// remember if the last join was succesful
+global symbol in_domain		= nil;
 
 // packages to install for specific arhitectures (#224418)
 global map arch_packages	= $[
@@ -451,6 +457,7 @@ global boolean Read() {
     globals_configured = true;
     modified = false;
 
+
     return true;
 }
 
@@ -503,6 +510,21 @@ global boolean Write(boolean write_only) {
 	stages	= add (stages, _("Write Kerberos configuration"));
 	// write progress step
 	steps	= add (steps, _("Writing Kerberos configuration..."));
+    }
+    // hack for bug 169260: do not allow DHCP to change the hostname
+    if (winbind_enabled && Stage::cont () && in_domain == `ok)
+    {
+	// yes/no popup
+	if (Mode::autoinst () || Popup::YesNo (_("In a Microsoft environment,
+hostname changes with DHCP are problematic.
+Disable hostname changes with DHCP?")))
+	{
+	    NetworkConfig::Read ();
+	    map network_setup	= NetworkConfig::Export ();
+	    network_setup["dhcp","DHCLIENT_SET_HOSTNAME"]	= "no";
+	    NetworkConfig::Import (network_setup);
+	    NetworkConfig::Write ();
+	}
     }
 
     // We do not set help text here, because it was set outside
