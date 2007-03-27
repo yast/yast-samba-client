@@ -18,6 +18,7 @@ textdomain "samba-client";
 import "Arch";
 import "Autologin";
 import "FileUtils";
+import "NetworkConfig";
 import "Mode";
 import "Package";
 import "PackageSystem";
@@ -91,6 +92,12 @@ global boolean stop_services	= false;
 global string shares_group	= "users";
 
 global string shares_separator	= "\\";
+
+// remember if the last join was succesful
+global symbol in_domain         = nil;
+
+// if changing hostname by DHCP should be disabled (#169260)
+global boolean disable_dhcp_hostname	= false;
 
 // packages to install for specific arhitectures (#224418)
 global map arch_packages	= $[
@@ -498,6 +505,16 @@ global boolean Write(boolean write_only) {
 	steps	= add (steps, _("Writing Kerberos configuration..."));
     }
 
+    // hack for bug 169260: do not allow DHCP to change the hostname
+    if (winbind_enabled && disable_dhcp_hostname)
+    {
+	NetworkConfig::Read ();
+	map network_setup       = NetworkConfig::Export ();
+	network_setup["dhcp","DHCLIENT_SET_HOSTNAME"]   = "no";
+	NetworkConfig::Import (network_setup);
+	NetworkConfig::Write ();
+    }
+
     // We do not set help text here, because it was set outside
     Progress::New (caption, " ", size (stages), stages, steps, "");
 
@@ -646,6 +663,7 @@ global boolean Import (map settings) {
     {
 	SetMkHomeDir (settings["mkhomedir"]:mkhomedir);
     }
+    disable_dhcp_hostname	= settings["disable_dhcp_hostname"]:disable_dhcp_hostname;
 
     return true;
 }
@@ -668,6 +686,9 @@ global map Export () {
 
     if (shares_modified && shares_group != "")
 	ret["shares_group"]	= shares_group;
+
+    if (disable_dhcp_hostname)
+	ret["disable_dhcp_hostname"]	= disable_dhcp_hostname;
 
     foreach (map sect, (list<map>) SambaConfig::Export (), {
 	string name	= sect["name"]:"";
