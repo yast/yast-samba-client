@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Mar 27 09:33:08 CEST 2007 - jsuchome@suse.cz
+
+- after joining during installation ask user if DHCLIENT_SET_HOSTNAME
+  should be set to "no" (#169260)
+- autoyast support for disabling DHCLIENT_SET_HOSTNAME
+- 2.15.5 
+
+-------------------------------------------------------------------
 Tue Mar 13 11:07:54 CET 2007 - jsuchome@suse.cz
 
 - added site-aware search for AD controllers (#253609)

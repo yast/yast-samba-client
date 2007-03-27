@@ -359,6 +359,7 @@ symbol MembershipDialog () {
 		{
 		    // return `ok or `fail
 		    in_domain = JoinDomain(workgroup);
+		    Samba::in_domain    = in_domain;
 		    if (in_domain == `fail) continue;
 		}
 
@@ -388,6 +389,13 @@ settings in smb.conf to the default values:
 		    // used outside this module for autologin function. must be complete sentence.
 		    Autologin::AskForDisabling(_("Samba is now enabled."));
 		}
+	    }
+	    if (Mode::config () || (Stage::cont() && Samba::in_domain == `ok))
+	    {
+		// yes/no popup text
+		Samba::disable_dhcp_hostname	= Popup::YesNo (_("In a Microsoft environment,
+hostname changes with DHCP are problematic.
+Disable hostname changes with DHCP?"));
 	    }
 
 	    list<string> packages	= ["samba-winbind"];
