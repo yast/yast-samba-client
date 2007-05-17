@@ -107,10 +107,10 @@ BEGIN{ $TYPEINFO{GetModified} = ["function", "boolean"]; }
 sub GetModified {
     my ($self) = @_;
     foreach (keys %Config) {
-	return 1 if $Config{$_}{_modified};
+	return 1 if (defined $Config{$_} && $Config{$_}{_modified});
     }
     foreach (keys %WinbindConfig) {
-	return 1 if $WinbindConfig{$_}{_modified};
+	return 1 if (defined $WinbindConfig{$_} && $WinbindConfig{$_}{_modified});
     }
     return 0;
 }

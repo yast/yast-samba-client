@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 17 13:44:22 CEST 2007 - jsuchome@suse.cz
+
+- fix deleting shares from smb.conf (#264834)
+- 2.15.6 
+
+-------------------------------------------------------------------
 Tue Mar 27 09:33:08 CEST 2007 - jsuchome@suse.cz
 
 - after joining during installation ask user if DHCLIENT_SET_HOSTNAME
