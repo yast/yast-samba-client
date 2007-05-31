@@ -42,9 +42,7 @@ An additional dialog informs you whether it is safe to do so.
     "MembershipDialog_nocont" : _("<p><b><big>Selecting Windows Domain Membership</big></b></p>")
     /* translators: Samba workgroup dialog help 1/3 */
 + _("<p>A Linux client can be a member of a workgroup, NT domain, or Active Directory domain.
-Here, specify the name of the membership. <b>Browse</b>
-presents the list of all workgroups and domains found in the
-network.</p>
+Here, specify the name of the membership.</p>
 ") +
 
     /* Samba role dialog help 2/3 */
@@ -60,8 +58,7 @@ if it is a NT domain, allows this host to join the domain.</p>
     /* translators: Samba membership dialog help title (installation) */
     "MembershipDialog_cont" : _("<p><b><big>Selecting Windows Domain Membership</big></b></p>")
     /* translators: Samba membership dialog help 1/2 (installation) */
-+ _("<p>Specify the name of the NT or Active Directory domain. <b>Browse</b>
-presents the list of all domains found in the network.</p>
++ _("<p>Specify the name of the NT or Active Directory domain.</p>
 ")
     /* translators: Samba membership dialog help 2/2 (installation) */
 + _("<p>When you press <b>Next</b>, the system verifies the domain and

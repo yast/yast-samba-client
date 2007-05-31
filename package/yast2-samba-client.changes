@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 30 09:27:44 CEST 2007 - jsuchome@suse.cz
+
+- added help text for DHCP support (F120090)
+- removed Browse button (#240045)
+- 2.15.7
+
+-------------------------------------------------------------------
 Thu May 17 13:44:22 CEST 2007 - jsuchome@suse.cz
 
 - fix deleting shares from smb.conf (#264834)

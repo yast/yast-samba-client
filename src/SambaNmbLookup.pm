@@ -207,29 +207,4 @@ sub HasBDC {
     return FALSE;
 }
 
-# Return a list of workgroups and domains already existing in the lan.
-# @return list<string>  of found workgroups/domains
-BEGIN{$TYPEINFO{GetAvailableNeighbours}=["function",["list", "string"], "string"]}
-sub GetAvailableNeighbours {
-    my ($self, $domain_suffix) = @_;
-    $domain_suffix = "" unless $domain_suffix;
-    
-    checkNmbstatus();
-
-    # TODO: inform user about problems
-    return [ map {$_ . ($self->IsDomain($_)?$domain_suffix:"")} sort keys %Nmbstatus_output ];
-}
-
-# Return a list of domains already existing in the lan.
-# @return list<string>  of found workgroups/domains
-BEGIN{$TYPEINFO{GetAvailableDomains}=["function",["list", "string"]]}
-sub GetAvailableDomains {
-    my ($self) = @_;
-    
-    checkNmbstatus();
-
-    # TODO: inform user about problems
-    return [ grep {$self->IsDomain($_)} sort keys %Nmbstatus_output ];
-}
-
 8;
