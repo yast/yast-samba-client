@@ -168,56 +168,7 @@ define symbol AskJoinDomain( string workgroup, symbol status ) ``{
     if (!res) {
 	return `nojoin;
     }
-    
     return JoinDomain(workgroup);
-}
-    
-
-/**
- * Show a selection popup to select a workgroup from the ones existing on LAN.
- *
- * @return string chosen workgroup or nil if cancelled
- */
-define string BrowseNeighbours(boolean domains_only) ``{
-    list<string> groups = nil;
-
-    UI::OpenDialog (
-	// popup window
-	`Label (_("Looking for available workgroups and domains...")));
-
-    UI::BusyCursor ();
-
-    if (domains_only) {
-	groups = SambaNmbLookup::GetAvailableDomains();
-    } else {
-	groups = SambaNmbLookup::GetAvailableNeighbours(_(" (Domain)"));
-    }
-
-    UI::CloseDialog ();
-    if( groups == nil ) return nil;
-    groups = filter (string group, groups, ``(size (group) > 0));
-
-    // let the user choose a workgroup
-    UI::OpenDialog( `VBox(
-	`HSpacing (36),
-	// translators: selection box label
-        `SelectionBox(`id(`selection), (domains_only ? _("&Existing Domains") : _("&Existing Neighbours")), groups),
-        `HBox(
-            `PushButton( `id(`ok), Label::OKButton() ),
-            `PushButton( `id(`cancel), Label::CancelButton() )
-        )
-    ) );
-
-    any ret = UI::UserInput();
-    string sel = (string) UI::QueryWidget( `id(`selection), `CurrentItem );
-    // textentry constant (automatically added to some kind of values)
-    if ( sel != nil && issubstring (sel, _(" (Domain)") ) )
-    {
-	integer pos = search (sel, _(" (Domain)") );
-	sel = (pos == nil) ? sel : substring (sel, 0, pos);
-    }
-    UI::CloseDialog();
-    return ret == `ok ? sel : nil;
 }
 
 
@@ -278,6 +229,15 @@ define term DHCPSupportTerm (boolean dhcp_support) {
 
     // check box label
     return `Left (`CheckBox (`id (`dhcp), _("Retrieve WINS server via &DHCP"), dhcp_support));
+}
+
+/**
+ * return the help text for DHCP support
+ */
+define string DHCPSupportHelp () {
+
+    // help text ("Retrieve WINS server via DHCP" is a checkbox label)
+    return _("<p>Check <b>Retrieve WINS server via DHCP</b> to use a WINS server provided by DHCP.</p>");
 }
 
 /**
