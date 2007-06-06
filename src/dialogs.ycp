@@ -392,14 +392,17 @@ hostname changes with DHCP are problematic.
 Disable hostname changes with DHCP?"));
 	    }
 
-	    list<string> packages	= ["samba-winbind"];
-	    if (SambaAD::ADS () != "")
+	    if (use_winbind)
 	    {
-		packages = (list<string>)merge(packages,["krb5","krb5-client"]);
+		list<string> packages	= ["samba-winbind"];
+		if (SambaAD::ADS () != "")
+		{
+		    packages = (list<string>)merge(packages,["krb5","krb5-client"]);
+		}
+		packages	= Samba::UpdatedArchPackages (packages);
+		if (!Package::InstalledAll (packages))
+		    Package::InstallAll (packages);
 	    }
-	    packages	= Samba::UpdatedArchPackages (packages);
-	    if (!Package::InstalledAll (packages))
-		Package::InstallAll (packages);
 
 	    Samba::SetMkHomeDir (use_winbind &&
 		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));
