@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun  7 09:10:03 CEST 2007 - jsuchome@suse.cz
+
+- removed Browse button (#240045)
+- 2.13.37
+
+-------------------------------------------------------------------
 Mon Mar 26 06:52:46 CEST 2007 - jsuchome@suse.cz
 
 - added autoyast support for disabling DHCLIENT_SET_HOSTNAME (#169260)
