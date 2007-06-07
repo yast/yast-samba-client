@@ -209,12 +209,7 @@ symbol MembershipDialog () {
 		    `TextEntry(`id(`workgroup), (Stage::cont() ?
 			_("&Domain") :
 			// translators: text entry label
-			_("&Domain or Workgroup")), Samba::GetWorkgroupOrRealm()),
-		    `VBox (
-			`Label(""),
-			// translators: push button label
-			`PushButton(`id(`browse), _("Br&owse..."))
-		    )
+			_("&Domain or Workgroup")), Samba::GetWorkgroupOrRealm())
 		),
 		status_term,
 		winbind_term,
@@ -262,9 +257,6 @@ symbol MembershipDialog () {
     if (!Stage::cont()) {
 	Wizard::HideBackButton();
 	check_domain_membership (Samba::GetWorkgroupOrRealm());
-    }
-    if (Mode::config ()) {
-	UI::ChangeWidget (`id(`browse), `Enabled, false);
     }
 
     any ret = nil;
@@ -432,15 +424,6 @@ the machine to enable it for all services.
 "));
 	    }
 	    break;
-        } else if (ret == `browse) {
-
-	    string new_workgroup = BrowseNeighbours( Stage::cont() );
-	    if( new_workgroup != nil && new_workgroup != "" ) {
-		// fill in the new workgroup name
-		UI::ChangeWidget( `id(`workgroup), `Value, new_workgroup );
-		check_domain_membership (new_workgroup);
-	    }
-	    continue;
 	} else if (ret == `back ) {
 	    break;
 	}
