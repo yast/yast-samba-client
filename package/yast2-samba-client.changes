@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jun  7 10:26:06 CEST 2007 - jsuchome@suse.cz
+
+- do not offer disabling DHCP changes of hostname when
+  it is already disabled (#169260)
+- 2.13.38
+
+-------------------------------------------------------------------
 Thu Jun  7 09:10:03 CEST 2007 - jsuchome@suse.cz
 
 - removed Browse button (#240045)
