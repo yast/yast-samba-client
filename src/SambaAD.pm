@@ -329,7 +329,8 @@ sub AdjustKerberos {
 	"kerberos_client"	=> {
 	    "default_realm"	=> $realm, 
 	    "default_domain"	=> $domain,
-	    "kdc_server"	=> $ads
+	    "kdc_server"	=> $ads,
+	    "trusted_servers"	=> $ads
 	}
     });
     Kerberos->modified (TRUE);
