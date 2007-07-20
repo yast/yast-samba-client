@@ -384,7 +384,9 @@ settings in smb.conf to the default values:
 		    Autologin::AskForDisabling(_("Samba is now enabled."));
 		}
 	    }
-	    if (Mode::config () || (Stage::cont() && Samba::in_domain == `ok))
+	    if (Mode::config () ||
+		(Stage::cont() && Samba::in_domain == `ok &&
+		Samba::network_setup["dhcp","DHCLIENT_SET_HOSTNAME"]:"yes" == "yes"))
 	    {
 		// yes/no popup text
 		Samba::disable_dhcp_hostname	= Popup::YesNo (_("In a Microsoft environment,
