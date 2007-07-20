@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 19 11:37:36 CEST 2007 - jsuchome@suse.cz
+
+- do not offer disabling DHCP changes of hostname when
+  it is already disabled (#292996)
+- 2.15.10
+
+-------------------------------------------------------------------
 Tue Jun 19 09:25:31 CEST 2007 - jsuchome@suse.cz
 
 - added support for Smart Card (F302132): pkinit section in krb.conf
