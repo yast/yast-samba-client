@@ -10,16 +10,17 @@
 
 textdomain "samba-client";
 
+import "Autologin";
 import "Directory";
-import "Mode";
-import "Stage";
-import "Samba";
-import "SambaConfig";
 import "Label";
+import "Message";
+import "Mode";
 import "Package";
 import "Popup";
+import "Samba";
+import "SambaConfig";
+import "Stage";
 import "Wizard";
-import "Autologin";
 
 include "samba-client/helps.ycp";
 include "samba-client/routines.ycp";
@@ -402,8 +403,13 @@ Disable hostname changes with DHCP?"));
 		    packages = (list<string>)merge(packages,["krb5","krb5-client"]);
 		}
 		packages	= Samba::UpdatedArchPackages (packages);
-		if (!Package::InstalledAll (packages))
-		    Package::InstallAll (packages);
+		if (!Package::InstallAll (packages))
+		{
+		    Popup::Error (Message::FailedToInstallPackages ());
+		    ret = `not_next;
+		    UI::ChangeWidget(`id(`winbind), `Value, false);
+		    continue;
+		}
 	    }
 
 	    Samba::SetMkHomeDir (use_winbind &&

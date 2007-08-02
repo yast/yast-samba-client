@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug  2 17:34:14 CEST 2007 - jsuchome@suse.cz
+
+- show error popup when installation of required packages fails
+  (#296677)
+- 2.15.11
+
+-------------------------------------------------------------------
 Thu Jul 19 11:37:36 CEST 2007 - jsuchome@suse.cz
 
 - do not offer disabling DHCP changes of hostname when
