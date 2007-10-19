@@ -89,8 +89,9 @@ sub AdjustNsswitch {
     y2error("Nsswitch->Write() failed") if (!$ret);
 
     # remove the passwd and group cache for nscd
-    if (!$write_only && Service->Status ("nscd") == 0) {
-	Service->Restart ("nscd");
+    if (!$write_only && PackageSystem->Installed ("nscd")) {
+	SCR->Execute (".target.bash", "/usr/sbin/nscd -i passwd");
+	SCR->Execute (".target.bash", "/usr/sbin/nscd -i group");
     }
     # restart D-BUS (#174589) FIXME this should be elsewhere
     if (!$write_only && Service->Status ("dbus") == 0) {
