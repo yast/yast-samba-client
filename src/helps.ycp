@@ -66,7 +66,7 @@ allows this host to join the domain.</p>
 "),
 
     // Samba membership dialog help (common part 1/4)
-    "MembershipDialog_common" : _("<p>Check <b>Create Home Directory on Login</b> to have home directories created on the first login.</p>") +
+    "MembershipDialog_common" : _("<p>Check <b>Create Home Directory on Login</b> to have local home directories created on the first login.</p>") +
 
     // Samba membership dialog help (common part 2/4)
     _("<p><b>Offline Authentication</b> enables the user to log in even if there is no connection to the domain controller. For this option to work, you must log in to your domain at least once. The user's credentials are then stored encrypted on your computer and are reused for a domain login when no connection to the domain controller can be established. This is especially useful for mobile users."),

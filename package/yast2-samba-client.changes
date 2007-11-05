@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov  5 13:31:59 CET 2007 - jsuchome@suse.cz
+
+- adapted helptext for home directories (#208475)
+- 2.16.1 
+
+-------------------------------------------------------------------
 Fri Oct 19 11:02:59 CEST 2007 - jsuchome@suse.cz
 
 - clear nscd cache instead of restarting nscd (#333305)
