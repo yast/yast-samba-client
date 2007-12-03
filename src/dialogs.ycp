@@ -46,7 +46,7 @@ symbol ExpertSettingsPopup () {
     boolean dhcp_support	= Samba::GetDHCP ();
 
     // help text, do not translate 'winbind uid', 'winbind gid'
-    string help_text	= _("<p>Specify the <b>range</b> for Samba user and group IDs (<tt>winbind uid</tt> and <tt>winbind gid</tt> values).</p>")
+    string help_text	= _("<p>Specify the <b>Range</b> for Samba user and group IDs (<tt>winbind uid</tt> and <tt>winbind gid</tt> values).</p>")
 
     + DHCPSupportHelp ();
 
@@ -96,8 +96,9 @@ symbol ExpertSettingsPopup () {
 	    if (uid_min >= uid_max || gid_min >= gid_max)
 	    {
 		// error popup: min >= max
-		Popup::Error (_("The minimal value in the range cannot be be
-larger than maximal one."));
+		Popup::Error (_("The minimal value in the range cannot be
+larger than maximal one.
+"));
 		continue;
 	    }
 	    string winbind_uid_new = sformat ("%1-%2", uid_min, uid_max);
