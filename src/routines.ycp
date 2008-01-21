@@ -88,8 +88,7 @@ define symbol CheckWorkgroup( string workgroup ) ``{
     // translators: text for busy pop-up
     UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
 
-    if (SambaNmbLookup::IsDomain(workgroup) || !SambaNmbLookup::Available() ||
-	SambaAD::ADS () != "") {
+    if (SambaNmbLookup::IsDomain(workgroup) || SambaAD::ADS () != "") {
 
 	// handle domain joining
 	boolean res = SambaNetJoin::Test(workgroup);
