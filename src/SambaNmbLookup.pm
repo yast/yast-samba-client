@@ -155,6 +155,21 @@ sub IsDomain {
     # ensure the data are up-to-date
     checkNmbstatus();
 
+    if (!$self->Available ()) {
+	y2milestone ("nmbstatus not available, doing other tests...");
+	my $out	= SCR->Execute(".target.bash_output","nmblookup $workgroup#1c");
+	my $nmblookup_test	= 0;
+	foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
+	    next if ($line =~ m/querying/);
+	    next if ($line =~ m/failed to find/);
+	    if ($line =~ m/$workgroup<1c>/) {
+		$nmblookup_test = 1;
+	    }
+
+	}
+	# assume domain if nmblookup returned something reasonable (#251909)
+	return TRUE if $nmblookup_test;
+    }
     return FALSE unless $Nmbstatus_output{uc $workgroup};
     
     # if there is PDC, return success
