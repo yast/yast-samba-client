@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 21 10:51:04 CET 2008 - jsuchome@suse.cz
+
+- if nmbstatus output is not available, do a nmblookup query to
+  check if we are dealing with a workgroup or domain (#251909)
+- 2.16.2 
+
+-------------------------------------------------------------------
 Mon Dec  3 15:16:43 CET 2007 - jsuchome@suse.cz
 
 - merged texts from proofread 
