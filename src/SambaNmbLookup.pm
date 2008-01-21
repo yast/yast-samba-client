@@ -155,6 +155,21 @@ sub IsDomain {
     # ensure the data are up-to-date
     checkNmbstatus();
 
+    if (!$self->Available ()) {
+	y2milestone ("nmbstatus not available, doing other tests...");
+	my $out	= SCR->Execute(".target.bash_output","nmblookup $workgroup#1c");
+	my $nmblookup_test	= 0;
+	foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
+	    next if ($line =~ m/querying/);
+	    next if ($line =~ m/failed to find/);
+	    if ($line =~ m/$workgroup<1c>/) {
+		$nmblookup_test = 1;
+	    }
+
+	}
+	# assume domain if nmblookup returned something reasonable (#251909)
+	return TRUE if $nmblookup_test;
+    }
     return FALSE unless $Nmbstatus_output{uc $workgroup};
     
     # if there is PDC, return success
@@ -205,31 +220,6 @@ sub HasBDC {
     
     # a different error happened
     return FALSE;
-}
-
-# Return a list of workgroups and domains already existing in the lan.
-# @return list<string>  of found workgroups/domains
-BEGIN{$TYPEINFO{GetAvailableNeighbours}=["function",["list", "string"], "string"]}
-sub GetAvailableNeighbours {
-    my ($self, $domain_suffix) = @_;
-    $domain_suffix = "" unless $domain_suffix;
-    
-    checkNmbstatus();
-
-    # TODO: inform user about problems
-    return [ map {$_ . ($self->IsDomain($_)?$domain_suffix:"")} sort keys %Nmbstatus_output ];
-}
-
-# Return a list of domains already existing in the lan.
-# @return list<string>  of found workgroups/domains
-BEGIN{$TYPEINFO{GetAvailableDomains}=["function",["list", "string"]]}
-sub GetAvailableDomains {
-    my ($self) = @_;
-    
-    checkNmbstatus();
-
-    # TODO: inform user about problems
-    return [ grep {$self->IsDomain($_)} sort keys %Nmbstatus_output ];
 }
 
 8;
