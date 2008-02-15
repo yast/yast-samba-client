@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 15 15:46:18 CET 2008 - jsuchome@suse.cz
+
+- merged in proofread texts
+- 2.13.40
+
+-------------------------------------------------------------------
 Mon Jan 21 10:47:23 CET 2008 - jsuchome@suse.cz
 
 - if nmbstatus output is not available, do a nmblookup query to
