@@ -25,3 +25,4 @@ Exec=/sbin/yast2 samba-client
 Name=Windows Domain Membership
 GenericName=Configure the Windows Domain Membership
 X-KDE-SubstituteUID=true
+StartupNotify=true
