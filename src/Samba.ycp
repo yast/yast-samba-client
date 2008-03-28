@@ -21,7 +21,6 @@ import "FileUtils";
 import "NetworkConfig";
 import "Mode";
 import "Package";
-import "PackageSystem";
 import "Pam";
 import "Progress";
 import "Report";
@@ -243,7 +242,7 @@ global define boolean SetGuessAccess (boolean guest) {
 global define boolean ReadSharesSetting () {
 
     shares_dir	= SambaConfig::GlobalGetStr ("usershare path", shares_dir);
-    if (FileUtils::Exists (shares_dir))
+    if (shares_dir != nil && FileUtils::Exists (shares_dir))
     {
 	map stat	= (map) SCR::Read (.target.stat, shares_dir);
 	map out		= (map) SCR::Execute (.target.bash_output, sformat ("getent group | grep \":%1:\" | /usr/bin/cut -f 1 -d :", stat["gid"]:100));
@@ -424,14 +423,6 @@ global boolean Read() {
 
     // read global settings
     Progress::NextStage();
-
-    // check installed packages
-    if (!PackageSystem::CheckAndInstallPackagesInteractive(
-	UpdatedArchPackages (["samba-client"])))
-    {
-	y2warning("package samba-client not installed");
-        return false;
-    }
 
     SambaConfig::Read(false);
 

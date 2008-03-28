@@ -23,8 +23,10 @@ use YaPI;
 textdomain "samba-client";
 our %TYPEINFO;
 
-YaST::YCP::Import("SCR");
+YaST::YCP::Import("FileUtils");
 YaST::YCP::Import("Mode");
+YaST::YCP::Import("SCR");
+YaST::YCP::Import("PackageSystem");
 
 
 ###########################################################################
@@ -159,6 +161,11 @@ BEGIN{ $TYPEINFO{Read} = ["function", "boolean", "boolean"]; }
 sub Read {
     my ($self, $forceReRead) = @_;
 
+    if (!PackageSystem->Installed("samba-client")) {
+	y2error("package samba-client not installed");
+	return 0;
+    }
+
     # configuraton already read
     return 1 if not $forceReRead and %Config;
     
@@ -202,7 +209,10 @@ sub Read {
     %WinbindConfig = ();
 
     # read the complete global section
-    $AllAtOnce = SCR->Read(".etc.security_winbind.all");
+    $AllAtOnce	= {};
+    if (FileUtils->Exists ("/etc/security/winbind.conf")) {
+	$AllAtOnce = SCR->Read(".etc.security_winbind.all");
+    }
 
     # convert .ini agent all-at-once map to %WinbindConfig
     foreach my $section (@{$AllAtOnce->{value}}) {
@@ -318,7 +328,7 @@ sub WriteWinbind {
     
     # commit the changes
     if (!SCR->Write(".etc.security_winbind", undef)) {
-	y2error("Cannot write settings to /etc/samba/smb.conf");
+	y2error("Cannot write settings to /etc/security/winbind.conf");
 	return 0;
     }
     return 1;
@@ -553,7 +563,7 @@ sub ShareGetStr {
 	$val = toboolean($val);
 	return defined $val ? ($val ? "No" : "Yes") : $default;
     }
-    if (defined $Config{$share}{$key}) {
+    if (defined $Config{$share} && $Config{$share}{$key}) {
 	if (ref $Config{$share}{$key} eq "ARRAY") {
 	    return $Config{$share}{$key}[0];
 	}
@@ -586,7 +596,7 @@ sub ShareGetList {
 	    return [$val];
 	}
     }
-    if (defined $Config{$share}{$key}) {
+    if (defined $Config{$share} && $Config{$share}{$key}) {
 	if (ref $Config{$share}{$key} eq "ARRAY") {
 	    return $Config{$share}{$key};
 	}
@@ -1031,7 +1041,8 @@ sub WinbindShareGetStr {
     }
     $key = lc($key);
     $key = $Synonyms{$key} if exists $Synonyms{$key};
-    if (defined $WinbindConfig{$share}{$key}) {
+    if (defined $WinbindConfig{$share} && defined $WinbindConfig{$share}{$key})
+    {
 	if (ref $WinbindConfig{$share}{$key} eq "ARRAY") {
 	    return $WinbindConfig{$share}{$key}[0];
 	}
