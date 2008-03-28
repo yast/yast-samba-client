@@ -11,9 +11,10 @@
 
 textdomain "samba-client";
 
+import "PackageSystem";
+import "Samba";
 import "Wizard";
 
-import "Samba";
 
 include "samba-client/helps.ycp";
 include "samba-client/routines.ycp";
@@ -32,6 +33,15 @@ boolean Modified() {
  */
 symbol ReadDialog() {
     Wizard::RestoreHelp(HELPS["read"]:"");
+
+    // check installed packages
+    if (!PackageSystem::CheckAndInstallPackagesInteractive(
+	Samba::UpdatedArchPackages (["samba-client"])))
+    {
+	y2warning("package samba-client not installed");
+        return `abort;
+    }
+
     boolean ret = Samba::Read();
     return ret ? `next : `abort;
 }

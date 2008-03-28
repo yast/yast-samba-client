@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 28 12:52:34 CET 2008 - jsuchome@suse.cz
+
+- do not check for required packages during Read (bnc#374703)
+- SambaConfig: do not create the hash by referencing inside
+- 2.16.3
+
+-------------------------------------------------------------------
 Mon Mar 17 12:43:32 CET 2008 - jsrain@suse.cz
 
 - added 'StartupNotify=true' to the desktop file (bnc #304964)
