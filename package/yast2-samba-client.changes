@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Wed Apr  9 15:27:32 CEST 2008 - jsuchome@suse.cz
+
+- enable specifying of the machine account (fate#301320)
+- 2.16.4
+
+-------------------------------------------------------------------
+Wed Apr  2 11:28:21 CEST 2008 - jsuchome@suse.cz
+
+- enable single sign-on for SSH (fate #303415)
+
+-------------------------------------------------------------------
 Fri Mar 28 12:52:34 CET 2008 - jsuchome@suse.cz
 
 - do not check for required packages during Read (bnc#374703)

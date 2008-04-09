@@ -36,6 +36,43 @@ my $ads		= "";
 # Kerberos realm for AD
 my $realm	= "";
 
+# Read the list of available machine accounts in the current domain
+#
+# @param domain		AD domain
+# @param user		user name
+# @param password	password
+# @return list
+BEGIN{$TYPEINFO{GetMachines}= [
+    "function", ["list","string"], "string", "string", "string"]}
+sub GetMachines {
+
+    my ($self, $domain, $user, $passwd) = @_;
+    my @ret			= ();
+    
+    my $tmpdir		= SCR->Read (".target.tmpdir");
+    my $conf_file	= $tmpdir."/smb.conf";
+    my $cmd		= "net ads search \"(objectclass=organizationalUnit)\" distinguishedName -s $conf_file -U '$user%". ($passwd||"") . "'";
+
+    SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
+
+    my $result = SCR->Execute(".target.bash_output", $cmd);
+
+    if ($result->{"exit"} eq 0) {
+	foreach my $line (split (/\n/,$result->{"stdout"} || "")) {
+	    if ($line =~ m/^distinguishedName:/) {
+		my $dn	= $line;
+		$dn	=~ s/^distinguishedName:([\t ]*)//g;
+		push @ret, $dn if $dn;
+	    }
+	}
+    }
+    else {
+	$cmd =~ s/(-U '[^%]*)%[^']*'/$1'/; # hide password in the log
+	y2warning ("$cmd failed: ".Dumper($result));
+	return undef;
+    }
+    return \@ret;
+}
 
 # Check if a given workgroup is a Active Directory domain and return the name
 # of AD domain controler

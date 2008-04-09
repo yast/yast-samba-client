@@ -30,34 +30,92 @@ import "SambaAD";
  * Allow user to type in a user/password pair in a popup.
  *
  * @param message	a text to be displayed above the password text entry
- * @param defaultuser 	a pre-filled user name
+ * @param defaultuser	a pre-filled user name
  * @return map<string, string>		$["user": string, "password": string] with information
  *			provided by the user or nil on cancel
  */
-define map<string, string> passwordUserPopup( string message, string defaultuser ) ``{
-    UI::OpenDialog(
-    	    `VBox( 
-		`Label( message ),
-		// text entry label
-		`TextEntry(`id(`user), _("&Username"), defaultuser ),
-		// text entry label
-    		`Password(`id(`passwd), _("&Password") ),
-    		`HBox( 
-		    `PushButton(`id(`ok), `opt(`default), Label::OKButton() ), 
-		    `PushButton(`id(`cancel), Label::CancelButton() ) 
+map<string, string> passwordUserPopup( string message, string defaultuser, string domain)
+{
+    term machine_term	= `Empty ();
+    // default value of Machine Account
+    string default_entry= _("(default)");
+    if (SambaAD::ADS () != "")
+    {
+	list machines	= [ default_entry ];
+	machine_term	= `HBox (
+	    `ReplacePoint (`id (`rpcombo),
+		`Left (`ComboBox (`id (`machines), `opt (`hstretch),
+		    // combo box label
+		    _("&Machine Account"), machines)
 		)
-    	    )
-        );
-    
-    any ret = UI::UserInput();
-    
-    map<string, string> result = ret == `ok ? $[ 
-	"user":(string)UI::QueryWidget(`id(`user), `Value),
-	"password":(string)UI::QueryWidget(`id(`passwd), `Value) ] 
-    : nil;
+	    ),
+	    `VBox (
+		`Label (""),
+		`PushButton (`id (`acquire), _("&Acquire"))
+	    )
+	);
+    }
+    UI::OpenDialog (`opt (`decorated), `HBox (`HSpacing (0.7), `VBox (
+	`HSpacing (25),
+	`VSpacing (0.2),
+	`Left (`Label (message)),
+	// text entry label
+	`InputField (`id (`user), `opt (`hstretch), _("&Username"),defaultuser),
+	`Password (`id(`passwd), `opt (`hstretch), Label::Password()),
+	machine_term,
+	`VSpacing (0.2),
+	`HBox (
+	    `PushButton(`id(`ok), `opt(`default), Label::OKButton()),
+	    `PushButton(`id(`cancel), Label::CancelButton())
+	),
+	`VSpacing (0.2)
+    ), `HSpacing (0.7)));
 
+    if (SambaAD::ADS () != "")
+    {
+	UI::ChangeWidget (`id (`machines), `Enabled, false);
+    }
+    any ret	= nil;
+    string user	= "";
+    string pass	= "";
+    while (true)
+    {
+	ret	= UI::UserInput();
+	user	= (string)UI::QueryWidget(`id(`user), `Value);
+	pass	= (string)UI::QueryWidget(`id(`passwd), `Value);
+
+	if (ret == `ok || ret == `cancel)
+	    break;
+	if (ret == `acquire)
+	{
+	    if (user == "" || pass == "")
+	    {
+		// error popup
+		Popup::Error (_("User name and password are required
+for listing the machine accounts."));
+		continue;
+	    }
+	    list machines	= SambaAD::GetMachines (domain, user, pass);
+	    if (machines != nil)
+	    {
+		machines	= prepend (machines, default_entry);
+		UI::ReplaceWidget (`id (`rpcombo), `Left (
+		    `ComboBox (`id (`machines), `opt (`hstretch),
+		    _("&Machine Account"), machines)
+		));
+		UI::ChangeWidget (`id (`machines), `Enabled, true);
+	    }
+	}
+    }
+
+    map<string, string> result = (ret == `ok) ? $[
+	"user"		: user,
+	"password"	: pass
+    ] : nil;
+    if (SambaAD::ADS () != "" && ret == `ok)
+	result["machine"]= (string)UI::QueryWidget (`id (`machines), `Value);
     UI::CloseDialog();
-    
+
     return result;
 }
 
@@ -110,21 +168,22 @@ define symbol CheckWorkgroup( string workgroup ) ``{
 
 define symbol JoinDomain(string workgroup)
 {
-    // translators: popup to fill in the domain joining info; %1 is the domain name
-    map<string, string> passwd = passwordUserPopup(sformat(_("Enter the username and the password\nfor joining the domain %1."), workgroup)
-	+ "\n\n" 
-	+ _("To join the domain anonymously, leave the\ntext entries empty.") + "\n", "Administrator");
+    // popup to fill in the domain joining info; %1 is the domain name
+    map<string, string> passwd = passwordUserPopup(sformat(_("Enter the username and the password for joining the domain %1."), workgroup)
+	+ "\n\n"
+	+ _("To join the domain anonymously, leave the text entries empty.") + "\n", "Administrator", workgroup);
 
     // cancelled the domain joining
     if( passwd == nil ) return `fail;
-		    
     // try to join the domain
-    string error = SambaNetJoin::Join(workgroup, "member", passwd["user"]:nil, passwd["password"]:"" );
+    string error = SambaNetJoin::Join (
+	workgroup, "member",
+	passwd["user"]:nil, passwd["password"]:"", passwd["machine"]:nil);
+
     if (error != nil) {
 	Popup::Error(error);
 	return `fail;
     }
-    
     // Translators: Information popup, %1 is the name of the domain
     Popup::Message(sformat(_("Domain %1 joined successfully."), Samba::GetWorkgroup()));
     return `ok;
