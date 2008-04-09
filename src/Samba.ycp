@@ -98,6 +98,21 @@ global symbol in_domain         = nil;
 // if changing hostname by DHCP should be disabled (#169260)
 global boolean disable_dhcp_hostname	= false;
 
+// support for SSH single-sign-on (fate #303415)
+global boolean ssh_support	= false;
+
+// initial status of single-sign-on suport in ssh_config
+boolean ssh_was_enabled		= false;
+
+// initial status of single-sign-on suport in sshd_config
+boolean sshd_was_enabled	= false;
+
+// if it ssh support was modified
+boolean ssh_modified		= false;
+
+// section in /etc/ssh/ssh_config file for storing single-sign-on settings
+string ssh_section = "*";
+
 // packages to install for specific arhitectures (#224418)
 global map arch_packages	= $[
     "krb5"	: $[
@@ -145,7 +160,7 @@ global define list<string> UpdatedArchPackages (list<string> packages) {
  */
 global boolean GetModified() {
     y2debug("modified=%1",modified);
-    return modified || mkhomedir_modified || shares_modified || SambaConfig::GetModified();
+    return modified || mkhomedir_modified || shares_modified || SambaConfig::GetModified() || ssh_modified;
 };
 
 /**
@@ -282,6 +297,96 @@ global define boolean SetWinbindCaching (boolean enable) {
 
     SambaConfig::WinbindGlobalSetStr("cached_login", enable ? "yes" : nil);
     SambaConfig::GlobalSetStr("winbind offline logon", enable ? "yes" : nil);
+    return enable;
+}
+
+/**
+ * Read the current status of ssh single-sign-on support (fate #303415)
+ */
+global define boolean ReadSSHSupport () {
+
+    boolean ssh		= nil;
+    boolean sshd	= false;
+
+    if (FileUtils::Exists ("/etc/ssh/ssh_config") &&
+	FileUtils::Exists ("/etc/ssh/sshd_config"))
+    {
+	string hostname = "*";
+	map out = (map)SCR::Execute(.target.bash_output,"LANG=C /bin/hostname");
+	if (out["stderr"]:nil == "")
+	    hostname = deletechars(out["stdout"]:"", "\n");
+	foreach (string sec, SCR::Dir (.etc.ssh.ssh_config.s), {
+	    if (ssh != nil) return;
+	    list cont = SCR::Dir (add(.etc.ssh.ssh_config.v, sec));
+	    y2debug ("section %1 contains: %2", sec, cont);
+
+	    if ((sec == "*" || sec == hostname) &&
+		(contains (cont, "GSSAPIAuthentication") &&
+		contains (cont, "GSSAPIDelegateCredentials")))
+	    {
+		ssh =
+		    (SCR::Read (add (add (.etc.ssh.ssh_config.v, sec),
+			"GSSAPIAuthentication")) == "yes") &&
+		    (SCR::Read (add (add (.etc.ssh.ssh_config.v, sec),
+			"GSSAPIDelegateCredentials")) == "yes");
+		ssh_section = sec;
+	    }
+	});
+	sshd	= true;
+	foreach (string key, ["GSSAPIAuthentication","GSSAPICleanupCredentials",
+	    "ChallengeResponseAuthentication", "UsePAM" ], {
+	    sshd	= sshd && contains (
+		(list)SCR::Read (add (.etc.ssh.sshd_config, key)), "yes");
+	});
+    }
+    ssh_was_enabled	= (ssh == true);
+    sshd_was_enabled	= sshd;
+    ssh_support	= ssh_was_enabled && sshd_was_enabled;
+    return ssh_support;
+}
+
+/**
+ * Get the current status of ssh single-sign-on support
+ */
+global define boolean GetSSHSupport () {
+    return ssh_support;
+}
+
+/**
+ * Set the new value for sh single-sign-on support
+ */
+global define boolean SetSSHSupport (boolean enable) {
+    ssh_support	= enable;
+    ssh_modified	= (enable != (ssh_was_enabled && sshd_was_enabled));
+    return enable;
+}
+
+/**
+ * Write the new value for sh single-sign-on support (fate #303415)
+ */
+global define boolean WriteSSHSupport (boolean enable) {
+
+    string write = enable ? "yes": "no";
+
+    // do not write "no" everywhere, there might be some user setting...
+    if (enable || ssh_was_enabled)
+    {
+	SCR::Write (add (add (.etc.ssh.ssh_config.v, ssh_section),
+	    "GSSAPIAuthentication"), write);
+	SCR::Write (add (add (.etc.ssh.ssh_config.v, ssh_section),
+	    "GSSAPIDelegateCredentials"), write);
+	SCR::Write (.etc.ssh.ssh_config, nil);
+	y2milestone ("/etc/ssh/ssh_config modified");
+    }
+    if (enable || sshd_was_enabled)
+    {
+	foreach (string key, ["GSSAPIAuthentication","GSSAPICleanupCredentials",
+	    "ChallengeResponseAuthentication", "UsePAM" ], {
+	    SCR::Write (add (.etc.ssh.sshd_config, key), [write]);
+	});
+	SCR::Write (.etc.ssh.sshd_config, nil);
+	y2milestone ("/etc/ssh/sshd_config modified");
+    }
     return enable;
 }
 
@@ -439,6 +544,8 @@ global boolean Read() {
 
     ReadSharesSetting ();
 
+    ReadSSHSupport ();
+
     Autologin::Read();
 
     // read network settings
@@ -539,7 +646,8 @@ global boolean Write(boolean write_only) {
 	    SambaNetJoin::Join (SambaConfig::GlobalGetStr("workgroup",""),
 		"member",
 		password_data["user"]:password_data["username"]:"",
-		password_data["password"]:password_data["passwd"]:""
+		password_data["password"]:password_data["passwd"]:"",
+		password_data["machine"]:nil
 	    );
 	}
     }
@@ -607,6 +715,8 @@ global boolean Write(boolean write_only) {
 
     WriteShares ();
     AdjustSharesServices (write_only);
+
+    WriteSSHSupport (ssh_support);
 
     // finished
     Progress::NextStage();

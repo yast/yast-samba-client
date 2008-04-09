@@ -166,7 +166,7 @@ symbol MembershipDialog () {
     // winbind enabled on start
     boolean was_winbind	= Samba::GetWinbind();
 
-    term winbind_term	= Stage::cont() ? `Empty () : `VBox(
+    term winbind_term	= Stage::cont() ? `Empty () : `VBox (
 	`VSpacing (0.5),
 	`Left(`CheckBox(`id(`winbind), `opt (`notify),
 	    // translators: checkbox label to enable winbind
@@ -214,10 +214,12 @@ symbol MembershipDialog () {
 	    `VBox (
 		`HBox(
 		    `HSpacing (0.2),
-		    `TextEntry(`id(`workgroup), (Stage::cont() ?
+		    `InputField (`id(`workgroup), `opt (`hstretch),
+			(Stage::cont() ?
 			_("&Domain") :
 			// translators: text entry label
-			_("&Domain or Workgroup")), Samba::GetWorkgroupOrRealm())
+			_("&Domain or Workgroup")), Samba::GetWorkgroupOrRealm()
+		    )
 		),
 		status_term,
 		winbind_term,
@@ -229,6 +231,11 @@ symbol MembershipDialog () {
 			    // checkbox label
 			   `CheckBox(`id(`caching),_("Off&line Authentication"),
 			    Samba::GetWinbindCaching ())
+			),
+			`Left (
+			    // checkbox label
+			   `CheckBox (`id(`ssh),_("&Single Sign-On for SSH"),
+				Samba::GetSSHSupport ())
 			),
 			`VSpacing (0.2)
 		    )
@@ -255,7 +262,7 @@ symbol MembershipDialog () {
 	    HELPS["MembershipDialog_NTP"]:""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
-    foreach (symbol t, [`mkhomedir, `caching], {
+    foreach (symbol t, [`mkhomedir, `caching, `ssh], {
 	UI::ChangeWidget (`id(t), `Enabled, Samba::GetWinbind() || Stage::cont());
     });
     foreach (symbol t, [`group, `max_shares, `guest_ch], {
@@ -282,6 +289,7 @@ symbol MembershipDialog () {
 	else if (ret == `winbind) {
 	    UI::ChangeWidget (`id(`mkhomedir), `Enabled, use_winbind);
 	    UI::ChangeWidget (`id(`caching), `Enabled, use_winbind);
+	    UI::ChangeWidget (`id(`ssh), `Enabled, use_winbind);
 	}
 	else if (ret == `share_ch) {
 	    foreach (symbol t, [`group, `max_shares, `guest_ch], {
@@ -417,6 +425,8 @@ Disable hostname changes with DHCP?"));
 		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));
 	    Samba::SetWinbindCaching (use_winbind &&
 		(boolean)UI::QueryWidget(`id(`caching), `Value));
+	    Samba::SetSSHSupport (use_winbind &&
+		(boolean)UI::QueryWidget (`id(`ssh), `Value));
 
 	    boolean new_share = (boolean)UI::QueryWidget(`id(`share_ch),`Value);
 	    if (new_share && ! allow_share && SharesExist (Samba::shares_dir))
