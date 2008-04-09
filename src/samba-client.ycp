@@ -106,7 +106,7 @@ boolean JoinDomainHandler( map <string, any> options ) {
 	SambaAD::ReadRealm ();
     }
     
-    string result = SambaNetJoin::Join(domain, "member", (string)(options["user"]:nil), (string) (options["password"]:""));
+    string result = SambaNetJoin::Join(domain, "member", (string)(options["user"]:nil), (string) (options["password"]:""), (string) (options["machine"]:nil));
     if( result == nil ) {
 	// translators: result message for joindomain command line action 
 	CommandLine::Print( sformat( _("Domain %1 joined successfully."), domain ) );
@@ -202,6 +202,11 @@ try to join the domain without specifying user and password."),
 	    "help"	: _("The password used for the user when joining the domain"),
 	    "type"	: "string"
 	],
+	"machine"	:$[
+	    // command line help text for machine optioa
+	    "help"	: _("The machine account"),
+	    "type"	: "string"
+	],
 	"workgroup"	:$[
 	    // translators: command line help text for the workgroup name option 
 	    "help"	: _("The name of a workgroup"),
@@ -211,7 +216,7 @@ try to join the domain without specifying user and password."),
     "mappings"		: $[
 	"winbind" 	: [ "enable", "disable" ],
 	"isdomainmember": [ "domain" ],
-	"joindomain"	: [ "domain", "user", "password" ],
+	"joindomain"	: [ "domain", "user", "password", "machine" ],
 	"configure"	: [ "workgroup" ]
     ]
 ];

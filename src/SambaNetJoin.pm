@@ -66,11 +66,13 @@ sub Test {
 # @param domain	a name of a domain to be joined
 # @param join_level	level of a domain membership when joining ("member", "bdc" or "pdc")
 # @param user		username to be used for joining, or nil for anonymous
-# @param passwd	password for the user
+# @param passwd		password for the user
+# @param machine	machine account to join into (fate 301320)
 # @return string	an error message or nil if successful
-BEGIN{$TYPEINFO{Join}=["function","string","string","string","string","string"]}
+BEGIN{$TYPEINFO{Join}=[
+    "function","string","string","string","string","string","string"]}
 sub Join {
-    my ($self, $domain, $join_level, $user, $passwd) = @_;
+    my ($self, $domain, $join_level, $user, $passwd, $machine) = @_;
     
     my $netbios_name	= SambaConfig->GlobalGetStr("netbios name", undef);
     my $server		= SambaAD->ADS ();
@@ -96,6 +98,8 @@ sub Join {
 	. " -s $conf_file"
 	. (($protocol ne "ads" && $netbios_name)?" -n '$netbios_name'":"")
 	. " -U '" . ($user||"") . "%" . ($passwd||"") . "'";
+
+    $cmd = $cmd. " -createcomputer=\"$machine\"" if $machine;
 
     my $result = SCR->Execute(".target.bash_output", $cmd);
     $cmd =~ s/(-U '[^%]*)%[^']*'/$1'/; # hide password in debug
