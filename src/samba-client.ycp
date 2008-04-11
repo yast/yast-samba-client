@@ -20,7 +20,6 @@ textdomain "samba-client";
 import "CommandLine";
 import "Popup";
 import "Report";
-import "Package";
 
 import "Samba";
 import "SambaAD";

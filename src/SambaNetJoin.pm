@@ -117,4 +117,46 @@ sub Join {
     return ($result && $error ne "") ? $error : "unknown error";
 }
 
+# Joins the host into a given domain. If user is provided, it will use
+# the user and password for joining. If the user is nil, joining will
+# be done anonymously.
+#
+# Attention: It will write the configuration for domain before settings the password
+#
+# @param domain	a name of a domain to be left
+# @param user		username to be used for joining, or nil for anonymous
+# @param passwd		password for the user
+# @return string	an error message or nil if successful
+BEGIN{$TYPEINFO{Leave}= [ "function","string","string","string","string"]}
+sub Leave {
+
+    my ($self, $domain, $user, $passwd) = @_;
+    
+    my $tmpdir		= SCR->Read (".target.tmpdir");
+    my $conf_file	= $tmpdir."/smb.conf";
+    my $realm		= SambaAD->Realm ();
+    
+    SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
+
+    my $cmd = "net ads leave -s $conf_file"
+	. " -U '" . ($user||"") . "%" . ($passwd||"") . "'";
+
+    my $result = SCR->Execute(".target.bash_output", $cmd);
+    $cmd =~ s/(-U '[^%]*)%[^']*'/$1'/; # hide password in the log
+    y2internal("$cmd => ".Dumper($result));
+    
+    # check the exit code, return nil on success
+    if ($result && defined $result->{exit} && $result->{exit} == 0) {
+	# force new testjoin run (maybe domain from first testjoin was replaced
+	# by realm => empty whole hash)
+	%TestJoinCache	= ();
+	return undef;
+    }
+
+    # otherwise return stderr
+    my $error = $result->{stdout} ne "" ? $result->{stdout} : $result->{stderr};
+    return ($result && $error ne "") ? $error : "unknown error";
+}
+
+
 8;
