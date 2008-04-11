@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 11 14:01:43 CEST 2008 - jsuchome@suse.cz
+
+- added button for leaving AD domain (fate#300458)
+- 2.16.5 
+
+-------------------------------------------------------------------
 Wed Apr  9 15:27:32 CEST 2008 - jsuchome@suse.cz
 
 - enable specifying of the machine account (fate#301320)

@@ -156,10 +156,18 @@ symbol MembershipDialog () {
 	}
 	Popup::ClearFeedback ();
 
+	term leave_button	= (SambaAD::ADS () == "") ? `Empty () :
+	    // push button label
+	    `PushButton (`id (`leave), _("&Leave"));
 	UI::ReplaceWidget (`id(`rpstatus),
 	    (Stage::cont () || CheckWorkgroup (domain) != `joined_domain) ?
-	    // status label
-	    `Empty() : `Left (`Label (_("Currently a member of this domain")))
+	    `Empty() :
+	    `HBox (
+		// status label
+		`Left (`Label (_("Currently a member of this domain"))),
+		`HStretch (),
+		leave_button
+	    )
 	);
     }
 
@@ -214,7 +222,8 @@ symbol MembershipDialog () {
 	    `VBox (
 		`HBox(
 		    `HSpacing (0.2),
-		    `InputField (`id(`workgroup), `opt (`hstretch),
+//		    `InputField (`id(`workgroup), `opt (`hstretch),
+		    `TextEntry (`id(`workgroup), `opt (`hstretch),
 			(Stage::cont() ?
 			_("&Domain") :
 			// translators: text entry label
@@ -285,6 +294,15 @@ symbol MembershipDialog () {
 	if(ret == `abort || ret == `cancel) {
 	    if(ReallyAbort()) break;
 	    else continue;
+	}
+	else if (ret == `leave)
+	{
+	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
+	    if (LeaveDomain (workgroup) == `ok)
+	    {
+		check_domain_membership (workgroup);
+		UI::ChangeWidget(`id(`winbind), `Value, false);
+	    }
 	}
 	else if (ret == `winbind) {
 	    UI::ChangeWidget (`id(`mkhomedir), `Enabled, use_winbind);

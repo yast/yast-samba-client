@@ -34,12 +34,12 @@ import "SambaAD";
  * @return map<string, string>		$["user": string, "password": string] with information
  *			provided by the user or nil on cancel
  */
-map<string, string> passwordUserPopup( string message, string defaultuser, string domain)
+map<string, string> passwordUserPopup (string message, string defaultuser, string domain, symbol what)
 {
     term machine_term	= `Empty ();
     // default value of Machine Account
     string default_entry= _("(default)");
-    if (SambaAD::ADS () != "")
+    if (SambaAD::ADS () != "" && what != `leave)
     {
 	list machines	= [ default_entry ];
 	machine_term	= `HBox (
@@ -75,6 +75,7 @@ map<string, string> passwordUserPopup( string message, string defaultuser, strin
     {
 	UI::ChangeWidget (`id (`machines), `Enabled, false);
     }
+    UI::SetFocus (`id (`passwd));
     any ret	= nil;
     string user	= "";
     string pass	= "";
@@ -165,13 +166,35 @@ define symbol CheckWorkgroup( string workgroup ) ``{
     return ret;
 }
 
+/**
+ * Leave an AD domain
+ */
+define symbol LeaveDomain (string workgroup)
+{
+    // popup to fill in the domain leaving info; %1 is the domain name
+    map<string, string> passwd = passwordUserPopup (sformat(_("Enter the username and the password for leaving the domain %1."), workgroup),
+	"Administrator", workgroup, `leave);
+
+    // cancelled the domain leaving
+    if( passwd == nil ) return `fail;
+    // try to join the domain
+    string error = SambaNetJoin::Leave (
+	workgroup, passwd["user"]:nil, passwd["password"]:""
+    );
+
+    if (error != nil) {
+	Popup::Error(error);
+	return `fail;
+    }
+    return `ok;
+}
 
 define symbol JoinDomain(string workgroup)
 {
     // popup to fill in the domain joining info; %1 is the domain name
     map<string, string> passwd = passwordUserPopup(sformat(_("Enter the username and the password for joining the domain %1."), workgroup)
 	+ "\n\n"
-	+ _("To join the domain anonymously, leave the text entries empty.") + "\n", "Administrator", workgroup);
+	+ _("To join the domain anonymously, leave the text entries empty.") + "\n", "Administrator", workgroup, `join);
 
     // cancelled the domain joining
     if( passwd == nil ) return `fail;
