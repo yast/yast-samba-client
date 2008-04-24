@@ -46,12 +46,12 @@ map<string, string> passwordUserPopup (string message, string defaultuser, strin
 	    `ReplacePoint (`id (`rpcombo),
 		`Left (`ComboBox (`id (`machines), `opt (`hstretch),
 		    // combo box label
-		    _("&Machine Account"), machines)
+		    _("&Machine Account OU"), machines)
 		)
 	    ),
 	    `VBox (
 		`Label (""),
-		`PushButton (`id (`acquire), _("&Acquire"))
+		`PushButton (`id (`acquire), _("O&btain list"))
 	    )
 	);
     }
