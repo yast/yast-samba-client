@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 24 12:55:40 CEST 2008 - jsuchome@suse.cz
+
+- text fixes (bnc#383229)
+- 2.16.6 
+
+-------------------------------------------------------------------
 Fri Apr 11 14:01:43 CEST 2008 - jsuchome@suse.cz
 
 - added button for leaving AD domain (fate#300458)
