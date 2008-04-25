@@ -99,7 +99,12 @@ sub Join {
 	. (($protocol ne "ads" && $netbios_name)?" -n '$netbios_name'":"")
 	. " -U '" . ($user||"") . "%" . ($passwd||"") . "'";
 
-    $cmd = $cmd. " -createcomputer=\"$machine\"" if $machine;
+    if ($machine) {
+	$machine	=~ s/dc=([^,]*)//gi; # remove DC=* parts
+	$machine	=~ s/([^,]*)=//gi; # leave only values from the rest
+	my $m		= join ('/', reverse (split (/,/,$machine)));	
+	$cmd		= $cmd. " createcomputer=\"$m\"" if $m;
+    }
 
     my $result = SCR->Execute(".target.bash_output", $cmd);
     $cmd =~ s/(-U '[^%]*)%[^']*'/$1'/; # hide password in debug

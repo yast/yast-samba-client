@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Apr 25 11:47:52 CEST 2008 - jsuchome@suse.cz
+
+- correctly create machine account: transform DN, use correct
+  argument, do not try with default value (bnc#383360)
+- use temporary krb5.conf also for obtaining machine accounts
+- remove AD info from smb.conf when domain was left (bnc#383374)
+- 2.16.7
+
+-------------------------------------------------------------------
 Thu Apr 24 12:55:40 CEST 2008 - jsuchome@suse.cz
 
 - text fixes (bnc#383229)

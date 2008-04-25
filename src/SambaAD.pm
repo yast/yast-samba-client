@@ -51,12 +51,13 @@ sub GetMachines {
     
     my $tmpdir		= SCR->Read (".target.tmpdir");
     my $conf_file	= $tmpdir."/smb.conf";
-    my $cmd		= "net ads search \"(objectclass=organizationalUnit)\" distinguishedName -s $conf_file -U '$user%". ($passwd||"") . "'";
+    my $krb_file	= $tmpdir."/krb5.conf";
+    my $cmd		= "KRB5_CONFIG=$krb_file net ads search \"(objectclass=organizationalUnit)\" distinguishedName -s $conf_file -U '$user%". ($passwd||"") . "'";
 
+    SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $ads\n\t}\n");
     SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
 
     my $result = SCR->Execute(".target.bash_output", $cmd);
-
     if ($result->{"exit"} eq 0) {
 	foreach my $line (split (/\n/,$result->{"stdout"} || "")) {
 	    if ($line =~ m/^distinguishedName:/) {
@@ -95,6 +96,7 @@ sub GetADS {
     if (FileUtils->Exists ("/usr/bin/dig")) {
 
 	# we have to select server from correct site - see bug #238249.
+	# TODO use +short instead?
 	my $out = SCR->Execute (".target.bash_output", "dig -t srv _ldap._tcp.dc._msdcs.$workgroup +noall +answer");
 	y2debug ("dig output: ", Dumper ($out));
 	my $tmpserver	= "";
@@ -103,7 +105,7 @@ sub GetADS {
 	    
 	    y2debug ("line: $line");
 	    next if $server ne "";
-	    if ($line =~ m/$workgroup/) {
+	    if ($line =~ m/$workgroup/ && $line !~ m/^;/) {
 		$tmpserver   = "";
 		$tmpserver	= (split (/[ \t]/, $line))[7] || ".";
 		chop $tmpserver;
@@ -112,11 +114,11 @@ sub GetADS {
 		my $cmd	= "LANG=C net ads lookup -S $tmpserver";
 		$out	= SCR->Execute (".target.bash_output", $cmd);
 		if ($out->{"exit"} eq 0) {
-		    foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
+		    foreach my $l (split (/\n/,$out->{"stdout"} || "")) {
 			next if $server;
-			$server = $tmpserver if ($line =~ m/Is the closest DC/ && $line =~ m/yes/);
-			if ($line =~ m/Client Site Name/ && $line !~ m/Default-First-Site-Name/) {
-			    my $site	= $line;
+			$server = $tmpserver if ($l =~ m/Is the closest DC/ && $l =~ m/yes/);
+			if ($l =~ m/Client Site Name/ && $l !~ m/Default-First-Site-Name/) {
+			    my $site	= $l;
 			    $site	=~ s/^Client Site Name:([\t ]*)//g;
 			}
 		    }
@@ -137,7 +139,7 @@ sub GetADS {
 		if ($out->{"exit"} eq 0) {
 		    foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
 			next if $server;
-			if ($line =~ m/$workgroup/) {
+			if ($line =~ m/$workgroup/ && $line !~ m/^;/) {
 			    $server      = (split (/[ \t]/, $line))[7] || ".";
 			    chop $server;
 			}
@@ -319,10 +321,11 @@ sub Realm {
 BEGIN{$TYPEINFO{AdjustSambaConfig}=["function","void","boolean"]}
 sub AdjustSambaConfig {
     my ($self, $status) = @_;
+
+    my $workgroup	= SambaConfig->GlobalGetStr ("workgroup", "");
+    # remove special AD values if AD is not used
+    my $remove	= (($ads || "") eq "");
     if ($status) {
-	my $workgroup	= SambaConfig->GlobalGetStr ("workgroup", "");
-	# remove special AD values if AD is not used
-	my $remove	= (($ads || "") eq "");
 	SambaConfig->GlobalSetMap({
 	    "security"			=> $remove ? "domain" : "ADS",
 	    "realm"			=> $remove ? undef : $realm,
@@ -339,6 +342,14 @@ sub AdjustSambaConfig {
 	if (SambaConfig->GlobalGetTruth ("domain master", 0)) {
 	    SambaConfig->GlobalSetStr ("domain master", "Auto")
 	}
+    }
+    else {
+	SambaConfig->GlobalSetMap({
+	    "security"			=> $remove ? "domain" : "ADS",
+	    "realm"			=> $remove ? undef : $realm,
+	    "template homedir"		=> $remove ? undef : "/home/%D/%U",
+	    "winbind refresh tickets"	=> $remove ? undef : "yes"
+	});
     }
 }
 
