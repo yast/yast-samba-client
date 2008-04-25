@@ -37,8 +37,9 @@ import "SambaAD";
 map<string, string> passwordUserPopup (string message, string defaultuser, string domain, symbol what)
 {
     term machine_term	= `Empty ();
+    string default_id	= "default_entry";
     // default value of Machine Account
-    string default_entry= _("(default)");
+    term default_entry= `item (`id (default_id), _("(default)"));
     if (SambaAD::ADS () != "" && what != `leave)
     {
 	list machines	= [ default_entry ];
@@ -96,13 +97,15 @@ map<string, string> passwordUserPopup (string message, string defaultuser, strin
 for listing the machine accounts."));
 		continue;
 	    }
-	    list machines	= SambaAD::GetMachines (domain, user, pass);
+	    list<string> machines = SambaAD::GetMachines (domain, user, pass);
 	    if (machines != nil)
 	    {
-		machines	= prepend (machines, default_entry);
+		list items	= maplist (string m, machines, ``(
+		    `item (`id (m), m)));
+		items		= prepend (items, default_entry);
 		UI::ReplaceWidget (`id (`rpcombo), `Left (
 		    `ComboBox (`id (`machines), `opt (`hstretch),
-		    _("&Machine Account"), machines)
+		    _("&Machine Account"), items)
 		));
 		UI::ChangeWidget (`id (`machines), `Enabled, true);
 	    }
@@ -114,7 +117,11 @@ for listing the machine accounts."));
 	"password"	: pass
     ] : nil;
     if (SambaAD::ADS () != "" && ret == `ok)
-	result["machine"]= (string)UI::QueryWidget (`id (`machines), `Value);
+    {
+	string machine	= (string)UI::QueryWidget (`id (`machines), `Value);
+	if (machine != default_id)
+	    result["machine"]	= machine;
+    }
     UI::CloseDialog();
 
     return result;

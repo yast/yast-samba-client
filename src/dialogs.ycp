@@ -136,6 +136,7 @@ symbol MembershipDialog () {
 	`ReplacePoint (`id(`rpstatus), `Empty())
     );
     map pw_data	= Samba::password_data;
+    string left_domain	= "";
 
     // internal function: update the status line
     void check_domain_membership (string domain) {
@@ -300,8 +301,10 @@ symbol MembershipDialog () {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
 	    if (LeaveDomain (workgroup) == `ok)
 	    {
+		left_domain	= workgroup;
 		check_domain_membership (workgroup);
 		UI::ChangeWidget(`id(`winbind), `Value, false);
+		SambaAD::SetADS ("");
 	    }
 	}
 	else if (ret == `winbind) {
@@ -336,7 +339,8 @@ symbol MembershipDialog () {
 	}
         else if(ret == `next) {
 	    string workgroup = (string)UI::QueryWidget(`id(`workgroup), `Value);
-	    if (workgroup != Samba::GetWorkgroup ())
+	    if (workgroup != Samba::GetWorkgroup () &&
+		(left_domain == "" || workgroup != left_domain))
 	    {
 		check_domain_membership (workgroup);
 		workgroup       = Samba::GetWorkgroup ();
@@ -392,7 +396,9 @@ symbol MembershipDialog () {
 settings in smb.conf to the default values:
 %1"), mergestring (["domain master", "domain logons"], "\n")));
 		}
-		if (!Stage::cont()) {
+		if (!Stage::cont() &&
+		   (left_domain=="" || use_winbind || left_domain != workgroup))
+		{
 		    // return `ok, `fail or `nojoin
 		    in_domain = AskJoinDomain(workgroup, workgroup_type);
 		    if (in_domain == `fail) continue;
