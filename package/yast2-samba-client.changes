@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 29 15:00:11 CEST 2008 - jsuchome@suse.cz
+
+- save smb.conf when winbind is off (better fix for bnc#383374)
+- 2.16.8
+
+-------------------------------------------------------------------
 Fri Apr 25 11:47:52 CEST 2008 - jsuchome@suse.cz
 
 - correctly create machine account: transform DN, use correct

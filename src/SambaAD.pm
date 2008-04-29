@@ -325,31 +325,23 @@ sub AdjustSambaConfig {
     my $workgroup	= SambaConfig->GlobalGetStr ("workgroup", "");
     # remove special AD values if AD is not used
     my $remove	= (($ads || "") eq "");
+    SambaConfig->GlobalSetMap({
+	"security"			=> $remove ? "domain" : "ADS",
+	"realm"				=> $remove ? undef : $realm,
+	"template homedir"		=> $remove ? undef : "/home/%D/%U",
+	"winbind refresh tickets"	=> $remove ? undef : "yes"
+    });
+    SambaConfig->WinbindGlobalSetMap({
+	"krb5_auth"			=> $remove ? undef : "yes",
+	"krb5_ccache_type"		=> $remove ? undef : "FILE"
+    });
     if ($status) {
-	SambaConfig->GlobalSetMap({
-	    "security"			=> $remove ? "domain" : "ADS",
-	    "realm"			=> $remove ? undef : $realm,
-	    "template homedir"		=> $remove ? undef : "/home/%D/%U",
-	    "winbind refresh tickets"	=> $remove ? undef : "yes"
-	});
-	SambaConfig->WinbindGlobalSetMap({
-	    "krb5_auth"			=> $remove ? undef : "yes",
-	    "krb5_ccache_type"		=> $remove ? undef : "FILE"
-	});
 	if (SambaConfig->GlobalGetTruth ("domain logons", 0)) {
 	    SambaConfig->GlobalSetTruth ("domain logons", 0)
 	}
 	if (SambaConfig->GlobalGetTruth ("domain master", 0)) {
 	    SambaConfig->GlobalSetStr ("domain master", "Auto")
 	}
-    }
-    else {
-	SambaConfig->GlobalSetMap({
-	    "security"			=> $remove ? "domain" : "ADS",
-	    "realm"			=> $remove ? undef : $realm,
-	    "template homedir"		=> $remove ? undef : "/home/%D/%U",
-	    "winbind refresh tickets"	=> $remove ? undef : "yes"
-	});
     }
 }
 
