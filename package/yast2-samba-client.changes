@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri May 16 16:40:22 CEST 2008 - jsrain@suse.cz
+
+- added categories Settings and System into desktop file
+  (bnc #382778)
+
+-------------------------------------------------------------------
 Tue Apr 29 15:00:11 CEST 2008 - jsuchome@suse.cz
 
 - save smb.conf when winbind is off (better fix for bnc#383374)
