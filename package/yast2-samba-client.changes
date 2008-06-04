@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun  3 16:15:22 CEST 2008 - jsuchome@suse.cz
+
+- correctly quote the 'net join' command (bnc#396070)
+- 2.16.9
+
+-------------------------------------------------------------------
 Fri May 16 16:40:22 CEST 2008 - jsrain@suse.cz
 
 - added categories Settings and System into desktop file

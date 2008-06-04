@@ -12,7 +12,7 @@ package SambaNetJoin;
 use strict;
 use Data::Dumper;
 
-use YaST::YCP qw(:DATA :LOGGING);
+use YaST::YCP qw(:LOGGING);
 use YaPI;
 
 textdomain "samba-client";
@@ -21,6 +21,7 @@ our %TYPEINFO;
 YaST::YCP::Import("SCR");
 YaST::YCP::Import("SambaConfig");
 YaST::YCP::Import("SambaAD");
+YaST::YCP::Import("String");
 
 my %TestJoinCache;
 
@@ -97,7 +98,7 @@ sub Join {
 	. ($protocol ne "ads" ? " -w '$domain'" : "")
 	. " -s $conf_file"
 	. (($protocol ne "ads" && $netbios_name)?" -n '$netbios_name'":"")
-	. " -U '" . ($user||"") . "%" . ($passwd||"") . "'";
+	. " -U '" . String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
 
     if ($machine) {
 	$machine	=~ s/dc=([^,]*)//gi; # remove DC=* parts
@@ -144,7 +145,7 @@ sub Leave {
     SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
 
     my $cmd = "net ads leave -s $conf_file"
-	. " -U '" . ($user||"") . "%" . ($passwd||"") . "'";
+	. " -U '" . String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
 
     my $result = SCR->Execute(".target.bash_output", $cmd);
     $cmd =~ s/(-U '[^%]*)%[^']*'/$1'/; # hide password in the log
