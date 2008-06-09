@@ -11,6 +11,7 @@
 textdomain "samba-client";
 
 import "Autologin";
+import "CWMFirewallInterfaces";
 import "Directory";
 import "Label";
 import "Message";
@@ -176,7 +177,7 @@ symbol MembershipDialog () {
     boolean was_winbind	= Samba::GetWinbind();
 
     term winbind_term	= Stage::cont() ? `Empty () : `VBox (
-	`VSpacing (0.5),
+	`VSpacing (0.4),
 	`Left(`CheckBox(`id(`winbind), `opt (`notify),
 	    // translators: checkbox label to enable winbind
 	    _("Also &Use SMB Information for Linux Authentication"),
@@ -207,7 +208,7 @@ symbol MembershipDialog () {
     ) : `Empty ();
 
     term ntp_term	= Mode::config () ? `Empty () : `VBox (
-	`VSpacing (0.5),
+	`VSpacing (0.4),
 	// button label (run YaST client for NTP)
 	`Right (`PushButton (`id(`ntp), _("&NTP Configuration...")))
     );
@@ -217,14 +218,20 @@ symbol MembershipDialog () {
     // checkbox label
     string text_fam	= _("Start File Alteration Monitor");
 
+    map<string,any> firewall_widget =
+	CWMFirewallInterfaces::CreateOpenFirewallWidget ($[
+	    "services"	: [ "samba-server" ],
+	    "display_details" : true,
+	]);
+    term firewall_layout = firewall_widget["custom_widget"]:`VBox ();
+
     Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
 	// translators: frame label
 	`Frame (_("Membership"),
 	    `VBox (
 		`HBox(
 		    `HSpacing (0.2),
-//		    `InputField (`id(`workgroup), `opt (`hstretch),
-		    `TextEntry (`id(`workgroup), `opt (`hstretch),
+		    `InputField (`id(`workgroup), `opt (`hstretch),
 			(Stage::cont() ?
 			_("&Domain") :
 			// translators: text entry label
@@ -252,7 +259,7 @@ symbol MembershipDialog () {
 		)
 	    )
 	),
-	`VSpacing (0.5),
+	`VSpacing (0.4),
 	// button label
 	`Right (`PushButton (`id(`expert), _("&Expert Settings..."))),
 	SharesTerm ($[
@@ -272,6 +279,7 @@ symbol MembershipDialog () {
 	    HELPS["MembershipDialog_NTP"]:""),
 	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
     );
+//    CWMFirewallInterfaces::OpenFirewallInit (firewall_widget, "");
     foreach (symbol t, [`mkhomedir, `caching, `ssh], {
 	UI::ChangeWidget (`id(t), `Enabled, Samba::GetWinbind() || Stage::cont());
     });
@@ -287,7 +295,10 @@ symbol MembershipDialog () {
     any ret = nil;
     while(true) {
 
-	ret = UI::UserInput();
+	map event	= UI::WaitForEvent ();
+	ret		= (symbol) event["ID"]:nil;
+//	CWMFirewallInterfaces::OpenFirewallHandle(firewall_widget,"",event);
+
 	boolean use_winbind = Stage::cont() ? true :
 	    (boolean)UI::QueryWidget(`id(`winbind), `Value);
 
@@ -475,6 +486,7 @@ running services. Restart your services manually or reboot
 the machine to enable it for all services.
 "));
 	    }
+//	    CWMFirewallInterfaces::OpenFirewallStore (firewall_widget,"",event);
 	    break;
 	} else if (ret == `back ) {
 	    break;
