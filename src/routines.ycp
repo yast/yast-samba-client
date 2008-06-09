@@ -344,7 +344,7 @@ define term SharesTerm (map settings) {
 	// frame label
 	_("Sharing");
     return `VBox (
-	`VSpacing (),
+	`VSpacing (0.4),
 	// frame label
 	`Frame (label,
 	    `VBox (

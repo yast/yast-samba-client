@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun  6 13:01:47 CEST 2008 - jsuchome@suse.cz
+
+- check for KDE4's kdm when saving DISPLAYMANAGER_AD_INTEGRATION
+  (bnc#392122)
+- 2.17.0
+
+-------------------------------------------------------------------
 Tue Jun  3 16:15:22 CEST 2008 - jsuchome@suse.cz
 
 - correctly quote the 'net join' command (bnc#396070)

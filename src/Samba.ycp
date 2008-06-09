@@ -32,6 +32,7 @@ import "SambaNetJoin";
 import "SambaNmbLookup";
 import "String";
 import "Summary";
+import "SuSEFirewall";
 
 
 /**
@@ -478,7 +479,7 @@ define boolean WriteDisplayManager (boolean enable, boolean write_only) {
 
     if (enable)
     {
-	if (!Package::InstalledAny (["kdebase3-kdm", "gdm"]))
+	if (!Package::InstalledAny (["kdebase3-kdm", "kde4-kdm", "gdm"]))
 	    return false;
 	if (SCR::Read (.sysconfig.displaymanager.DISPLAYMANAGER_AD_INTEGRATION) == "yes")
 	    return true;
@@ -490,10 +491,9 @@ define boolean WriteDisplayManager (boolean enable, boolean write_only) {
 
     string dm = (string) SCR::Read (.sysconfig.displaymanager.DISPLAYMANAGER);
 
-    if (!write_only && (dm == "kdm" || dm == "gdm"))
+    if (!write_only && dm == "gdm")
     {
-	SCR::Execute (.target.bash,
-	    "/sbin/SuSEconfig --module " + (dm == "gdm" ? dm : "kdm3"));
+	SCR::Execute (.target.bash, "/sbin/SuSEconfig --module gdm");
     }
     return true;
 }
@@ -552,6 +552,8 @@ global boolean Read() {
     // (for bug 169260: do not allow DHCP to change the hostname)
     NetworkConfig::Read ();
     network_setup	= NetworkConfig::Export ();
+
+    SuSEFirewall::Read ();
 
     // finished
     Progress::NextStage();
@@ -717,6 +719,11 @@ global boolean Write(boolean write_only) {
     AdjustSharesServices (write_only);
 
     WriteSSHSupport (ssh_support);
+
+    SuSEFirewall::WriteOnly ();
+    if (!write_only)
+	SuSEFirewall::ActivateConfiguration ();
+
 
     // finished
     Progress::NextStage();
