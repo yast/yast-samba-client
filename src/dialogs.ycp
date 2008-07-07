@@ -210,7 +210,7 @@ symbol MembershipDialog () {
     term ntp_term	= Mode::config () ? `Empty () : `VBox (
 	`VSpacing (0.4),
 	// button label (run YaST client for NTP)
-	`Right (`PushButton (`id(`ntp), _("&NTP Configuration...")))
+	`Right (`PushButton (`id(`ntp), _("N&TP Configuration...")))
     );
 
     // checkbox label
