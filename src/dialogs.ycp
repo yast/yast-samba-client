@@ -49,10 +49,13 @@ symbol ExpertSettingsPopup () {
     // help text, do not translate 'winbind uid', 'winbind gid'
     string help_text	= _("<p>Specify the <b>Range</b> for Samba user and group IDs (<tt>winbind uid</tt> and <tt>winbind gid</tt> values).</p>")
 
+    + HostsResolutionHelp ()
     + DHCPSupportHelp ();
 
+    boolean hosts_resolution	= Samba::GetHostsResolution ();
+
     UI::OpenDialog (`opt (`decorated), `HBox (
-	`HWeight (1, `RichText (`id (`help), help_text)),
+	`HWeight (2, `RichText (`id (`help), help_text)),
 	`HSpacing (),
 	`HWeight (3, `VBox (
 	    `VSpacing (0.5),
@@ -72,6 +75,7 @@ symbol ExpertSettingsPopup () {
 		`IntField (`id (`gid_max), _("M&aximum"), 0, 99999, gid_max)
 	    )),
 	    `VSpacing (),
+	    HostsResolutionTerm (hosts_resolution),
 	    DHCPSupportTerm (dhcp_support),
 	    `VSpacing (),
 	    `HBox (
@@ -109,6 +113,8 @@ larger than maximal one.
 	    if (winbind_gid_new != winbind_gid)
 		SambaConfig::GlobalSetStr ("winbind gid", winbind_gid_new);
 	    Samba::SetDHCP ((boolean)UI::QueryWidget (`id (`dhcp), `Value));
+	    Samba::SetHostsResolution (
+		(boolean)UI::QueryWidget (`id (`hosts_resolution), `Value));
 	    break;
 	}
     }
@@ -197,14 +203,14 @@ symbol MembershipDialog () {
 	// frame label
 	`Frame (_("Join Settings"), `HBox (
 	    // text entry label
-	    `TextEntry (`id("user"), _("&Username"),
+	    `InputField (`id("user"), `opt (`hstretch), _("&Username"),
 		pw_data["user"]:"" != "" ? pw_data["user"]:"" : ""),
 	    // text entry label
-	    `Password (`id("password"), _("&Password"))
+	    `Password (`id("password"), `opt (`hstretch), _("&Password"))
 	)),
 	`VSpacing (),
 	// text entry label
-	`TextEntry (`id(`ads), _("Active Directory Server"))
+	`InputField (`id(`ads), `opt (`hstretch), _("Active Directory Server"))
     ) : `Empty ();
 
     term ntp_term	= Mode::config () ? `Empty () : `VBox (
@@ -277,7 +283,8 @@ symbol MembershipDialog () {
 	SharesHelp () +
 	(Mode::config () ? HELPS["MembershipDialog_config"]:"" :
 	    HELPS["MembershipDialog_NTP"]:""),
-	Label::BackButton(), Stage::cont() ? Label::NextButton() : Label::FinishButton()
+	Stage::cont() ? Label::BackButton() : Label::CancelButton(),
+	Stage::cont() ? Label::NextButton() : Label::OKButton()
     );
 //    CWMFirewallInterfaces::OpenFirewallInit (firewall_widget, "");
     foreach (symbol t, [`mkhomedir, `caching, `ssh], {
@@ -288,7 +295,7 @@ symbol MembershipDialog () {
     });
 
     if (!Stage::cont()) {
-	Wizard::HideBackButton();
+	Wizard::HideAbortButton();
 	check_domain_membership (Samba::GetWorkgroupOrRealm());
     }
 
@@ -298,12 +305,11 @@ symbol MembershipDialog () {
 	map event	= UI::WaitForEvent ();
 	ret		= (symbol) event["ID"]:nil;
 //	CWMFirewallInterfaces::OpenFirewallHandle(firewall_widget,"",event);
-
 	boolean use_winbind = Stage::cont() ? true :
 	    (boolean)UI::QueryWidget(`id(`winbind), `Value);
 
-	/* abort? */
-	if(ret == `abort || ret == `cancel) {
+	if (ret == `abort || ret == `cancel || (ret == `back && !Stage::cont()))
+	{
 	    if(ReallyAbort()) break;
 	    else continue;
 	}

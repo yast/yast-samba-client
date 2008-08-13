@@ -46,6 +46,14 @@ our $Nmbstatus_available;
 # local host is shown.
 our $Nmbd_was_running;
 
+# ID of NMBSTATUS_EXE process, as returend from .process agent (NOT its PID)
+our $process_id;
+
+# convert perl value to YCP integer
+sub to_integer {
+    return YaST::YCP::Integer ($_[0]);
+}
+
 # Start nmbstatus in background
 # @return true on success
 BEGIN{$TYPEINFO{Start}=["function","boolean"]}
@@ -67,13 +75,15 @@ sub Start {
     
     # start nmbstatus
     my $out = SCR->Execute(".target.bash_output", "/usr/bin/id --user");
+    my $cmd	= NMBSTATUS_EXE;
     if ($out && $out->{exit} == 0 && $out->{stdout} == 0) {
-	$Nmbstatus_running = SCR->Execute(".background.run_output", "su nobody -c " . NMBSTATUS_EXE);
-    } else {
-	$Nmbstatus_running = SCR->Execute(".background.run_output", NMBSTATUS_EXE);
+	$cmd	= "su nobody -c " . NMBSTATUS_EXE;
     }
+    $process_id	= SCR->Execute (".process.start_shell", $cmd, {});
+    my $status	= SCR->Read (".process.status", to_integer ($process_id));
+    $Nmbstatus_running	= ((!defined $status) || $status eq 0);
     if(!$Nmbstatus_running) {
-        y2error("Cannot start nmbstatus");
+        y2error ("Cannot start nmbstatus (shell returned $Nmbstatus_running)");
         $Nmbstatus_available = 0;
         # restore nmbd
         if ($Nmbd_was_running) {
@@ -95,13 +105,18 @@ sub checkNmbstatus {
 	# better count slept time
 	my $start = time;
 	
-	while (time<$start+$wait && SCR->Read(".background.isrunning")) {
+	while (time<$start+$wait &&
+	       SCR->Read(".process.running", to_integer ($process_id)))
+	{
 	    select undef, undef, undef, 0.2; # sleep 0.2 sec
 	}
-	if (SCR->Read(".background.isrunning")) {
+	if (SCR->Read(".process.running", to_integer ($process_id))) {
 	    y2error("Something went wrong, nmbstatus didn't finish in more that $wait seconds");
 	    # better kill it
-	    SCR->Execute(".background.kill");
+	    SCR->Execute (".process.kill", to_integer ($process_id), 15);
+	    sleep (0.2);
+	    SCR->Execute (".process.kill", to_integer ($process_id));
+	    undef $process_id;
 	    $Nmbstatus_running = 0;
 	    %Nmbstatus_output = ();
 	    $Nmbstatus_available = 0;
@@ -109,15 +124,19 @@ sub checkNmbstatus {
 	}
 	
 	# nmbstatus already finished, parse the output
-	my $output = SCR->Read(".background.newout");
-	y2debug("nmbstatus => ".Dumper($output));
+	my $std_out = SCR->Read (".process.read", to_integer ($process_id));
+	y2debug ("nmbstatus => ".Dumper($std_out));
+	my $err_out	=
+	    SCR->Read (".process.read_stderr", to_integer ($process_id));
+	y2debug ("nmbstatus stderr => ".Dumper($err_out));
 	
 	$Nmbstatus_available = 1;
 	$Nmbstatus_running = 0;
 	%Nmbstatus_output = ();
 	
 	my $current_group = "";
-	foreach (@$output) {
+	my @output	= split (/\n/,$std_out);
+	foreach (@output) {
 	    next unless /^([^\t]+)\t(.+)$/;
 	    if ($1 eq "WORKGROUP") {
 		$current_group = uc $2;

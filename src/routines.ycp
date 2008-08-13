@@ -308,6 +308,25 @@ define boolean AskToStopServices () {
     return Popup::YesNo (_("Other Windows sharing services are available. Stop them as well?"));
 }
 
+/**
+ * return the term with hosts resolution support check box (fate#300971)
+ * @param hosts_resolution current value of hosts resolution in nsswitch.conf
+ */
+term HostsResolutionTerm (boolean hosts_resolution) {
+
+    // check box label
+    return `Left (`CheckBox (`id (`hosts_resolution),
+	_("&Use WINS for Hostname Resolution"), hosts_resolution));
+}
+
+/**
+ * Return help text for hosts resolution term
+ */
+string HostsResolutionHelp () {
+
+    // help text for "Use WINS for Hostname Resolution" check box label
+    return _("<p>If you want to use Microsoft Windows Internet Name Service (WINS) for name resolution, check <b>Use WINS for Hostname Resolution</b>.</p>");
+}
 
 /**
  * return the term with DHCP support check box
@@ -346,26 +365,27 @@ define term SharesTerm (map settings) {
     return `VBox (
 	`VSpacing (0.4),
 	// frame label
-	`Frame (label,
-	    `VBox (
-		`VSpacing (0.4),
-		`Left (`CheckBox(`id(`share_ch), `opt(`notify),
-		    // checkbox label
-		    _("&Allow Users to Share Their Directories"), allow)),
-		haskey (settings, "guest_access") ?
+	`Frame (label, `VBox (
+	    `VSpacing (0.4),
+	    `Left (`CheckBox(`id(`share_ch), `opt(`notify),
+		// checkbox label
+		_("&Allow Users to Share Their Directories"), allow)
+	    ),
+	    haskey (settings, "guest_access") ?
 		`Left (`CheckBox(`id(`guest_ch), `opt(`notify),
 		    // checkbox label
-		    _("Allow &Guest Access"), guest)) : `VSpacing (0),
-		`HBox (`HSpacing (2), `VBox (
-		    // texty entry label
-		    `TextEntry (`id(`group), _("&Permitted Group"), group),
-		    // infield label
-		    `IntField (`id(`max_shares),_("&Maximum Number of Shares"),
-			1, 99999, max)
-		)),
-		`VSpacing (0.2)
-	    )
-	)
+		    _("Allow &Guest Access"), guest))
+		: `VSpacing (0),
+	    `HBox (`HSpacing (2), `VBox (
+		// texty entry label
+		`InputField (`id(`group), `opt(`hstretch),_("&Permitted Group"),
+		    group),
+		// infield label
+		`IntField (`id(`max_shares),_("&Maximum Number of Shares"),
+		    1, 99999, max)
+	    )),
+	    `VSpacing (0.2)
+	))
     );
 }
 
