@@ -20,6 +20,7 @@ import "Autologin";
 import "FileUtils";
 import "NetworkConfig";
 import "Mode";
+import "Nsswitch";
 import "Package";
 import "Pam";
 import "Progress";
@@ -114,6 +115,11 @@ boolean ssh_modified		= false;
 // section in /etc/ssh/ssh_config file for storing single-sign-on settings
 string ssh_section = "*";
 
+// if hosts are resolved via WINS
+boolean hosts_resolution	= nil;
+
+boolean hosts_resolution_orig	= false;
+
 // packages to install for specific arhitectures (#224418)
 global map arch_packages	= $[
     "krb5"	: $[
@@ -205,6 +211,45 @@ global define integer GetMaxShares () {
 
     return SambaConfig::GlobalGetInteger ("usershare max shares", 0);
 }
+
+/**
+ * Read /etc/nsswitch.conf and check if WINS is used for hosts resolution
+ */
+global boolean GetHostsResolution () {
+
+    if (hosts_resolution == nil)
+    {
+	list hosts		= Nsswitch::ReadDb ("hosts");
+	hosts_resolution	= contains (hosts, "wins");
+	hosts_resolution_orig	= hosts_resolution;
+    }
+    return hosts_resolution;
+}
+
+/**
+ * Set the new value for hosts resolution
+ */
+global boolean SetHostsResolution (boolean resolve) {
+
+    hosts_resolution	= resolve;
+    return true;
+}
+
+/**
+ * Write /etc/nsswitch.conf if modified
+ */
+global boolean WriteHostsResolution () {
+
+    if (hosts_resolution != hosts_resolution_orig)
+    {
+	Nsswitch::WriteDb ("hosts", add (Nsswitch::ReadDb ("hosts"), "wins"));
+	boolean ret	= Nsswitch::Write ();
+	y2milestone ("/etc/nsswitch.conf written: %1", ret);
+	return ret;
+    }
+    return true;
+}
+
 
 /**
  * Check if dhcp.conf is included in smb.conf
@@ -719,6 +764,8 @@ global boolean Write(boolean write_only) {
     AdjustSharesServices (write_only);
 
     WriteSSHSupport (ssh_support);
+
+    WriteHostsResolution ();
 
     SuSEFirewall::WriteOnly ();
     if (!write_only)
