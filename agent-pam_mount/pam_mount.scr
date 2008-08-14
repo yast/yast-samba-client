@@ -1,0 +1,11 @@
+/**
+ * File:	pam_mount.scr
+ * Summary:	Agent for accessing /etc/security/pam_mount.conf.xml file
+ * Access:	read/write
+ * Authors:	Jiri Suchomel <jsuchome@suse.cz>
+ *
+ * $Id: kiwi.scr 9731 2003-04-14 07:55:21Z jsuchome $
+ */
+.pam_mount
+
+`ag_pam_mount ()
