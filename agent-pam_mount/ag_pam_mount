@@ -1,0 +1,141 @@
+#!/usr/bin/perl
+
+#
+# agent for reading/writing pam_mount.conf.xml config.xml file
+#
+
+use lib "/usr/lib/YaST2/agents_non_y2";
+use ycp;
+use strict;
+use XML::LibXML;
+use Data::Dumper;
+
+# map with whole config file contents
+my $pam_mount;
+
+# path to current config file (global, initialized on read)
+my $pam_mount_file;
+
+while (<STDIN>)
+{
+    my ($command, $path, $argument) = ycp::ParseCommand ($_);
+
+    y2debug ("command: $command, path: $path");
+
+    if ($command eq "Read")
+    {
+	# read given file, store its contents in global $pam_mount structure
+	my %retmap	= ();
+	$pam_mount_file	= $argument;
+	$pam_mount_file	= "/etc/security/pam_mount.conf.xml" if ! $argument;
+
+	my $parser	= new XML::LibXML;
+	$pam_mount	= $parser->parse_file ($pam_mount_file);
+
+	ycp::Return (\%retmap, 1); # TODO return anything?
+
+    }
+    elsif ($command eq "Write")
+    {
+	# write the changes back to the file
+	if ($path eq ".")
+	{
+	    y2milestone ("writing to $pam_mount_file");
+
+	    my $o	= open (OUT, "> $pam_mount_file");
+	    if (!defined $o) {
+		y2error ("$pam_mount_file cannot be opened for writing!");
+		close OUT;
+		ycp::Return ("false");
+	    }
+	    else {
+		print OUT $pam_mount->toString ();
+		close OUT;
+		ycp::Return ("true");
+	    }
+	}
+	# change the value of an atrribute for given element
+	# SCR::Write (.pam_mount.modify_attr, $[
+	#	"tag"	: "mntoptions",
+	#	"attr"	: "require",
+	#	"value"	: "nosuid"
+	# ]);
+	elsif ($path eq ".modify_attr") {
+	    if (!defined $argument || ref ($argument) ne "HASH") {
+		y2error ("argument not present or not a map");
+		ycp::Return ("false");
+	    }
+	    else {
+		my $tag_name	= $argument->{"tag"} || "";
+		my $attr_name	= $argument->{"attr"} || "";
+		my $value	= $argument->{"value"} || "";
+
+		my $nodeList	= $pam_mount->getElementsByTagName ($tag_name);
+		for (my $i=1;$i<= $nodeList->size();$i++) {
+		    my $element = $nodeList -> get_node ($i);
+
+
+		    if ($element->hasAttribute($attr_name)) {
+			my $attr	= $element -> getAttribute ($attr_name);
+			y2internal ("attribute '$attr_name': $attr");
+			# change the value of an attribute
+			$element->setAttribute ($attr, $value);
+		    }
+		}
+		ycp::Return ("true");
+	    }
+	}
+	# create new element under root node
+	# e.g. <volume user="user" fstype="civfs"/> would be added by
+	# SCR::Write (.pam_mount.add, $[
+	#	"tag"   	: "volume",
+	#	"attrmap"       : $[
+	#		"user"      : "hh",
+	#		"fstype"    : "cifs"
+	#	]
+	# ]);
+	# FIXME currently only attributes, no values
+	# FIXME no new line when new item is added...?
+	elsif ($path eq ".add") {
+	    if (!defined $argument || ref ($argument) ne "HASH") {
+		y2error ("argument not present or not a map");
+		ycp::Return ("false");
+	    }
+	    elsif (!$argument->{"tag"}) {
+		y2error ("tag name not specified");
+		ycp::Return ("false");
+	    }
+	    else {
+		my $tag_name	= $argument->{"tag"} || "";
+		my $attr_map	= $argument->{"attrmap"};
+
+		my $new_element = XML::LibXML::Element->new ($tag_name);
+		while (my ($name, $val) = each %$attr_map) {
+		    $new_element->setAttribute ($name, $val);
+		}
+		my $root	= $pam_mount->documentElement();
+
+		$root->appendChild ($new_element);
+
+#		my $child	= $root->lastChild ();
+#		$child->addSibling($new_element);
+
+#		my $child	= $root->firstChild ();
+#		$root->insertBefore ($new_element, $child);
+
+		ycp::Return ("true");
+	    }
+	}
+    }
+    elsif ($command eq "result")
+    {
+	exit;
+    }
+    else
+    {
+	y2error ("wrong command ($command)");
+	ycp::Return("wrong command $command");
+    }
+}
+
+# end
