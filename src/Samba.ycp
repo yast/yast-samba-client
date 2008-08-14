@@ -589,6 +589,8 @@ global boolean Read() {
 
     ReadSharesSetting ();
 
+    GetHostsResolution ();
+
     ReadSSHSupport ();
 
     Autologin::Read();
