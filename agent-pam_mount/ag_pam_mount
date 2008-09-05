@@ -24,16 +24,52 @@ while (<STDIN>)
 
     if ($command eq "Read")
     {
-	# read given file, store its contents in global $pam_mount structure
-	my %retmap	= ();
-	$pam_mount_file	= $argument;
-	$pam_mount_file	= "/etc/security/pam_mount.conf.xml" if ! $argument;
+	if ($path eq "." && $pam_mount) {
+	    y2milestone ("pam_mount already parsed");
+	    ycp::Return ("true");
+	}
+	elsif ($path eq "." || $path eq ".force") {
 
-	my $parser	= new XML::LibXML;
-	$pam_mount	= $parser->parse_file ($pam_mount_file);
+	    # read given file, store its contents in global $pam_mount structure
+	    my %retmap	= ();
+	    $pam_mount_file	= $argument;
+	    $pam_mount_file	= "/etc/security/pam_mount.conf.xml" if ! $argument;
+	    my $parser	= new XML::LibXML;
+	    $pam_mount	= $parser->parse_file ($pam_mount_file);
 
-	ycp::Return (\%retmap, 1); # TODO return anything?
+	    if ($pam_mount) {
+		ycp::Return ("true");
+	    }
+	    else {
+		ycp::Return ("false");
+	    }
+	}
+	elsif ($path eq ".get") {
 
+	    if (!$argument->{"element"}) {
+		y2error ("element name not specified");
+		ycp::Return (undef);
+	    }
+	    else {
+		my @retlist	= ();
+		my $el_name	= $argument->{"element"} || "";
+
+		my $nodeList	= $pam_mount->getElementsByTagName ($el_name);
+		for (my $i=1;$i<= $nodeList->size();$i++) {
+		    my $element = $nodeList -> get_node ($i);
+		    my $element_map	= {};
+		    foreach my $attr ($element->attributes ()) {
+			my $nn	= $attr->nodeName;
+			my $val	= $attr->getValue ();
+			if ($nn && $val) {
+			    $element_map->{$nn}	= $val;
+			}
+		    }
+		    push @retlist, $element_map if ($element_map);
+		}
+		ycp::Return (\@retlist, 1);
+	    }
+	}
     }
     elsif ($command eq "Write")
     {
@@ -56,9 +92,9 @@ while (<STDIN>)
 	}
 	# change the value of an atrribute for given element
 	# SCR::Write (.pam_mount.modify_attr, $[
-	#	"tag"	: "mntoptions",
-	#	"attr"	: "require",
-	#	"value"	: "nosuid"
+	#	"element"	: "mntoptions",
+	#	"attr"		: "require",
+	#	"value"		: "nosuid"
 	# ]);
 	elsif ($path eq ".modify_attr") {
 	    if (!defined $argument || ref ($argument) ne "HASH") {
@@ -66,11 +102,11 @@ while (<STDIN>)
 		ycp::Return ("false");
 	    }
 	    else {
-		my $tag_name	= $argument->{"tag"} || "";
+		my $el_name	= $argument->{"element"} || "";
 		my $attr_name	= $argument->{"attr"} || "";
 		my $value	= $argument->{"value"} || "";
 
-		my $nodeList	= $pam_mount->getElementsByTagName ($tag_name);
+		my $nodeList	= $pam_mount->getElementsByTagName ($el_name);
 		for (my $i=1;$i<= $nodeList->size();$i++) {
 		    my $element = $nodeList -> get_node ($i);
 
@@ -88,7 +124,7 @@ while (<STDIN>)
 	# create new element under root node
 	# e.g. <volume user="user" fstype="civfs"/> would be added by
 	# SCR::Write (.pam_mount.add, $[
-	#	"tag"   	: "volume",
+	#	"element"   	: "volume",
 	#	"attrmap"       : $[
 	#		"user"      : "hh",
 	#		"fstype"    : "cifs"
@@ -101,15 +137,15 @@ while (<STDIN>)
 		y2error ("argument not present or not a map");
 		ycp::Return ("false");
 	    }
-	    elsif (!$argument->{"tag"}) {
-		y2error ("tag name not specified");
+	    elsif (!$argument->{"element"}) {
+		y2error ("element name not specified");
 		ycp::Return ("false");
 	    }
 	    else {
-		my $tag_name	= $argument->{"tag"} || "";
+		my $el_name	= $argument->{"element"} || "";
 		my $attr_map	= $argument->{"attrmap"};
 
-		my $new_element = XML::LibXML::Element->new ($tag_name);
+		my $new_element = XML::LibXML::Element->new ($el_name);
 		while (my ($name, $val) = each %$attr_map) {
 		    $new_element->setAttribute ($name, $val);
 		}

@@ -118,6 +118,9 @@ string ssh_section = "*";
 // if hosts are resolved via WINS
 boolean hosts_resolution	= nil;
 
+// host line of nsswitch.conf
+list<string> hosts_db		= [];
+
 boolean hosts_resolution_orig	= false;
 
 // packages to install for specific arhitectures (#224418)
@@ -171,6 +174,30 @@ global boolean GetModified() {
 };
 
 /**
+ * Read the data from /etc/security/pam_mount.conf.xml regarding
+ * mounting user's home directories
+ */
+global define boolean ReadPamMount () {
+
+    if (!FileUtils::Exists ("/etc/security/pam_mount.conf.xml"))
+    {
+	y2warning ("/etc/security/pam_mount.conf.xml does not exist");
+	return false;
+    }
+    // initially, parse the whole file and let the agent build data map
+    if (SCR::Read (.pam_mount) != true)
+    {
+	y2warning ("reading /etc/security/pam_mount.conf.xml failed");
+	return false;
+    }
+
+    list volumes	= (list) SCR::Read (.pam_mount.get, $[
+	"element"   : "volume",
+    ]);
+    return true;
+}
+
+/**
  * Read the state of mkhomedir in /etc/pam.d/common-session (bug #143519)
  */
 global define boolean ReadMkHomeDir () {
@@ -219,8 +246,8 @@ global boolean GetHostsResolution () {
 
     if (hosts_resolution == nil)
     {
-	list hosts		= Nsswitch::ReadDb ("hosts");
-	hosts_resolution	= contains (hosts, "wins");
+	hosts_db		= Nsswitch::ReadDb ("hosts");
+	hosts_resolution	= contains (hosts_db, "wins");
 	hosts_resolution_orig	= hosts_resolution;
     }
     return hosts_resolution;
@@ -242,7 +269,11 @@ global boolean WriteHostsResolution () {
 
     if (hosts_resolution != hosts_resolution_orig)
     {
-	Nsswitch::WriteDb ("hosts", add (Nsswitch::ReadDb ("hosts"), "wins"));
+	if (hosts_resolution)
+	    hosts_db	= add (hosts_db, "wins");
+	else
+	    hosts_db	= filter (string e, hosts_db, ``(e != "wins"));
+	Nsswitch::WriteDb ("hosts", hosts_db);
 	boolean ret	= Nsswitch::Write ();
 	y2milestone ("/etc/nsswitch.conf written: %1", ret);
 	return ret;
@@ -601,6 +632,8 @@ global boolean Read() {
     network_setup	= NetworkConfig::Export ();
 
     SuSEFirewall::Read ();
+
+    ReadPamMount ();
 
     // finished
     Progress::NextStage();

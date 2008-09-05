@@ -54,37 +54,58 @@ symbol ExpertSettingsPopup () {
 
     boolean hosts_resolution	= Samba::GetHostsResolution ();
 
-    UI::OpenDialog (`opt (`decorated), `HBox (
-	`HWeight (2, `RichText (`id (`help), help_text)),
-	`HSpacing (),
-	`HWeight (3, `VBox (
-	    `VSpacing (0.5),
-	    // frame label
-	    `Frame (_("&UID Range"), `HBox (
+    string mount_server		= "";
+    string mount_path		= "";
+    string mount_share		= "";
+    string unc_path		= "";
+    // \\\\nue-lurch-1\\Profiles\\storage1\\dom1\\";
+
+    term contents	= `HBox (`HSpacing (3), `VBox (
+	`VSpacing (0.4),
+	// frame label
+	`Frame (_("&UID Range"), `HBox (
 		// int field label
 		`IntField (`id (`uid_min), _("&Minimum"), 0, 99999, uid_min),
 		// int field label
 		`IntField (`id (`uid_max), _("Ma&ximum"), 0, 99999, uid_max)
-	    )),
-	    `VSpacing (0.5),
-	    // frame label
-	    `Frame (_("&GID Range"), `HBox (
+	)),
+	`VSpacing (0.5),
+	// frame label
+	`Frame (_("&GID Range"), `HBox (
 		// int field label
 		`IntField (`id (`gid_min), _("M&inimum"), 0, 99999, gid_min),
 		// int field label
 		`IntField (`id (`gid_max), _("M&aximum"), 0, 99999, gid_max)
-	    )),
-	    `VSpacing (),
-	    HostsResolutionTerm (hosts_resolution),
-	    DHCPSupportTerm (dhcp_support),
-	    `VSpacing (),
-	    `HBox (
-		`PushButton (`id(`ok), Label::OKButton()),
-		`PushButton (`id(`cancel), Label::CancelButton())
-	    )
 	)),
-	`HSpacing ()
-    ));
+	`VSpacing (),
+	// frame label
+	`Frame (_("Windows Internet Name Service"), `VBox (
+	    HostsResolutionTerm (hosts_resolution),
+	    DHCPSupportTerm (dhcp_support)
+	)),
+	`VSpacing (0.4),
+	// frame label
+	`Frame (_("Mount Server Home Directory"), `VBox (
+	    /*
+	    // text entry label
+	    `InputField (`id (`mount_server),`opt (`hstretch),_("&Server Name"),
+		mount_server),
+	    // text entry label
+	    `InputField (`id (`mount_share), `opt (`hstretch), _("S&hare Name"),
+		mount_share),
+	    // text entry label
+	    `InputField (`id (`mount_path), `opt (`hstretch),_("&Path"),
+		mount_path)
+	    */
+	    // text entry label
+	    `InputField (`id (`mount), `opt (`hstretch), _("&UNC Path"),
+		unc_path)
+	))
+    ), `HSpacing (3));
+
+    Wizard::OpenOKDialog ();
+    // dialog title
+    Wizard::SetContents (_("Expert Settings"), contents, help_text, true, true);
 
     any ret	= `cancel;
     while (true)
@@ -231,7 +252,8 @@ symbol MembershipDialog () {
 	]);
     term firewall_layout = firewall_widget["custom_widget"]:`VBox ();
 
-    Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
+//    Wizard::SetContentsButtons( caption, `HVSquash( `VBox(
+    Wizard::SetContentsButtons (caption, `HBox (`HSpacing (3), `VBox (
 	// translators: frame label
 	`Frame (_("Membership"),
 	    `VBox (
@@ -276,7 +298,7 @@ symbol MembershipDialog () {
 	]),
 	autoyast_term,
 	ntp_term
-    )),
+    ), `HSpacing (3)),
 	(Stage::cont() ? HELPS["MembershipDialog_cont"]:"" :
 	    HELPS["MembershipDialog_nocont"]:"") +
 	HELPS["MembershipDialog_common"]:"" +

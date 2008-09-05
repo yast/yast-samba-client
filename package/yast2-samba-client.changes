@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Sep  5 16:18:30 CEST 2008 - jsuchome@suse.cz
+
+- fixed writing /etc/nsswitch.conf
+- ag_pam_mount: added path to reading specific file elements
+- preliminary support for reading pam_mount.conf.xml
+- 2.17.2
+
+-------------------------------------------------------------------
 Wed Aug 13 10:54:52 CEST 2008 - jsuchome@suse.cz
 
 - added option to use WINS for hosts resolution (fate#300971)
