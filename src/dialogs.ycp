@@ -122,9 +122,8 @@ symbol ExpertSettingsPopup () {
 	    if (uid_min >= uid_max || gid_min >= gid_max)
 	    {
 		// error popup: min >= max
-		Popup::Error (_("The minimal value in the range cannot be
-larger than maximal one.
-"));
+		Popup::Error (_("The minimum value in the range cannot be
+larger than maximum one.\n"));
 		continue;
 	    }
 	    string winbind_uid_new = sformat ("%1-%2", uid_min, uid_max);
