@@ -153,11 +153,57 @@ while (<STDIN>)
 
 		$root->appendChild ($new_element);
 
-#		my $child	= $root->lastChild ();
-#		$child->addSibling($new_element);
+		ycp::Return ("true");
+	    }
+	}
+	# delete all elemets with given criterias
+	# e.g. delete all "volume" elements with attribute fstype="civfs":
+	# SCR::Write (.pam_mount.delete, $[
+	#	"element"   	: "volume",
+	#	"attrmap"       : $[
+	#		"fstype"    : "cifs"
+	#	]
+	# ]);
+	elsif ($path eq ".delete") {
+	    if (!defined $argument || ref ($argument) ne "HASH") {
+		y2error ("argument not present or not a map");
+		ycp::Return ("false");
+	    }
+	    elsif (!$argument->{"element"}) {
+		y2error ("element name not specified");
+		ycp::Return ("false");
+	    }
+	    else {
+		my $el_name	= $argument->{"element"} || "";
+		my $attr_map	= $argument->{"attrmap"};
 
-#		my $child	= $root->firstChild ();
-#		$root->insertBefore ($new_element, $child);
+		my $root	= $pam_mount->documentElement();
+
+		my $nodeList	= $pam_mount->getElementsByTagName ($el_name);
+		for (my $i=1;$i<= $nodeList->size();$i++) {
+
+		    my $element = $nodeList -> get_node ($i);
+		    my $delete	= 1;
+		    # if attributes are present, they specify the elements that
+		    # should be deleted
+		    while (my ($name, $val) = each %$attr_map) {
+			y2milestone ("name $name, val $val");
+			if (!$element->hasAttribute($name)) {
+			    y2internal ("attribute $name not present");
+			    $delete	= 0;
+			}
+			elsif ($element->getAttribute ($name) ne $val) {
+			    my $attr	= $element->getAttribute ($name);
+			    y2internal ("attrbute $name has value $attr, not $name");
+			    $delete	= 0;
+			}
+		    }
+
+		    if ($delete) {
+			y2internal ("deleting element...");
+			$root->removeChild ($element);
+		    }
+		}
 
 		ycp::Return ("true");
 	    }
