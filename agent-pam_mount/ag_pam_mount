@@ -187,20 +187,17 @@ while (<STDIN>)
 		    # if attributes are present, they specify the elements that
 		    # should be deleted
 		    while (my ($name, $val) = each %$attr_map) {
-			y2milestone ("name $name, val $val");
 			if (!$element->hasAttribute($name)) {
-			    y2internal ("attribute $name not present");
+			    y2debug ("attribute $name not present");
 			    $delete	= 0;
 			}
 			elsif ($element->getAttribute ($name) ne $val) {
-			    my $attr	= $element->getAttribute ($name);
-			    y2internal ("attrbute $name has value $attr, not $name");
+			    y2debug ("attrbute $name has not the value $val");
 			    $delete	= 0;
 			}
 		    }
 
 		    if ($delete) {
-			y2internal ("deleting element...");
 			$root->removeChild ($element);
 		    }
 		}
