@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep 12 12:19:01 CEST 2008 - jsuchome@suse.cz
+
+- added generic dialog for editing 'volume' entries of
+  pam_mount.conf.xml (fate#300967)
+- 2.17.4
+
+-------------------------------------------------------------------
 Tue Sep  9 11:23:59 CEST 2008 - jsuchome@suse.cz
 
 - merged texts from proofread 

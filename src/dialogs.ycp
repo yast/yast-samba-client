@@ -27,9 +27,86 @@ include "samba-client/helps.ycp";
 include "samba-client/routines.ycp";
 
 /**
- * popup for setting various expert settings, like winbind uid/gid keys (F301518)
+ * Popup for editing the mount entry data
  */
-symbol ExpertSettingsPopup () {
+map MountEntryPopup (map volume) {
+
+    // labels of keys which are shown only if they are already present in the
+    // volume entry (manualy added to congig file)
+    map<string,string> key2label	= $[
+	// text entry label
+	"user"		: _("&User Name"),
+	// text entry label
+	"uid"		: _("U&ID"),
+	// text entry label
+	"pgrp"		: _("&Primary Group Name"),
+	// text entry label
+	"sgrp"		: _("&Secondary Group Name"),
+	// text entry label
+	"gid"		: _("&GID"),
+
+	// we do not show "fstype" key, this is limited to cifs...
+    ];
+
+    term input_fields	= `VBox (
+	// text entry label
+	`InputField (`id ("server"), `opt (`hstretch), _("&Server Name")),
+	// text entry label
+	`InputField (`id ("path"), `opt (`hstretch), _("Remote &Path")),
+	// text entry label
+	`InputField (`id ("mountpoint"), `opt (`hstretch), _("&Mount Point")),
+	// text entry label
+	`InputField (`id ("options"), `opt (`hstretch), _("O&ptions"))
+    );
+    // default keys
+    list<string> widgets	= [ "server", "path", "mountpoint", "options" ];
+
+    foreach (string key, string label, key2label, {
+	if (haskey (volume, key))
+	{
+	    input_fields	= add (input_fields,
+		`InputField (`id (key), `opt (`hstretch), label));
+	    widgets		= add (widgets, key);
+	}
+    });
+
+    UI::OpenDialog (`opt (`decorated), `HBox (`HSpacing (0.2), `VBox (
+	`VSpacing (0.2),
+	input_fields,
+	`VSpacing (0.2),
+	`HBox (
+	    `PushButton (`id (`ok), Label::OKButton ()),
+	    `PushButton (`id (`cancel), Label::CancelButton ())
+	),
+	`VSpacing (0.2)
+    ), `HSpacing (0.2)));
+
+    foreach (string key, widgets, {
+	UI::ChangeWidget (`id (key), `Value, volume[key]:"");
+    });
+
+    any ret	= UI::UserInput ();
+    if (ret == `ok)
+    {
+	// saving value to the same map we got as argument =>
+	// keys that were not shown (e.g. fstype) are preserved)
+	foreach (string key, widgets, {
+	    volume[key]	= UI::QueryWidget (`id (key), `Value);
+	});
+    }
+    UI::CloseDialog ();
+
+    // filter out default keys without value (but leave the rest, so they
+    // may appear on next editing)
+    return filter (string k, string v, (map<string,string>)volume, ``(
+	v != "" || !contains (["server", "path", "mountpoint", "options"], k))
+    );
+}
+
+/**
+ * dialog for setting expert settings, like winbind uid/gid keys (F301518)
+ */
+symbol ExpertSettingsDialog () {
 
     string winbind_uid	= SambaConfig::GlobalGetStr ("winbind uid","10000-20000");
     list l		= splitstring (winbind_uid, "-");
@@ -54,11 +131,33 @@ symbol ExpertSettingsPopup () {
 
     boolean hosts_resolution	= Samba::GetHostsResolution ();
 
-    string mount_server		= "";
-    string mount_path		= "";
-    string mount_share		= "";
-    string unc_path		= "";
-    // \\\\nue-lurch-1\\Profiles\\storage1\\dom1\\";
+    list<term> mount_items	= [];
+    list<map> non_cifs_volumes	= [];
+
+    // mapping of unique ID's to volume entries
+    map<integer,map> mount_map	= $[];
+    integer i			= 0;
+
+    foreach (map volume, Samba::GetPAMMountVolumes (), {
+	if (volume["fstype"]:"" != "cifs")
+	{
+	    y2debug ("volume fstype different from cifs, skipping");
+	    non_cifs_volumes	= add (non_cifs_volumes, volume);
+	    return;
+	}
+	mount_map[i]	= volume;
+	i		= i + 1;
+    });
+
+    list<term> build_mount_items () {
+
+	mount_items	= maplist (integer id, map volume, mount_map, {
+	    return `item (`id (id),
+		volume["server"]:"", volume["path"]:"",
+		volume["mountpoint"]:"", volume["options"]:"");
+	});
+	return mount_items;
+    }
 
     term contents	= `HBox (`HSpacing (3), `VBox (
 	`VSpacing (0.4),
@@ -85,21 +184,26 @@ symbol ExpertSettingsPopup () {
 	)),
 	`VSpacing (0.4),
 	// frame label
-	`Frame (_("Mount Server Home Directory"), `VBox (
-	    /*
-	    // text entry label
-	    `InputField (`id (`mount_server),`opt (`hstretch),_("&Server Name"),
-		mount_server),
-	    // text entry label
-	    `InputField (`id (`mount_share), `opt (`hstretch), _("S&hare Name"),
-		mount_share),
-	    // text entry label
-	    `InputField (`id (`mount_path), `opt (`hstretch),_("&Path"),
-		mount_path)
-	    */
-	    // text entry label
-	    `InputField (`id (`mount), `opt (`hstretch), _("&UNC Path"),
-		unc_path)
+	`Frame (_("Mount Server Directories"), `VBox (
+	    `Table (`id (`table), `opt(`notify), `header (
+		// table header
+//		_("UNC Path"),
+		// table header
+		_("Server Name"),
+		// table header
+		_("Remote Path"),
+		// table header
+		_("Local Mount Point"),
+		// table header
+		_("Options")),
+		build_mount_items ()
+	    ),
+	    `HBox (
+		`PushButton (`id (`add), Label::AddButton ()),
+		`PushButton (`id (`edit), Label::EditButton ()),
+		`PushButton (`id (`delete), Label::DeleteButton ()),
+		`HStretch ()
+	    )
 	))
     ), `HSpacing (3));
 
@@ -107,12 +211,46 @@ symbol ExpertSettingsPopup () {
     // dialog title
     Wizard::SetContents (_("Expert Settings"), contents, help_text, true, true);
 
-    any ret	= `cancel;
+    foreach (symbol s, [`add, `edit, `delete], {
+	UI::ChangeWidget (`id (s), `Enabled, size (mount_items) > 0);
+    });
+
+    any ret		= `cancel;
+    integer selected	= 0;
     while (true)
     {
 	any ret	= UI::UserInput ();
 	if (ret == `cancel)
 	    break;
+	if (ret == `delete || ret == `edit || ret == `table)
+	{
+	    selected	= (integer) UI::QueryWidget (`id (`table),`CurrentItem);
+	    if (ret == `table)
+		ret	= `edit;
+	}
+	if (ret == `delete)
+	{
+	    mount_map	= remove (mount_map, selected);
+	    UI::ChangeWidget (`id (`table), `Items, build_mount_items ());
+	    foreach (symbol s, [`add, `edit, `delete], {
+		UI::ChangeWidget (`id (s), `Enabled, size (mount_items) > 0);
+	    });
+	}
+	if (ret == `add || ret == `edit)
+	{
+	    map volume	= ret == `edit ? mount_map[selected]:$[] : $[];
+	    volume	= MountEntryPopup (volume);
+	    if (volume == $[])
+		continue;
+	    if (ret == `add)
+		volume["fstype"]	= "cifs";
+	    integer id		= ret == `edit ? selected : size (mount_map);
+	    mount_map[id]	= volume;
+	    UI::ChangeWidget (`id (`table), `Items, build_mount_items ());
+	    foreach (symbol s, [`add, `edit, `delete], {
+		UI::ChangeWidget (`id (s), `Enabled, size (mount_items) > 0);
+	    });
+	}
 	if (ret == `ok)
 	{
 	    uid_min	= (integer) UI::QueryWidget (`id (`uid_min),`Value);
@@ -135,6 +273,13 @@ larger than maximum one.\n"));
 	    Samba::SetDHCP ((boolean)UI::QueryWidget (`id (`dhcp), `Value));
 	    Samba::SetHostsResolution (
 		(boolean)UI::QueryWidget (`id (`hosts_resolution), `Value));
+
+	    list<map> updated_volumes	= non_cifs_volumes;
+	    foreach (integer id, map volume, mount_map, {
+		updated_volumes	= add (updated_volumes, volume);
+	    });
+	    Samba::SetPAMMountVolumes (updated_volumes);
+Samba::WritePAMMount ();
 	    break;
 	}
     }
@@ -359,7 +504,7 @@ symbol MembershipDialog () {
 	}
 	else if (ret == `expert)
 	{
-	    ExpertSettingsPopup ();
+	    ExpertSettingsDialog ();
 	}
 	else if (ret == `ntp)
 	{
