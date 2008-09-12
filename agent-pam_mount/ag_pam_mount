@@ -34,13 +34,20 @@ while (<STDIN>)
 	    my %retmap	= ();
 	    $pam_mount_file	= $argument;
 	    $pam_mount_file	= "/etc/security/pam_mount.conf.xml" if ! $argument;
-	    my $parser	= new XML::LibXML;
-	    $pam_mount	= $parser->parse_file ($pam_mount_file);
+	    if (-e $pam_mount_file) {
 
-	    if ($pam_mount) {
-		ycp::Return ("true");
+		my $parser	= new XML::LibXML;
+		$pam_mount	= $parser->parse_file ($pam_mount_file);
+
+		if ($pam_mount) {
+		    ycp::Return ("true");
+		}
+		else {
+		    ycp::Return ("false");
+		}
 	    }
 	    else {
+		y2error ("file $pam_mount_file does not exist!");
 		ycp::Return ("false");
 	    }
 	}
@@ -128,7 +135,8 @@ while (<STDIN>)
 	#	"attrmap"       : $[
 	#		"user"      : "hh",
 	#		"fstype"    : "cifs"
-	#	]
+	#	],
+	#	"newline"	: true
 	# ]);
 	# FIXME currently only attributes, no values
 	# FIXME no new line when new item is added...?
@@ -152,6 +160,10 @@ while (<STDIN>)
 		my $root	= $pam_mount->documentElement();
 
 		$root->appendChild ($new_element);
+
+		if ($argument->{"newline"}) {
+		    $root->appendTextNode ("\n\n");
+		}
 
 		ycp::Return ("true");
 	    }
