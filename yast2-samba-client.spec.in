@@ -2,7 +2,7 @@
 
 @HEADER@
 BuildRequires:	yast2-pam yast2-devtools yast2-perl-bindings perl-XML-Writer yast2-testsuite update-desktop-files
-Requires:	yast2-kerberos-client
+Requires:	yast2-kerberos-client perl-XML-LibXML
 
 # new Pam.ycp API
 Requires:       yast2-pam >= 2.14.0
