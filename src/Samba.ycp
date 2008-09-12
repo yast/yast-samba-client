@@ -121,7 +121,17 @@ boolean hosts_resolution	= nil;
 // host line of nsswitch.conf
 list<string> hosts_db		= [];
 
+// original value of hosts_resolution, for detecting changes
 boolean hosts_resolution_orig	= false;
+
+// path to pam_mount.conf.xml
+string pam_mount_path	= "/etc/security/pam_mount.conf.xml";
+
+// the volume data from pam_mount.conf.xml
+list<map> pam_mount_volumes		= [];
+
+// original value of pam_mount_volumes, for detecting changes
+list<map> pam_mount_volumes_orig	= [];
 
 // packages to install for specific arhitectures (#224418)
 global map arch_packages	= $[
@@ -177,23 +187,80 @@ global boolean GetModified() {
  * Read the data from /etc/security/pam_mount.conf.xml regarding
  * mounting user's home directories
  */
-global define boolean ReadPamMount () {
+global boolean ReadPAMMount () {
 
-    if (!FileUtils::Exists ("/etc/security/pam_mount.conf.xml"))
+    if (!FileUtils::Exists (pam_mount_path))
     {
-	y2warning ("/etc/security/pam_mount.conf.xml does not exist");
+	y2warning ("%1 does not exist", pam_mount_path);
 	return false;
     }
     // initially, parse the whole file and let the agent build data map
-    if (SCR::Read (.pam_mount) != true)
+    if (SCR::Read (.pam_mount, "/tmp/pam_mount.xml") != true)
     {
-	y2warning ("reading /etc/security/pam_mount.conf.xml failed");
+	y2warning ("reading %1 failed", pam_mount_path);
 	return false;
     }
 
-    list volumes	= (list) SCR::Read (.pam_mount.get, $[
+    pam_mount_volumes	= (list<map>) SCR::Read (.pam_mount.get, $[
 	"element"   : "volume",
     ]);
+    if (pam_mount_volumes == nil)
+	pam_mount_volumes	= [];
+
+    pam_mount_volumes_orig	= pam_mount_volumes;
+    return true;
+}
+
+/**
+ * Return the list of 'volume' entries from pam_mount.conf.xml
+ */
+global list<map> GetPAMMountVolumes () {
+
+    return pam_mount_volumes;
+}
+
+/**
+ * Set the new list of 'volume' entries
+ */
+global void SetPAMMountVolumes (list<map> new_volumes) {
+
+    pam_mount_volumes	= new_volumes;
+}
+
+/**
+ * Write the changes to /etc/security/pam_mount.conf.xml
+ */
+global boolean WritePAMMount () {
+
+    if (sort (pam_mount_volumes) == sort (pam_mount_volumes_orig))
+    {
+	y2milestone ("no changes to pam_mount.conf.xml");
+	return true;
+    }
+    SCR::Execute (.target.bash, sformat ("cp %1 %1.YaST2save", pam_mount_path));
+
+    // 1. delete all volume entries with 'cifs' fstype
+    SCR::Write (.pam_mount.delete, $[
+	"element"       : "volume",
+	"attrmap"	: $[
+	    "fstype"	: "cifs"
+	]
+    ]);
+
+    // 2. save the new set of volume entries
+    foreach (map volume, pam_mount_volumes, {
+	if (volume["fstype"]:"" != "cifs")
+	    return;
+	// if no volume entry is present, add new
+	SCR::Write (.pam_mount.add, $[
+	    "element"	: "volume",
+	    // ... the keys without values should not end in config file
+	    "attrmap"	: filter (
+		string k, string v, (map<string,string>)volume,``(v != "")),
+	    "newline"	: true
+	]);
+    });
+    SCR::Write (.pam_mount, nil);
     return true;
 }
 
@@ -633,7 +700,7 @@ global boolean Read() {
 
     SuSEFirewall::Read ();
 
-    ReadPamMount ();
+    ReadPAMMount ();
 
     // finished
     Progress::NextStage();
@@ -806,6 +873,7 @@ global boolean Write(boolean write_only) {
     if (!write_only)
 	SuSEFirewall::ActivateConfiguration ();
 
+    WritePAMMount ();
 
     // finished
     Progress::NextStage();
