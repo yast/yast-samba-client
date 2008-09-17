@@ -153,6 +153,12 @@ global map arch_packages	= $[
         "s390_64"	: [ "samba-winbind-32bit" ],
         "x86_64"	: [ "samba-winbind-32bit" ],
     ],
+    "pam_mount"		: $[
+	"ia64"		: [ "pam_mount-x86" ],
+	"ppc64"		: [ "pam_mount-64bit" ],
+	"s390_64"	: [ "pam_mount-32bit" ],
+	"x86_64"	: [ "pam_mount-32bit" ],
+    ],
 ];
 
 // network configuration (to be read from NetworkConfig module)
