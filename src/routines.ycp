@@ -145,14 +145,14 @@ define boolean ReallyAbort() ``{
  * 			it is a domain, but the status is not known
  */
 define symbol CheckWorkgroup( string workgroup ) ``{
-    
+
     // for autoyast, skip testing
     if( Mode::config() ) return `workgroup;
-    
+
     symbol ret = nil;
-	    
+
     // translators: text for busy pop-up
-    UI::OpenDialog( `VBox( `Label( _("Verifying workgroup membership...") ) ) );
+    Popup::ShowFeedback ("", _("Verifying workgroup membership..."));
 
     if (SambaNmbLookup::IsDomain(workgroup) || SambaAD::ADS () != "") {
 
@@ -165,11 +165,8 @@ define symbol CheckWorkgroup( string workgroup ) ``{
     } else {
 	ret = `workgroup;
     }
-    
-    UI::CloseDialog();
-    
+    Popup::ClearFeedback ();
     y2debug( "Check workgroup result: %1", ret );
-    
     return ret;
 }
 
@@ -421,7 +418,14 @@ define string SharesHelp () {
     _("<p>To permit access to user shares without authentication, enable <b>Allow Guest Access</b>.</p>");
 }
 
+/**
+ * return the help text for PAM Mount table
+ */
+string PAMMountHelp () {
 
+    // help text for PAM Mount table
+    return _("<p>In the table <b>Mount Server Directories</b>, you can specify server directories (such as home directory) which should be localy mounted when the user is logged in. If mounting should be user-specific, specify <b>User Name</b> for selected rule. Otherwise, the directory is mounted for each user. For more information, see pam_mount.conf manual page.</p>");
+}
 
 /* EOF */
 }
