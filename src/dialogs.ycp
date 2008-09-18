@@ -35,8 +35,6 @@ map MountEntryPopup (map volume) {
     // volume entry (manualy added to congig file)
     map<string,string> key2label	= $[
 	// text entry label
-	"user"		: _("&User Name"),
-	// text entry label
 	"uid"		: _("U&ID"),
 	// text entry label
 	"pgrp"		: _("&Primary Group Name"),
@@ -56,10 +54,12 @@ map MountEntryPopup (map volume) {
 	// text entry label
 	`InputField (`id ("mountpoint"), `opt (`hstretch), _("&Mount Point")),
 	// text entry label
-	`InputField (`id ("options"), `opt (`hstretch), _("O&ptions"))
+	`InputField (`id ("options"), `opt (`hstretch), _("O&ptions")),
+	// text entry label
+	`InputField (`id ("user"), `opt (`hstretch), _("&User Name"))
     );
     // default keys
-    list<string> widgets	= [ "server", "path", "mountpoint", "options" ];
+    list<string> widgets = [ "server", "path", "mountpoint", "options", "user"];
 
     foreach (string key, string label, key2label, {
 	if (haskey (volume, key))
@@ -99,14 +99,15 @@ map MountEntryPopup (map volume) {
     // filter out default keys without value (but leave the rest, so they
     // may appear on next editing)
     return filter (string k, string v, (map<string,string>)volume, ``(
-	v != "" || !contains (["server", "path", "mountpoint", "options"], k))
-    );
+	v != "" ||
+	!contains (["server", "path", "mountpoint", "options", "user"], k)
+    ));
 }
 
 /**
  * dialog for setting expert settings, like winbind uid/gid keys (F301518)
  */
-symbol ExpertSettingsDialog () {
+symbol ExpertSettingsDialog (boolean use_winbind) {
 
     string winbind_uid	= SambaConfig::GlobalGetStr ("winbind uid","10000-20000");
     list l		= splitstring (winbind_uid, "-");
@@ -127,7 +128,8 @@ symbol ExpertSettingsDialog () {
     string help_text	= _("<p>Specify the <b>Range</b> for Samba user and group IDs (<tt>winbind uid</tt> and <tt>winbind gid</tt> values).</p>")
 
     + HostsResolutionHelp ()
-    + DHCPSupportHelp ();
+    + DHCPSupportHelp ()
+    + PAMMountHelp ();
 
     boolean hosts_resolution	= Samba::GetHostsResolution ();
 
@@ -154,7 +156,8 @@ symbol ExpertSettingsDialog () {
 	mount_items	= maplist (integer id, map volume, mount_map, {
 	    return `item (`id (id),
 		volume["server"]:"", volume["path"]:"",
-		volume["mountpoint"]:"", volume["options"]:"");
+		volume["mountpoint"]:"", volume["user"]:"",
+		volume["options"]:"");
 	});
 	return mount_items;
     }
@@ -187,13 +190,13 @@ symbol ExpertSettingsDialog () {
 	`Frame (_("Mount Server Directories"), `VBox (
 	    `Table (`id (`table), `opt(`notify), `header (
 		// table header
-//		_("UNC Path"),
-		// table header
 		_("Server Name"),
 		// table header
 		_("Remote Path"),
 		// table header
 		_("Local Mount Point"),
+		// table header
+		_("User Name"),
 		// table header
 		_("Options")),
 		build_mount_items ()
@@ -211,7 +214,7 @@ symbol ExpertSettingsDialog () {
     // dialog title
     Wizard::SetContents (_("Expert Settings"), contents, help_text, true, true);
 
-    foreach (symbol s, [`add, `edit, `delete], {
+    foreach (symbol s, [`edit, `delete], {
 	UI::ChangeWidget (`id (s), `Enabled, size (mount_items) > 0);
     });
 
@@ -232,7 +235,7 @@ symbol ExpertSettingsDialog () {
 	{
 	    mount_map	= remove (mount_map, selected);
 	    UI::ChangeWidget (`id (`table), `Items, build_mount_items ());
-	    foreach (symbol s, [`add, `edit, `delete], {
+	    foreach (symbol s, [`edit, `delete], {
 		UI::ChangeWidget (`id (s), `Enabled, size (mount_items) > 0);
 	    });
 	}
@@ -247,7 +250,7 @@ symbol ExpertSettingsDialog () {
 	    integer id		= ret == `edit ? selected : size (mount_map);
 	    mount_map[id]	= volume;
 	    UI::ChangeWidget (`id (`table), `Items, build_mount_items ());
-	    foreach (symbol s, [`add, `edit, `delete], {
+	    foreach (symbol s, [ `edit, `delete], {
 		UI::ChangeWidget (`id (s), `Enabled, size (mount_items) > 0);
 	    });
 	}
@@ -279,7 +282,6 @@ larger than maximum one.\n"));
 		updated_volumes	= add (updated_volumes, volume);
 	    });
 	    Samba::SetPAMMountVolumes (updated_volumes);
-Samba::WritePAMMount ();
 	    break;
 	}
     }
@@ -319,7 +321,7 @@ symbol MembershipDialog () {
 	    return;
 
 	// busy popup text
-	Popup::ShowFeedback ("",_("Verifying domain membership..."));
+	Popup::ShowFeedback ("",_("Verifying AD domain membership..."));
 	SambaAD::ReadADS (domain);
 	if (SambaAD::ADS () != "")
 	{
@@ -504,7 +506,7 @@ symbol MembershipDialog () {
 	}
 	else if (ret == `expert)
 	{
-	    ExpertSettingsDialog ();
+	    ExpertSettingsDialog (use_winbind);
 	}
 	else if (ret == `ntp)
 	{

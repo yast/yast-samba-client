@@ -131,7 +131,7 @@ string pam_mount_path	= "/etc/security/pam_mount.conf.xml";
 list<map> pam_mount_volumes		= [];
 
 // original value of pam_mount_volumes, for detecting changes
-list<map> pam_mount_volumes_orig	= [];
+list<map> pam_mount_volumes_orig	= nil;
 
 // packages to install for specific arhitectures (#224418)
 global map arch_packages	= $[
@@ -179,6 +179,15 @@ global define list<string> UpdatedArchPackages (list<string> packages) {
     return ret;
 }
 
+boolean PAMMountModified () {
+
+    return
+    (pam_mount_volumes_orig == nil && pam_mount_volumes != [])
+    ||
+    (pam_mount_volumes_orig != nil &&
+     (sort (pam_mount_volumes) != sort (pam_mount_volumes_orig)));
+}
+
 
 /**
  * Data was modified?
@@ -186,7 +195,7 @@ global define list<string> UpdatedArchPackages (list<string> packages) {
  */
 global boolean GetModified() {
     y2debug("modified=%1",modified);
-    return modified || mkhomedir_modified || shares_modified || SambaConfig::GetModified() || ssh_modified;
+    return modified || mkhomedir_modified || shares_modified || SambaConfig::GetModified() || ssh_modified || PAMMountModified ();
 };
 
 /**
@@ -201,7 +210,7 @@ global boolean ReadPAMMount () {
 	return false;
     }
     // initially, parse the whole file and let the agent build data map
-    if (SCR::Read (.pam_mount, "/tmp/pam_mount.xml") != true)
+    if (SCR::Read (.pam_mount, pam_mount_path) != true)
     {
 	y2warning ("reading %1 failed", pam_mount_path);
 	return false;
@@ -238,11 +247,26 @@ global void SetPAMMountVolumes (list<map> new_volumes) {
  */
 global boolean WritePAMMount () {
 
-    if (sort (pam_mount_volumes) == sort (pam_mount_volumes_orig))
+    if (!FileUtils::Exists (pam_mount_path))
+    {
+	y2warning ("%1 does not exist, no writing", pam_mount_path);
+	return false;
+    }
+    if (pam_mount_volumes_orig == nil)
+    {
+	y2milestone ("%1 not read yet, reading now...", pam_mount_path);
+        if (SCR::Read (.pam_mount, pam_mount_path) != true)
+	{
+	    y2error ("reading %1 failed", pam_mount_path);
+	    return false;
+	}
+    }
+    if (!PAMMountModified ())
     {
 	y2milestone ("no changes to pam_mount.conf.xml");
 	return true;
     }
+
     SCR::Execute (.target.bash, sformat ("cp %1 %1.YaST2save", pam_mount_path));
 
     // 1. delete all volume entries with 'cifs' fstype

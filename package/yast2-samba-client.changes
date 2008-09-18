@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Sep 18 11:42:18 CEST 2008 - jsuchome@suse.cz
+
+- added help text for pam_mount table
+- use correct, not temporary pam_mount.conf.xml file
+- 2.17.6
+
+-------------------------------------------------------------------
 Tue Sep 16 15:35:09 CEST 2008 - jsuchome@suse.cz
 
 - install pam_mount package (for fate#300967)
