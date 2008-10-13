@@ -95,7 +95,7 @@ sub AdjustNsswitch {
     }
     # restart D-BUS (#174589) FIXME this should be elsewhere
     if (!$write_only && Service->Status ("dbus") == 0) {
-	Service->Reload ("dbus");
+	Service->Restart ("dbus");
     }
     # restart zmd (#174589) FIXME this should be elsewhere
     if (!$write_only && PackageSystem->Installed ("zmd") &&

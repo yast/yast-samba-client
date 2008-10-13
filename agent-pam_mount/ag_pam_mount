@@ -77,6 +77,10 @@ while (<STDIN>)
 		ycp::Return (\@retlist, 1);
 	    }
 	}
+	else {
+	    y2error ("wrong command ($command)");
+	    ycp::Return ("false");
+	}
     }
     elsif ($command eq "Write")
     {
@@ -216,6 +220,10 @@ while (<STDIN>)
 
 		ycp::Return ("true");
 	    }
+	}
+	else {
+	    y2error ("wrong command ($command)");
+	    ycp::Return ("false");
 	}
     }
     elsif ($command eq "result")
