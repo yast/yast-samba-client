@@ -903,7 +903,16 @@ global boolean Write(boolean write_only) {
     if (!write_only)
 	SuSEFirewall::ActivateConfiguration ();
 
-    WritePAMMount ();
+    if (WritePAMMount () && size (pam_mount_volumes) > 0)
+    {
+	// enable pam_mount for services gdm, xdm, login, sshd (bnc#433845)
+	foreach (string service, ["gdm", "login", "xdm", "sshd" ], {
+	    map out = (map)SCR::Execute (.target.bash_output, sformat (
+		"pam-config --service %1 -a --mount", service));
+	    if (out["stderr"]:"" != "")
+		y2warning ("pam-config failed for service %1", service);
+	});
+    }
 
     // finished
     Progress::NextStage();

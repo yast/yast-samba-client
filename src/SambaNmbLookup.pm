@@ -125,6 +125,7 @@ sub checkNmbstatus {
 	
 	# nmbstatus already finished, parse the output
 	my $std_out = SCR->Read (".process.read", to_integer ($process_id));
+	$std_out = "" if !defined $std_out;
 	y2debug ("nmbstatus => ".Dumper($std_out));
 	my $err_out	=
 	    SCR->Read (".process.read_stderr", to_integer ($process_id));

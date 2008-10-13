@@ -139,13 +139,10 @@ sub Leave {
     my ($self, $domain, $user, $passwd) = @_;
     
     my $tmpdir		= SCR->Read (".target.tmpdir");
-    my $conf_file	= $tmpdir."/smb.conf";
     my $realm		= SambaAD->Realm ();
     
-    SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
-
-    my $cmd = "net ads leave -s $conf_file"
-	. " -U '" . String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
+    my $cmd = "net ads leave -U '"
+	. String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
 
     my $result = SCR->Execute(".target.bash_output", $cmd);
     $cmd =~ s/(-U '[^%]*)%[^']*'/$1'/; # hide password in the log

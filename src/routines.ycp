@@ -72,7 +72,7 @@ map<string, string> passwordUserPopup (string message, string defaultuser, strin
 	`VSpacing (0.2)
     ), `HSpacing (0.7)));
 
-    if (SambaAD::ADS () != "")
+    if (SambaAD::ADS () != ""  && what != `leave)
     {
 	UI::ChangeWidget (`id (`machines), `Enabled, false);
     }
