@@ -81,6 +81,11 @@ map MountEntryPopup (map volume) {
 	`VSpacing (0.2)
     ), `HSpacing (0.2)));
 
+    if (volume == $[])
+    {
+	// offer this as a default option for new volumes (bnc#433845)
+	volume["options"]	= "user=%(DOMAIN_USER)";
+    }
     foreach (string key, widgets, {
 	UI::ChangeWidget (`id (key), `Value, volume[key]:"");
     });
@@ -98,10 +103,14 @@ map MountEntryPopup (map volume) {
 
     // filter out default keys without value (but leave the rest, so they
     // may appear on next editing)
-    return filter (string k, string v, (map<string,string>)volume, ``(
+    volume	= filter (string k, string v, (map<string,string>)volume, ``(
 	v != "" ||
 	!contains (["server", "path", "mountpoint", "options", "user"], k)
     ));
+    // nothing was added, remove the proposal
+    if (size (volume) == 1 && volume["options"]:"" == "user=%(DOMAIN_USER)")
+	volume	= $[];
+    return volume;
 }
 
 /**
