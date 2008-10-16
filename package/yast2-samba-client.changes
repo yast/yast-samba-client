@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct 15 14:36:15 CEST 2008 - jsuchome@suse.cz
+
+- updated help text for pam_mount configuration
+- offer "user=%(DOMAIN_USER)" as a default option value (bnc#433845)
+- 2.17.9
+
+-------------------------------------------------------------------
 Mon Oct 13 12:22:25 CEST 2008 - jsuchome@suse.cz
 
 - enable pam_mount module for PAM (bnc#433845)
