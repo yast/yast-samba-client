@@ -210,7 +210,7 @@ sub Read {
 
     # read the complete global section
     $AllAtOnce	= {};
-    if (FileUtils->Exists ("/etc/security/winbind.conf")) {
+    if (FileUtils->Exists ("/etc/security/pam_winbind.conf")) {
 	$AllAtOnce = SCR->Read(".etc.security_winbind.all");
     }
 
