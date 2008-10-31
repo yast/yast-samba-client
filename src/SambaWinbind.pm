@@ -93,10 +93,6 @@ sub AdjustNsswitch {
 	SCR->Execute (".target.bash", "/usr/sbin/nscd -i passwd");
 	SCR->Execute (".target.bash", "/usr/sbin/nscd -i group");
     }
-    # restart D-BUS (#174589) FIXME this should be elsewhere
-    if (!$write_only && Service->Status ("dbus") == 0) {
-	Service->Restart ("dbus");
-    }
     # restart zmd (#174589) FIXME this should be elsewhere
     if (!$write_only && PackageSystem->Installed ("zmd") &&
 	Service->Status ("novell-zmd") == 0)

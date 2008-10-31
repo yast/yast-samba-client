@@ -460,8 +460,9 @@ global define boolean SetShares (integer max, string group)
  */
 global define boolean GetWinbindCaching () {
 
-    return SambaConfig::WinbindGlobalGetStr("cached_login", "") == "yes" &&
-	   SambaConfig::GlobalGetStr("winbind offline logon", "") == "yes";
+    string cached = SambaConfig::WinbindGlobalGetStr ("cached_login", "");
+    string offline = SambaConfig::GlobalGetStr ("winbind offline logon", "");
+    return cached == "yes" && offline == "yes";
 }
 
 /**
