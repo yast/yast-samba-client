@@ -18,11 +18,13 @@ textdomain "samba-client";
 our %TYPEINFO;
 
 BEGIN{
+YaST::YCP::Import("Directory");
 YaST::YCP::Import("Nsswitch");
 YaST::YCP::Import("Pam");
 YaST::YCP::Import("PackageSystem");
 YaST::YCP::Import("Progress");
 YaST::YCP::Import("Service");
+YaST::YCP::Import("Stage");
 YaST::YCP::Import("SCR");
 
 YaST::YCP::Import("SambaConfig");
@@ -92,13 +94,31 @@ sub AdjustNsswitch {
     if (!$write_only && PackageSystem->Installed ("nscd")) {
 	SCR->Execute (".target.bash", "/usr/sbin/nscd -i passwd");
 	SCR->Execute (".target.bash", "/usr/sbin/nscd -i group");
+	Service->RunInitScript ("nscd", "try-restart");
     }
-    # restart zmd (#174589) FIXME this should be elsewhere
+    # restart zmd (#174589)
     if (!$write_only && PackageSystem->Installed ("zmd") &&
 	Service->Status ("novell-zmd") == 0)
     {
 	Service->RunInitScript ("novell-zmd", "try-restart");
     }
+    # after finish of 2nd stage, restart running services (bnc#395402)
+    if ($on && Stage->cont ())
+    {
+	my @services	= ();
+	foreach my $service ("dbus", "haldaemon") {
+	    push @services, $service if (Service->Status ($service) == 0);
+	};
+	my $size	= @services;
+	if (@services)
+	{
+	    SCR->Write (".target.string",
+		Directory->vardir () . "/restart_services",
+		join ("\n", @services) . "\n"
+	    );
+	}
+    }
+
     return $ret;
 }
     
