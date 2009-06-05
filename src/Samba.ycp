@@ -137,25 +137,25 @@ list<map> pam_mount_volumes_orig	= nil;
 global map arch_packages	= $[
     "krb5"	: $[
         "ia64"		: [ "krb5-x86" ],
-        "ppc64"		: [ "krb5-64bit" ],
+        "ppc64"		: [ "krb5-32bit" ],
         "s390_64"	: [ "krb5-32bit" ],
         "x86_64"	: [ "krb5-32bit" ],
     ],
     "samba-client"	: $[
         "ia64"		: [ "samba-client-x86" ],
-        "ppc64"		: [ "samba-client-64bit" ],
+        "ppc64"		: [ "samba-client-32bit" ],
         "s390_64"	: [ "samba-client-32bit" ],
         "x86_64"	: [ "samba-client-32bit" ],
     ],
     "samba-winbind"	: $[
         "ia64"		: [ "samba-winbind-x86" ],
-        "ppc64"		: [ "samba-winbind-64bit" ],
+        "ppc64"		: [ "samba-winbind-32bit" ],
         "s390_64"	: [ "samba-winbind-32bit" ],
         "x86_64"	: [ "samba-winbind-32bit" ],
     ],
     "pam_mount"		: $[
 	"ia64"		: [ "pam_mount-x86" ],
-	"ppc64"		: [ "pam_mount-64bit" ],
+	"ppc64"		: [ "pam_mount-32bit" ],
 	"s390_64"	: [ "pam_mount-32bit" ],
 	"x86_64"	: [ "pam_mount-32bit" ],
     ],
