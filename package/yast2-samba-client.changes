@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun  5 13:52:34 CEST 2009 - jsuchome@suse.cz
+
+- fixed architecture dependent packages for PPC (bnc#505263)
+- 2.17.12
+
+-------------------------------------------------------------------
 Thu Nov  6 16:23:06 CET 2008 - jsuchome@suse.cz
 
 - note services that should be restarted after installation
