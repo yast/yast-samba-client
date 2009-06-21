@@ -12,7 +12,7 @@ Requires:       yast2 >= 2.16.41
 
 BuildArchitectures:	noarch
 
-Summary:	Configuration of samba-client
+Summary:	YaST2 - Samba Client Configuration
 
 %description
 -
