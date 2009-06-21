@@ -15,7 +15,8 @@ BuildArchitectures:	noarch
 Summary:	YaST2 - Samba Client Configuration
 
 %description
--
+This package contains the YaST2 component for configuration of an SMB
+workgroup/domain and authentication against an SMB domain.
 
 @PREP@
 
