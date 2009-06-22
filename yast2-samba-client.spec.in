@@ -1,6 +1,7 @@
 @HEADER-COMMENT@
 
 @HEADER@
+Group:	System/YaST
 License: GPL v2 or later
 BuildRequires:	yast2-pam yast2-devtools yast2-perl-bindings perl-XML-Writer yast2-testsuite update-desktop-files
 Requires:	yast2-kerberos-client perl-XML-LibXML
