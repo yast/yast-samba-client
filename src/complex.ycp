@@ -35,8 +35,7 @@ symbol ReadDialog() {
     Wizard::RestoreHelp(HELPS["read"]:"");
 
     // check installed packages
-    if (!PackageSystem::CheckAndInstallPackagesInteractive(
-	Samba::UpdatedArchPackages (["samba-client"])))
+    if (!PackageSystem::CheckAndInstallPackagesInteractive(["samba-client"]))
     {
 	y2warning("package samba-client not installed");
         return `abort;

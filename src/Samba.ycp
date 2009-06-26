@@ -15,7 +15,6 @@
 module "Samba";
 textdomain "samba-client";
 
-import "Arch";
 import "Autologin";
 import "FileUtils";
 import "NetworkConfig";
@@ -133,51 +132,8 @@ list<map> pam_mount_volumes		= [];
 // original value of pam_mount_volumes, for detecting changes
 list<map> pam_mount_volumes_orig	= nil;
 
-// packages to install for specific arhitectures (#224418)
-global map arch_packages	= $[
-    "krb5"	: $[
-        "ia64"		: [ "krb5-x86" ],
-        "ppc64"		: [ "krb5-32bit" ],
-        "s390_64"	: [ "krb5-32bit" ],
-        "x86_64"	: [ "krb5-32bit" ],
-    ],
-    "samba-client"	: $[
-        "ia64"		: [ "samba-client-x86" ],
-        "ppc64"		: [ "samba-client-32bit" ],
-        "s390_64"	: [ "samba-client-32bit" ],
-        "x86_64"	: [ "samba-client-32bit" ],
-    ],
-    "samba-winbind"	: $[
-        "ia64"		: [ "samba-winbind-x86" ],
-        "ppc64"		: [ "samba-winbind-32bit" ],
-        "s390_64"	: [ "samba-winbind-32bit" ],
-        "x86_64"	: [ "samba-winbind-32bit" ],
-    ],
-    "pam_mount"		: $[
-	"ia64"		: [ "pam_mount-x86" ],
-	"ppc64"		: [ "pam_mount-32bit" ],
-	"s390_64"	: [ "pam_mount-32bit" ],
-	"x86_64"	: [ "pam_mount-32bit" ],
-    ],
-];
-
 // network configuration (to be read from NetworkConfig module)
 global map network_setup	= NetworkConfig::Export ();
-
-/**
- * Return list of architecture specific packages (derived from package list
- * given as parameter) merged with the packages in parameter
- */
-global define list<string> UpdatedArchPackages (list<string> packages) {
-
-    list<string> ret	= packages;
-    string arch		= Arch::architecture ();
-
-    foreach (string package, packages, {
-        ret	= (list<string>) union (ret, arch_packages[package,arch]:[]);
-    });
-    return ret;
-}
 
 boolean PAMMountModified () {
 
@@ -1138,7 +1094,7 @@ global define map AutoPackages() ``{
     if (SambaAD::ADS () != "")
 	to_install = (list<string>) union (to_install, ["krb5", "krb5-client"]);
     return $[
-	"install"	: UpdatedArchPackages (to_install),
+	"install"	: to_install,
 	"remove"	: []
     ];
 }

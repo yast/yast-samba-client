@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 26 15:02:54 CEST 2009 - jsuchome@suse.cz
+
+- manual installation of 32bit packages packages no longer needed
+  (bnc#354164) 
+- 2.18.1
+
+-------------------------------------------------------------------
 Fri Jun  5 13:52:34 CEST 2009 - jsuchome@suse.cz
 
 - fixed architecture dependent packages for PPC (bnc#505263)

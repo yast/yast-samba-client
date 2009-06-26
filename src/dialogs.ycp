@@ -629,7 +629,6 @@ Disable hostname changes with DHCP?"));
 		{
 		    packages = (list<string>)merge(packages,["krb5","krb5-client"]);
 		}
-		packages	= Samba::UpdatedArchPackages (packages);
 		if (!Package::InstallAll (packages))
 		{
 		    Popup::Error (Message::FailedToInstallPackages ());
