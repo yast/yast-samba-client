@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 21 11:50:07 CEST 2009 - jsuchome@suse.cz
+
+- include /etc/samba/dhcp.conf in temporary smb.conf if such
+  configuration is allowed in sysconfig (bnc#520648)
+- 2.13.42
+
+-------------------------------------------------------------------
 Tue Apr  7 14:48:25 CEST 2009 - jsuchome@suse.cz
 
 - adapt help texts to reflect current state (bnc#492505)
