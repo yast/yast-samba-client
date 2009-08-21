@@ -39,13 +39,15 @@ sub Test {
     my $protocol	= SambaAD->ADS () ne "" ? "ads" : "rpc";
     my $netbios_name 	= SambaConfig->GlobalGetStr("netbios name", undef);
     my $conf_file	= SCR->Read (".target.tmpdir")."/smb.conf";
+    my $include		= "";
+    $include	= "\n\tinclude = /etc/samba/dhcp.conf" if (SCR->Read (".sysconfig.network.dhcp.DHCLIENT_MODIFY_SMB_CONF") eq "yes");
 
     if ($protocol eq "ads") {
 	my $realm	= SambaAD->Realm ();
-	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
+	SCR->Write (".target.string", $conf_file, "[global]$include\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
     }
     else {
-	SCR->Write (".target.string", $conf_file, "[global]\n\tsecurity = domain\n\tworkgroup = $domain\n");
+	SCR->Write (".target.string", $conf_file, "[global]$include\n\tsecurity = domain\n\tworkgroup = $domain\n");
     }
 
     # FIXME -P is probably wrong, but suppresses password prompt
@@ -82,15 +84,19 @@ sub Join {
     my $conf_file	= $tmpdir."/smb.conf";
     my $cmd		= "";
 
+    my $include		= "";
+    # bnc#520648 (DHCP may know WINS server address)
+    $include	= "\n\tinclude = /etc/samba/dhcp.conf" if (SCR->Read (".sysconfig.network.dhcp.DHCLIENT_MODIFY_SMB_CONF") eq "yes");
+
     if ($protocol eq "ads") {
 	my $krb_file	= $tmpdir."/krb5.conf";
 	my $realm	= SambaAD->Realm ();
-	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
+	SCR->Write (".target.string", $conf_file, "[global]$include\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
 	$cmd		= "KRB5_CONFIG=$krb_file ";
 	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
     }
     else {
-	SCR->Write (".target.string", $conf_file, "[global]\n\tsecurity = domain\n\tworkgroup = $domain\n");
+	SCR->Write (".target.string", $conf_file, "[global]$include\n\tsecurity = domain\n\tworkgroup = $domain\n");
     }
 
     $cmd = $cmd."net $protocol join "
