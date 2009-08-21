@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 21 11:51:11 CEST 2009 - jsuchome@suse.cz
+
+- include /etc/samba/dhcp.conf in temporary smb.conf if such
+  configuration is allowed in sysconfig (bnc#520648)
+- 2.18.2
+
+-------------------------------------------------------------------
 Fri Jun 26 15:02:54 CEST 2009 - jsuchome@suse.cz
 
 - manual installation of 32bit packages packages no longer needed
