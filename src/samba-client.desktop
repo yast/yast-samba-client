@@ -18,6 +18,7 @@ X-SuSE-YaST-AutoInstResource=samba-client
 X-SuSE-YaST-AutoInstClonable=true
 X-SuSE-YaST-AutoInstRequires=lan
 X-SuSE-YaST-AutoInstSchema=samba-client.rnc
+X-SuSE-YaST-Keywords=authentication,samba,windows
 
 Icon=yast-samba-client
 Exec=/sbin/yast2 samba-client 

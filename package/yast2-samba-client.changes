@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  3 14:39:16 CEST 2009 - jsuchome@suse.cz
+
+- added keywords to desktop file 
+- 2.18.3
+
+-------------------------------------------------------------------
 Fri Aug 21 11:51:11 CEST 2009 - jsuchome@suse.cz
 
 - include /etc/samba/dhcp.conf in temporary smb.conf if such
