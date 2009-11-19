@@ -135,7 +135,7 @@ list<map> pam_mount_volumes_orig	= nil;
 // network configuration (to be read from NetworkConfig module)
 global map network_setup	= NetworkConfig::Export ();
 
-boolean PAMMountModified () {
+global boolean PAMMountModified () {
 
     return
     (pam_mount_volumes_orig == nil && pam_mount_volumes != [])
@@ -1090,7 +1090,7 @@ global define boolean GetWinbind() ``{
  * @return map of packages to be installed and to be removed
  */
 global define map AutoPackages() ``{
-    list<string> to_install = ["samba-client", "samba-winbind"];
+    list<string> to_install = ["samba-client", "samba-winbind", "pam_mount"];
     if (SambaAD::ADS () != "")
 	to_install = (list<string>) union (to_install, ["krb5", "krb5-client"]);
     return $[

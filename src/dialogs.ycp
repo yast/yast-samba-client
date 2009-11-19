@@ -629,6 +629,10 @@ Disable hostname changes with DHCP?"));
 		{
 		    packages = (list<string>)merge(packages,["krb5","krb5-client"]);
 		}
+		if (Samba::PAMMountModified () && size (Samba::GetPAMMountVolumes ()) > 0)
+		{
+		    packages	= add (packages, "pam_mount");
+		}
 		if (!Package::InstallAll (packages))
 		{
 		    Popup::Error (Message::FailedToInstallPackages ());

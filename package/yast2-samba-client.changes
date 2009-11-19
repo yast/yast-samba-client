@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Nov 19 09:43:02 CET 2009 - jsuchome@suse.cz
+
+- install pam_mount if necessary (bnc#552211)
+- 2.19.0 
+
+-------------------------------------------------------------------
 Thu Sep  3 14:39:16 CEST 2009 - jsuchome@suse.cz
 
 - added keywords to desktop file 
