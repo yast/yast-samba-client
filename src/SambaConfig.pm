@@ -35,6 +35,8 @@ my %Config;	# configuration hash
 
 my %WinbindConfig;	# configuration hash for /etc/security/pam_winbind.conf
 
+my %OriginalKeys;	# saving original names of smb.conf keys
+
 ###########################################################################
 # global (static) variables (constants)
 
@@ -171,6 +173,7 @@ sub Read {
     
     # forget previous configuration
     %Config = ();
+    %OriginalKeys	= ();
 
     # read the complete global section
     my $AllAtOnce = SCR->Read(".etc.smb.all");
@@ -193,16 +196,26 @@ sub Read {
 	    next if $line->{kind} ne "value";
 	    next if $line->{type} and not $section->{type}; # commented line
 
-	    if (defined $Config{$share}{$line->{name}}) {
-		$self->ShareAddStr($share, $line->{name}, $line->{value});
+	    my $key	= $line->{name};
+	    if ($key ne lc ($key)) {
+		# we are lowercasing keys later for simpler comparing, now save those
+		# which were not in lower case before
+		$OriginalKeys{$share}	= {} if !defined $OriginalKeys{$share};
+		$OriginalKeys{$share}{lc ($key)}	= $key;
+		y2debug ("key $key not in lowercase");
+	    }
+
+	    if (defined $Config{$share}{$key}) {
+		$self->ShareAddStr($share, $key, $line->{value});
 	    }
 	    else {
-		$self->ShareSetStr($share, $line->{name}, $line->{value});
+		$self->ShareSetStr($share, $key, $line->{value});
 	    }
 	}
     }
     $self->UnsetModified();
     y2debug ("Read config: ".Dumper(\%Config));
+    y2debug ("original keys: ".Dumper(\%OriginalKeys));
 
     # configuraton already read
     return 1 if not $forceReRead and %WinbindConfig;
@@ -354,9 +367,12 @@ sub Write {
 		if (ref ($val) ne "ARRAY") {
 		    $val = [ String($val) ];
 		}
-	        SCR->Write(".etc.smb.value.global.$key", $val);
+		# check if key was not changed on read
+		my $saved_key	= $key;
+		$saved_key	= $OriginalKeys{global}{$key} if defined $OriginalKeys{global}{$key};
+	        SCR->Write(".etc.smb.value.global.$saved_key", $val);
 	        # ensure option is not commented
-		SCR->Write(".etc.smb.value_type.global.$key", [Integer(0)]);
+		SCR->Write(".etc.smb.value_type.global.$saved_key", [Integer(0)]);
 	    }
 	}
 
@@ -393,8 +409,11 @@ sub Write {
 		if (ref ($val) ne "ARRAY") {
 		    $val = [ String($val) ];
 		}
-	        my $ret1 = SCR->Write(".etc.smb.value.$share.$key", $val);
-	        my $ret  = SCR->Write(".etc.smb.value_type.$share.$key", [ Integer($commentout)]);
+		# check if key was not changed on read
+		my $saved_key	= $key;
+		$saved_key	= $OriginalKeys{$share}{$key} if defined $OriginalKeys{$share}{$key};
+	        my $ret1 = SCR->Write(".etc.smb.value.$share.$saved_key", $val);
+	        my $ret  = SCR->Write(".etc.smb.value_type.$share.$saved_key", [ Integer($commentout)]);
 	    }
 	};
 	

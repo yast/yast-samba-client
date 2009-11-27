@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 27 16:19:36 CET 2009 - jsuchome@suse.cz
+
+- preserve case of keys in smb.conf (bnc#555579)
+- 2.17.13 
+
+-------------------------------------------------------------------
 Fri Jun  5 13:52:34 CEST 2009 - jsuchome@suse.cz
 
 - fixed architecture dependent packages for PPC (bnc#505263)
