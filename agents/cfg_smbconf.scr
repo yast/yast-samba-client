@@ -4,7 +4,7 @@
 
 `ag_ini(
     `IniAgent("/etc/samba/smb.conf", $[
-	"options" : [ "no_nested_sections", "ignore_case", "line_can_continue", "comments_last", "repeat_names" ],
+	"options" : [ "no_nested_sections", "ignore_case_regexps", "line_can_continue", "comments_last", "repeat_names" ],
 	"comments": [ 
 	    "^[ \t]*$",	// empty line
 	    "^[ \t]+[;#].*$", // comment char is not first char

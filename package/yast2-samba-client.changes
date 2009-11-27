@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 24 10:51:19 CET 2009 - jsuchome@suse.cz
+
+- preserve case of keys in smb.conf (bnc#555579)
+- 2.19.1 
+
+-------------------------------------------------------------------
 Thu Nov 19 09:43:02 CET 2009 - jsuchome@suse.cz
 
 - install pam_mount if necessary (bnc#552211)
