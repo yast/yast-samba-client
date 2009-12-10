@@ -100,7 +100,7 @@ for listing the machine accounts."));
 	    list<string> machines = SambaAD::GetMachines (domain, user, pass);
 	    if (machines != nil)
 	    {
-		list items	= maplist (string m, machines, ``(
+		list items	= maplist (string m, sort (machines), ``(
 		    `item (`id (m), m)));
 		items		= prepend (items, default_entry);
 		UI::ReplaceWidget (`id (`rpcombo), `Left (
