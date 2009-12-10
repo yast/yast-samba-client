@@ -653,7 +653,7 @@ define boolean WriteDisplayManager (boolean enable, boolean write_only) {
 
     if (enable)
     {
-	if (!Package::InstalledAny (["kdebase3-kdm", "kde4-kdm", "gdm"]))
+	if (!Package::InstalledAny (["kdebase3-kdm", "kde4-kdm", "gdm", "kdm"]))
 	    return false;
 	if (SCR::Read (.sysconfig.displaymanager.DISPLAYMANAGER_AD_INTEGRATION) == "yes")
 	    return true;
