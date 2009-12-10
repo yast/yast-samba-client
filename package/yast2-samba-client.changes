@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec 10 13:50:38 CET 2009 - jsuchome@suse.cz
+
+- kde4-kdm is now kdm (bnc#561900)
+- sort machine accounts (bnc#558835)
+- 2.19.2
+
+-------------------------------------------------------------------
 Tue Nov 24 10:51:19 CET 2009 - jsuchome@suse.cz
 
 - preserve case of keys in smb.conf (bnc#555579)
