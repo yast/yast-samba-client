@@ -21,9 +21,8 @@ X-SuSE-YaST-AutoInstSchema=samba-client.rnc
 X-SuSE-YaST-Keywords=authentication,samba,windows
 
 Icon=yast-samba-client
-Exec=/sbin/yast2 samba-client 
+Exec=xdg-su -c "/sbin/yast2 samba-client"
 
 Name=Windows Domain Membership
 GenericName=Configure the Windows Domain Membership
-X-KDE-SubstituteUID=true
 StartupNotify=true
