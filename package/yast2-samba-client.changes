@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 24 16:38:51 CET 2010 - jsuchome@suse.cz
+
+- allow numbers in smb.conf keys (bnc#575442)
+- 2.19.4 
+
+-------------------------------------------------------------------
 Tue Feb 23 11:03:22 CET 2010 - jsuchome@suse.cz
 
 - do not delete sections on Export (bnc#571073)
