@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr  1 13:06:50 CEST 2010 - jsuchome@suse.cz
+
+- allow editing Machine Account OU in autoYaST config (bnc#581347)
+- 2.17.17
+
+-------------------------------------------------------------------
 Wed Feb 24 16:37:32 CET 2010 - jsuchome@suse.cz
 
 - allow numbers in smb.conf keys (bnc#575442)
