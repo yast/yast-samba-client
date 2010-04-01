@@ -380,9 +380,13 @@ symbol MembershipDialog () {
 	`Frame (_("Join Settings"), `HBox (
 	    // text entry label
 	    `InputField (`id("user"), `opt (`hstretch), _("&Username"),
-		pw_data["user"]:"" != "" ? pw_data["user"]:"" : ""),
+		pw_data["user"]:"" != nil ? pw_data["user"]:"" : ""),
 	    // text entry label
-	    `Password (`id("password"), `opt (`hstretch), _("&Password"))
+	    `Password (`id("password"), `opt (`hstretch), _("&Password"),
+		pw_data["password"]:""),
+	    // text entry label
+	    `InputField (`id("machine"), `opt (`hstretch), _("Mac&hine Account OU"),
+		pw_data["machine"]:"" != nil ? pw_data["machine"]:"" : "")
 	)),
 	`VSpacing (),
 	// text entry label
@@ -547,7 +551,7 @@ symbol MembershipDialog () {
 
 	    if (Mode::config())
 	    {
-		foreach (string key, [ "user", "password" ], {
+		foreach (string key, [ "user", "password", "machine" ], {
 		    string val = (string) UI::QueryWidget(`id(key),`Value);
 		    if (val != nil && val != "")
 			Samba::password_data[key]	= val;
