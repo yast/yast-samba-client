@@ -546,6 +546,26 @@ symbol MembershipDialog () {
 
 	    Samba::SetWinbind (use_winbind);
 
+	    if (use_winbind)
+	    {
+		list<string> packages	= ["samba-winbind"];
+		if (SambaAD::ADS () != "")
+		{
+		    packages = (list<string>)merge(packages,["krb5","krb5-client"]);
+		}
+		if (Samba::PAMMountModified () && size (Samba::GetPAMMountVolumes ()) > 0)
+		{
+		    packages	= add (packages, "pam_mount");
+		}
+		if (!Package::InstallAll (packages))
+		{
+		    Popup::Error (Message::FailedToInstallPackages ());
+		    ret = `not_next;
+		    UI::ChangeWidget(`id(`winbind), `Value, false);
+		    continue;
+		}
+	    }
+
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup(workgroup);
 
@@ -626,25 +646,6 @@ hostname changes with DHCP are problematic.
 Disable hostname changes with DHCP?"));
 	    }
 
-	    if (use_winbind)
-	    {
-		list<string> packages	= ["samba-winbind"];
-		if (SambaAD::ADS () != "")
-		{
-		    packages = (list<string>)merge(packages,["krb5","krb5-client"]);
-		}
-		if (Samba::PAMMountModified () && size (Samba::GetPAMMountVolumes ()) > 0)
-		{
-		    packages	= add (packages, "pam_mount");
-		}
-		if (!Package::InstallAll (packages))
-		{
-		    Popup::Error (Message::FailedToInstallPackages ());
-		    ret = `not_next;
-		    UI::ChangeWidget(`id(`winbind), `Value, false);
-		    continue;
-		}
-	    }
 
 	    Samba::SetMkHomeDir (use_winbind &&
 		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));

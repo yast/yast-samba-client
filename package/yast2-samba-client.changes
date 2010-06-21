@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun  1 10:37:55 CEST 2010 - jsuchome@suse.cz
+
+- install needed packages before trying to join (bnc#610486)
+- 2.19.6 
+
+-------------------------------------------------------------------
 Thu Apr  1 13:08:17 CEST 2010 - jsuchome@suse.cz
 
 - allow editing Machine Account OU in autoYaST config (bnc#581347)
