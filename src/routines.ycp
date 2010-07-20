@@ -116,7 +116,7 @@ for listing the machine accounts."));
 	"user"		: user,
 	"password"	: pass
     ] : nil;
-    if (SambaAD::ADS () != "" && ret == `ok)
+    if (SambaAD::ADS () != "" && ret == `ok && what != `leave)
     {
 	string machine	= (string)UI::QueryWidget (`id (`machines), `Value);
 	if (machine != default_id)

@@ -61,6 +61,7 @@ boolean DomainMemberHandler( map<string, any> options ) {
     SambaAD::ReadADS (domain);
     if (SambaAD::ADS () != "")
     {
+	domain = SambaAD::GetWorkgroup (domain);
 	SambaAD::ReadRealm ();
     }
     
@@ -102,6 +103,7 @@ boolean JoinDomainHandler( map <string, any> options ) {
     SambaAD::ReadADS (domain);
     if (SambaAD::ADS () != "")
     {
+	domain = SambaAD::GetWorkgroup (domain);
 	SambaAD::ReadRealm ();
     }
     
