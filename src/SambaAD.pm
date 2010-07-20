@@ -315,6 +315,19 @@ sub Realm {
     return $realm;
 }
 
+# set the new value of realm
+# return true if the new value is different from the previous one
+BEGIN{$TYPEINFO{SetRealm}=["function","boolean","string"]}
+sub SetRealm {
+    my ($self, $new_realm) 	= @_;
+    if ($new_realm eq $realm) {
+	return FALSE;
+    }
+    $realm = $new_realm;
+    return TRUE;
+}
+
+
 # Change samba configuration file (/etc/samba/smb.conf)
 #
 # @param status a new status
@@ -373,6 +386,7 @@ sub AdjustKerberos {
 	    "trusted_servers"	=> $ads
 	}
     });
+    Kerberos->dns_used (FALSE);
     Kerberos->modified (TRUE);
     Kerberos->Write ();
     Progress->set ($prev);

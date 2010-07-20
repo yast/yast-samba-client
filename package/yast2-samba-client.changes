@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Jul 15 08:54:37 CEST 2010 - jsuchome@suse.cz
+
+- tell kerberos client not to check for DNS when saving AD
+  configuration (bnc#622235)
+- fixed joining from CLI
+- added API for setting the realm
+- 2.17.18 
+
+-------------------------------------------------------------------
 Thu Apr  1 13:06:50 CEST 2010 - jsuchome@suse.cz
 
 - allow editing Machine Account OU in autoYaST config (bnc#581347)
