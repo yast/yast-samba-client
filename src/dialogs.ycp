@@ -362,7 +362,7 @@ symbol MembershipDialog () {
 	`VSpacing (0.4),
 	`Left(`CheckBox(`id(`winbind), `opt (`notify),
 	    // translators: checkbox label to enable winbind
-	    _("Also &Use SMB Information for Linux Authentication"),
+	    _("&Use SMB Information for Linux Authentication"),
 	    Samba::GetWinbind()
 	))
     );

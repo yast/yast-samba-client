@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 22 15:47:59 CEST 2010 - jsuchome@suse.cz
+
+- updated help texts (bnc#636643)
+- 2.20.0 
+
+-------------------------------------------------------------------
 Thu Jul 15 13:44:02 CEST 2010 - jsuchome@suse.cz
 
 - tell kerberos client not to check for DNS when saving AD
