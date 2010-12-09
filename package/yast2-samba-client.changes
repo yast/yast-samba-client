@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Dec  9 16:25:39 CET 2010 - jsuchome@suse.cz
+
+- do not delete sections on Export (bnc#571073)
+- 2.13.43 
+
+-------------------------------------------------------------------
 Fri Aug 21 11:50:07 CEST 2009 - jsuchome@suse.cz
 
 - include /etc/samba/dhcp.conf in temporary smb.conf if such
