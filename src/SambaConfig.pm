@@ -466,7 +466,9 @@ sub Export {
 	next unless $Config{$share};	# skip removed shares
 	next if $share =~ /^_/;		# skip internal shares
 	my %section;
-	$section{name} = $share;
+	my $name	= $share;
+	$name =~ s/\$/_dollarsign_/;	# $ cannot be in autoYaST XML (bnc#662250)
+	$section{name} = $name;
 	$section{comment} = $Config{$share}{_comment} if $Config{$share}{_comment};
 	$section{disabled} = Boolean(1) if $Config{$share}{_disabled};
 	while(my ($key, $val) = each %{$Config{$share}}) {
@@ -497,6 +499,7 @@ sub Import {
     if ($config && ref $config eq "ARRAY") { # normal import
 	foreach my $section (@$config) {
 	    my $name = $section->{name};
+	    $name =~ s/_dollarsign_/\$/;	# see Import
 	    next unless $name;
 	    $self->ShareSetComment($name, $section->{comment}) if $section->{comment};
 	    $self->ShareDisable($name) if $section->{disabled};
