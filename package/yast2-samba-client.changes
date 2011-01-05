@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan  5 15:59:27 CET 2011 - jsuchome@suse.cz
+
+- import all config file sections, not only [global]
+- do not let dollar sign be part of autoYaST XML (bnc#662250)
+- 2.20.2
+
+-------------------------------------------------------------------
 Mon Jan  3 14:32:15 CET 2011 - jsuchome@suse.cz
 
 - updated schema file to include all known options (bnc#660979)

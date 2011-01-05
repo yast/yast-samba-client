@@ -886,49 +886,67 @@ global boolean Write(boolean write_only) {
  */
 global boolean Import (map settings) {
 
-    if (haskey(settings, "global")) {
-	map globals	= settings["global"]:$[];
-	SambaConfig::GlobalSetStr("workgroup",globals["workgroup"]:"WORKGROUP");
+    globals_configured = false;
+    map globals	= settings["global"]:$[];
+    list<map> sections	= [];
 
-	if (tolower (globals["winbind_offline_logon"]:"") == "yes" &&
-	    tolower (globals["cached_login"]:"") == "yes")
-	    SetWinbindCaching (true);
+    foreach (string key, any value, (map<string,any>) settings, {
 
-	if (haskey (globals, "usershare_max_shares") ||
-	    haskey (settings, "shares_group"))
-	    SetShares (tointeger (globals["usershare_max_shares"]:"0"),
-		settings["shares_group"]:shares_group);
+	// handle special keys separately
+	if (key == "shares_group")
+	{
+	    shares_group	= settings["shares_group"]:shares_group;
+	}
+	else if (key == "active_directory")
+	{
+	    SambaAD::SetADS	(settings["active_directory","kdc"]:"");
+	}
+	else if (key == "join")
+	{
+	    password_data	= settings["join"]:$[];
+	}
+	else if (key == "mkhomedir")
+	{
+	    SetMkHomeDir (settings["mkhomedir"]:mkhomedir);
+	}
+	else if (key == "disable_dhcp_hostname")
+	{
+	    disable_dhcp_hostname	= settings["disable_dhcp_hostname"]:disable_dhcp_hostname;
+	}
+	else if (key != "winbind" && is (value, map))
+	{
+	    // form a section to import SambaConfig
+	    sections	= add (sections, $[
+		"name"		: key,
+		"parameters"	: value
+	    ]);
+	}
+    });
 
-	if (tolower (globals["usershare_allow_guests"]:"") == "yes")
-	    SetGuessAccess (true);
-
-	globals_configured = true;
-        modified	= true;
-    } else {
-	globals_configured = false;
-    }
-    if (haskey (settings, "shares_group"))
-	shares_group	= settings["shares_group"]:shares_group;
-
-    if (haskey(settings, "active_directory"))
-    {
-	SambaAD::SetADS	(settings["active_directory","kdc"]:"");
-    }
     // call this _after_ evaluation if AD is used
     boolean winbind = settings["winbind"]:settings["global","winbind"]:false;
     if (winbind != nil)
     {
 	SetWinbind (winbind);
     }
-    if (haskey(settings, "join"))
+
+    if (sections != [])
     {
-	password_data	= settings["join"]:$[];
+	SambaConfig::Import (sections);
     }
-    if (haskey (settings, "mkhomedir"))
+
+    // explicitely adapt some variables based on 'globals' section
+    if (globals != $[])
     {
-	SetMkHomeDir (settings["mkhomedir"]:mkhomedir);
+	if (haskey (globals, "usershare_max_shares") ||
+	    haskey (settings, "shares_group"))
+	{
+	    SetShares (tointeger (globals["usershare_max_shares"]:"0"),
+		settings["shares_group"]:shares_group);
+	}
+	globals_configured = true;
     }
-    disable_dhcp_hostname	= settings["disable_dhcp_hostname"]:disable_dhcp_hostname;
+    modified	= true;
 
     return true;
 }

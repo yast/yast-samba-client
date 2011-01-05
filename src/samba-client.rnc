@@ -41,7 +41,7 @@ samba-client = element samba-client {
         element read_only		{ text }? &
         element valid_users		{ text }?
     }? &
-    element print$		{
+    element print_dollarsign_		{
         element comment			{ text }? &
         element create_mask		{ text }? &
         element directory_mask		{ text }? &
