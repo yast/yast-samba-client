@@ -39,7 +39,7 @@ use constant {
 BEGIN{$TYPEINFO{IsEnabled}=["function","boolean"]}
 sub IsEnabled {
     my ($self) = @_;
-    if (PackageSystem->Installed("samba-winbind")) {
+    if (PackageSystem->InstalledAny(["samba-winbind","samba-gplv3-winbind"])) {
         return Service->Enabled("winbind");
     }
     return FALSE;
@@ -167,7 +167,7 @@ sub AdjustPam {
 BEGIN{$TYPEINFO{AdjustService}=["function","boolean","boolean"]}
 sub AdjustService {
     my ($self, $on) = @_;
-    my $installed = PackageSystem->Installed("samba-winbind");
+    my $installed = PackageSystem->InstalledAny(["samba-winbind","samba-gplv3-winbind"]);
     return TRUE if !$on && !$installed;	# return ok
     if ($on && !$installed) {
 	y2debug("Try to enable winbind service, but samba-winbind isn't installed.");
@@ -186,7 +186,7 @@ sub AdjustService {
 BEGIN{$TYPEINFO{StartStopNow}=["function","boolean","boolean"]}
 sub StartStopNow {
     my ($self, $on) = @_;
-    my $installed = PackageSystem->Installed("samba-winbind");
+    my $installed = PackageSystem->InstalledAny(["samba-winbind","samba-gplv3-winbind"]);
     return TRUE if !$on && !$installed;	# return ok
     if ($on && !$installed) {
 	y2debug("Try to enable winbind service, but samba-winbind isn't installed.");

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jan 10 14:24:05 CET 2011 - jsuchome@suse.cz
+
+- prefer gplv3 packages (bnc#657414)
+- 2.13.42.1
+
+-------------------------------------------------------------------
 Fri Aug 21 11:50:07 CEST 2009 - jsuchome@suse.cz
 
 - include /etc/samba/dhcp.conf in temporary smb.conf if such

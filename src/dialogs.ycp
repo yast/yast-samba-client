@@ -390,6 +390,11 @@ Disable hostname changes with DHCP?"));
 	    }
 
 	    list<string> packages	= ["samba-winbind"];
+	    if (Package::Installed ("samba-gplv3-winbind"))
+	    {
+		y2milestone ("samba-gplv3-winbind already installed");
+		packages	= [];
+	    }
 	    if (SambaAD::ADS () != "")
 	    {
 		packages = (list<string>)merge(packages,["krb5","krb5-client"]);

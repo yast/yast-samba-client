@@ -432,8 +432,9 @@ global boolean Read() {
     // read global settings
     Progress::NextStage();
 
-    // check installed packages
-    if (!PackageSystem::CheckAndInstallPackagesInteractive(
+    // check installed packages (samba-gplv3-client preferred: bnc#657414)
+    if (!Package::Installed ("samba-gplv3-client") &&
+	!PackageSystem::CheckAndInstallPackagesInteractive(
 	UpdatedArchPackages (["samba-client"])))
     {
 	y2warning("package samba-client not installed");
@@ -569,7 +570,7 @@ global boolean Write(boolean write_only) {
     // winbind
     Progress::NextStage();
     if (winbind_enabled) {
-	if (!Package::Installed("samba-winbind") && !Mode::test()) {
+	if (!Package::Installed ("samba-gplv3-winbind") && !Package::Installed("samba-winbind") && !Mode::test()) {
 		ret = false;
 	}
 	if (!SambaWinbind::AdjustService(true)) {
@@ -843,7 +844,14 @@ global define boolean GetWinbind() ``{
  * @return map of packages to be installed and to be removed
  */
 global define map AutoPackages() ``{
+
     list<string> to_install = ["samba-client", "samba-winbind"];
+
+    if (Package::InstalledAll (["samba-gplv3-client", "samba-gplv3-winbind"]))
+    {
+	y2milestone ("gplv3 packages already installed, nothing more needed");
+	to_install	= [];
+    }
     if (SambaAD::ADS () != "")
 	to_install = (list<string>) union (to_install, ["krb5", "krb5-client"]);
     return $[
