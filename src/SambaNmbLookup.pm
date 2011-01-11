@@ -52,7 +52,7 @@ BEGIN{$TYPEINFO{Start}=["function","boolean"]}
 sub Start {
     my ($self) = @_;
 
-    if (!PackageSystem->InstalledAll(["samba-client","samba-gplv3-client"])) {
+    if (!PackageSystem->InstalledAny(["samba-client","samba-gplv3-client"])) {
 	y2error("package samba-client not installed");
 	return FALSE;
     }
