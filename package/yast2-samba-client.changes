@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 11 15:41:25 CET 2011 - jsuchome@suse.cz
+
+- require samba-client or samba-gplv3-client, not both
+- 2.13.42.2 
+
+-------------------------------------------------------------------
 Mon Jan 10 14:24:05 CET 2011 - jsuchome@suse.cz
 
 - prefer gplv3 packages (bnc#657414)
