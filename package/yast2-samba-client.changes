@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 11 15:36:26 CET 2011 - jsuchome@suse.cz
+
+- prefer gplv3 packages (bnc#657414)
+- 2.13.44 
+
+-------------------------------------------------------------------
 Thu Dec  9 16:25:39 CET 2010 - jsuchome@suse.cz
 
 - do not delete sections on Export (bnc#571073)

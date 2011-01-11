@@ -52,13 +52,13 @@ BEGIN{$TYPEINFO{Start}=["function","boolean"]}
 sub Start {
     my ($self) = @_;
 
-    if (!PackageSystem->Installed("samba-client")) {
+    if (!PackageSystem->InstalledAny(["samba-client","samba-gplv3-client"])) {
 	y2error("package samba-client not installed");
 	return FALSE;
     }
 
     # first, check if nmbd is running
-    if (PackageSystem->Installed("samba") && Service->Status("nmb")==0) {
+    if (PackageSystem->InstalledAny(["samba","sambagplv3"]) && Service->Status("nmb")==0) {
         $Nmbd_was_running = 1;
         y2debug("Stopping nmbd for nmbstatus");
         # FIXME: we should check, if stop did not fail
