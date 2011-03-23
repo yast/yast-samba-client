@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 23 12:40:12 CET 2011 - jsuchome@suse.cz
+
+- aborting in Stage::cont does not abort installation (bnc#678650)
+- 2.21.0 
+
+-------------------------------------------------------------------
 Wed Jan  5 15:59:27 CET 2011 - jsuchome@suse.cz
 
 - import all config file sections, not only [global]
