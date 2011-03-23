@@ -132,9 +132,7 @@ for listing the machine accounts."));
  * @return true if abort is confirmed
  */
 define boolean ReallyAbort() ``{
-    return (Stage::cont() && !contains (WFM::Args (), "from_users")) ?
-	Popup::ConfirmAbort (`incomplete) :
-	(!Samba::GetModified() || Popup::ReallyAbort(true));
+    return (Samba::GetModified () || Stage::cont ()) ? Popup::ReallyAbort (true) : true;
 }
 
 /**
