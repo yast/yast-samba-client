@@ -91,7 +91,12 @@ sub Join {
     if ($protocol eq "ads") {
 	my $krb_file	= $tmpdir."/krb5.conf";
 	my $realm	= SambaAD->Realm ();
-	SCR->Write (".target.string", $conf_file, "[global]$include\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
+	my $content     = "[global]$include\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n";
+	my $kerberos_method	= SambaConfig->GlobalGetStr ("kerberos method", "");
+	if ($kerberos_method) {
+	    $content	= $content."\tkerberos method = $kerberos_method\n";
+	}
+	SCR->Write (".target.string", $conf_file, $content);
 	$cmd		= "KRB5_CONFIG=$krb_file ";
 	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
     }
