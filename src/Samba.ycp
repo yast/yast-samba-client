@@ -132,6 +132,9 @@ list<map> pam_mount_volumes		= [];
 // original value of pam_mount_volumes, for detecting changes
 list<map> pam_mount_volumes_orig	= nil;
 
+// value of kerberos_method, if not empty (bnc#673982)
+string kerberos_method	= "secrets and keytab";
+
 // network configuration (to be read from NetworkConfig module)
 global map network_setup	= NetworkConfig::Export ();
 
@@ -473,6 +476,7 @@ global define boolean ReadSSHSupport () {
     ssh_was_enabled	= (ssh == true);
     sshd_was_enabled	= sshd;
     ssh_support	= ssh_was_enabled && sshd_was_enabled;
+    kerberos_method	= SambaConfig::GlobalGetStr ("kerberos method", kerberos_method);
     return ssh_support;
 }
 
@@ -489,6 +493,8 @@ global define boolean GetSSHSupport () {
 global define boolean SetSSHSupport (boolean enable) {
     ssh_support	= enable;
     ssh_modified	= (enable != (ssh_was_enabled && sshd_was_enabled));
+    // bnc#673982
+    SambaConfig::GlobalSetStr ("kerberos method", enable? kerberos_method : nil);
     return enable;
 }
 
@@ -519,6 +525,26 @@ global define boolean WriteSSHSupport (boolean enable) {
 	y2milestone ("/etc/ssh/sshd_config modified");
     }
     return enable;
+}
+
+/**
+ * Get the value of kerberos-method option
+ */
+global define string GetKerberosMethod () {
+    return kerberos_method;
+}
+
+/**
+ * Set the new value for kerberos-method option
+ * return true if the value was changed
+ */
+global define boolean SetKerberosMethod (string new) {
+    if (new != kerberos_method)
+    {
+	kerberos_method	= new;
+	return true;
+    }
+    return false;
 }
 
 /**

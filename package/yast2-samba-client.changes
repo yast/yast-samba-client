@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr  4 14:55:00 CEST 2011 - jsuchome@suse.cz
+
+- set the value of 'kerberos method' option for single sign on,
+  add the API for its possible change (bnc#673982)
+- 2.21.1
+
+-------------------------------------------------------------------
 Wed Mar 23 12:40:12 CET 2011 - jsuchome@suse.cz
 
 - aborting in Stage::cont does not abort installation (bnc#678650)
