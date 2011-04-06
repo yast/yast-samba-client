@@ -549,6 +549,10 @@ symbol MembershipDialog () {
 	    // for domain ask to join
 	    symbol workgroup_type = CheckWorkgroup(workgroup);
 
+	    // need to set this before the join
+	    Samba::SetSSHSupport (use_winbind &&
+		(boolean)UI::QueryWidget (`id(`ssh), `Value));
+
 	    if (Mode::config())
 	    {
 		foreach (string key, [ "user", "password", "machine" ], {
@@ -647,8 +651,6 @@ Disable hostname changes with DHCP?"));
 		(boolean)UI::QueryWidget(`id(`mkhomedir), `Value));
 	    Samba::SetWinbindCaching (use_winbind &&
 		(boolean)UI::QueryWidget(`id(`caching), `Value));
-	    Samba::SetSSHSupport (use_winbind &&
-		(boolean)UI::QueryWidget (`id(`ssh), `Value));
 
 	    boolean new_share = (boolean)UI::QueryWidget(`id(`share_ch),`Value);
 	    if (new_share && ! allow_share && SharesExist (Samba::shares_dir))
