@@ -430,5 +430,11 @@ string PAMMountHelp () {
     _("<p>For example, you may use <tt>/home/%(DOMAIN_USER)</tt> value for <b>Remote Path</b>, <tt>~/</tt> value for <b>Local Mount Point</b> to mount the home directory, together with a value <tt>user=%(DOMAIN_USER)</tt> as a part of <b>Options</b>.</p>");
 }
 
+// return help for Kerberos Method
+string KerberosMethodHelp () {
+    // help text for kerberos method option
+    return _("<p>The value of <b>Kerberos Method</b> sets how kerberos tickets are verified. When <b>Single Sing-on for SSH</b> is used, the default Kerberos Method set by YaST is <tt>secrets and keytab</tt>. See smb.conf manual page for details.</p>");
+}
+
 /* EOF */
 }
