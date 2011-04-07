@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr  7 14:31:46 CEST 2011 - jsuchome@suse.cz
+
+- UI option to set kerberos method (bnc#673982)
+- 2.17.20 
+
+-------------------------------------------------------------------
 Fri Feb 25 15:48:11 CET 2011 - jsuchome@suse.cz
 
 - set the value of 'kerberos method' option for single sign on,

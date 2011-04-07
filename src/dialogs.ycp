@@ -132,12 +132,14 @@ symbol ExpertSettingsDialog (boolean use_winbind) {
     integer gid_max	= tointeger (l[1]:"20000");
     if (gid_max == nil) gid_max = 20000;
     boolean dhcp_support	= Samba::GetDHCP ();
+    string kerberos_method	= SambaConfig::GlobalGetStr ("kerberos method", "");
 
     // help text, do not translate 'winbind uid', 'winbind gid'
     string help_text	= _("<p>Specify the <b>Range</b> for Samba user and group IDs (<tt>winbind uid</tt> and <tt>winbind gid</tt> values).</p>")
 
     + HostsResolutionHelp ()
     + DHCPSupportHelp ()
+    + KerberosMethodHelp ()
     + PAMMountHelp ();
 
     boolean hosts_resolution	= Samba::GetHostsResolution ();
@@ -170,6 +172,10 @@ symbol ExpertSettingsDialog (boolean use_winbind) {
 	});
 	return mount_items;
     }
+    list<term> kerberos_methods	= maplist (string method,
+	[ "secrets only", "system keytab", "dedicated keytab", "secrets and keytab"], {
+	return `item (`id (method), method, method == kerberos_method);
+    });
 
     term contents	= `HBox (`HSpacing (3), `VBox (
 	`VSpacing (0.4),
@@ -188,7 +194,10 @@ symbol ExpertSettingsDialog (boolean use_winbind) {
 		// int field label
 		`IntField (`id (`gid_max), _("M&aximum"), 0, 99999, gid_max)
 	)),
-	`VSpacing (),
+	`VSpacing (0.2),
+	// combobox label
+	`Left (`ComboBox (`id (`kerberos_method), _("&Kerberos Method"), kerberos_methods)),
+	`VSpacing (0.2),
 	// frame label
 	`Frame (_("Windows Internet Name Service"), `VBox (
 	    HostsResolutionTerm (hosts_resolution),
@@ -285,6 +294,9 @@ larger than maximum one.\n"));
 	    Samba::SetDHCP ((boolean)UI::QueryWidget (`id (`dhcp), `Value));
 	    Samba::SetHostsResolution (
 		(boolean)UI::QueryWidget (`id (`hosts_resolution), `Value));
+
+	    kerberos_method	= (string) UI::QueryWidget (`id (`kerberos_method), `Value);
+	    SambaConfig::GlobalSetStr ("kerberos method", kerberos_method == "secrets only" ? nil : kerberos_method);
 
 	    list<map> updated_volumes	= non_cifs_volumes;
 	    foreach (integer id, map volume, mount_map, {
