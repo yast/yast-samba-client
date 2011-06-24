@@ -65,7 +65,7 @@ map<string, string> passwordUserPopup (string message, string defaultuser, strin
 	`Password (`id(`passwd), `opt (`hstretch), Label::Password()),
 	machine_term,
 	`VSpacing (0.2),
-	`HBox (
+	`ButtonBox (
 	    `PushButton(`id(`ok), `opt(`default), Label::OKButton()),
 	    `PushButton(`id(`cancel), Label::CancelButton())
 	),

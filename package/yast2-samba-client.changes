@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 24 10:57:07 CEST 2011 - jsuchome@suse.cz
+
+- use ButtonBox when appropriate (bnc#701260)
+- 2.21.3 
+
+-------------------------------------------------------------------
 Wed Apr  6 10:56:08 CEST 2011 - jsuchome@suse.cz
 
 - UI option to set kerberos method (bnc#673982)
