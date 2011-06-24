@@ -71,10 +71,11 @@ map MountEntryPopup (map volume) {
     });
 
     UI::OpenDialog (`opt (`decorated), `HBox (`HSpacing (0.2), `VBox (
+	`HSpacing (50),
 	`VSpacing (0.2),
 	input_fields,
 	`VSpacing (0.2),
-	`HBox (
+	`ButtonBox (
 	    `PushButton (`id (`ok), Label::OKButton ()),
 	    `PushButton (`id (`cancel), Label::CancelButton ())
 	),
