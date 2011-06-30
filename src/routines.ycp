@@ -424,7 +424,7 @@ define string SharesHelp () {
 string PAMMountHelp () {
 
     // help text for PAM Mount table
-    return _("<p>In the table <b>Mount Server Directories</b>, you can specify server directories (such as home directory) which should be localy mounted when the user is logged in. If mounting should be user-specific, specify <b>User Name</b> for selected rule. Otherwise, the directory is mounted for each user. For more information, see pam_mount.conf manual page.</p>") +
+    return _("<p>In the table <b>Mount Server Directories</b>, you can specify server directories (such as home directory) which should be locally mounted when the user is logged in. If mounting should be user-specific, specify <b>User Name</b> for selected rule. Otherwise, the directory is mounted for each user. For more information, see pam_mount.conf manual page.</p>") +
 
     // help text for PAM Mount table: example
     _("<p>For example, you may use <tt>/home/%(DOMAIN_USER)</tt> value for <b>Remote Path</b>, <tt>~/</tt> value for <b>Local Mount Point</b> to mount the home directory, together with a value <tt>user=%(DOMAIN_USER)</tt> as a part of <b>Options</b>.</p>");

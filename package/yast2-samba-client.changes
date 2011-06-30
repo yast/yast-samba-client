@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 30 09:52:45 CEST 2011 - jsuchome@suse.cz
+
+- fixed typo in help text (bnc#702620)
+- 2.17.21
+
+-------------------------------------------------------------------
 Thu Apr  7 14:31:46 CEST 2011 - jsuchome@suse.cz
 
 - UI option to set kerberos method (bnc#673982)
