@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug  5 12:34:56 CEST 2011 - tgoettlicher@suse.de
+
+- fixed .desktop file (bnc #681249)
+
+-------------------------------------------------------------------
 Thu Jun 30 09:50:36 CEST 2011 - jsuchome@suse.cz
 
 - fixed typo in help text (bnc#702620)
