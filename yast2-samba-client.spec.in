@@ -10,7 +10,8 @@ Requires:	yast2-kerberos-client perl-XML-LibXML
 Requires:       yast2-pam >= 2.14.0
 
 # .etc.ssh.sshd_config
-Requires:       yast2 >= 2.16.41
+# Wizard::SetDesktopTitleAndIcon
+Requires:       yast2 >= 2.21.22
 
 BuildArchitectures:	noarch
 
