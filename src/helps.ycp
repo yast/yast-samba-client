@@ -18,7 +18,7 @@ map HELPS = $[
 
     /* Read dialog help 1/2 */
     "read" : _("<p><b><big>Initializing Samba Client Configuration</big></b><br>
-Please wait...<br></p>
+</p>
 ") +
 
     /* Read dialog help 2/2 */
@@ -28,7 +28,7 @@ Safely abort the configuration utility by pressing <b>Abort</b>.</p>
 
     /* Write dialog help 1/2 */
     "write" : _("<p><b><big>Saving Samba Client Configuration</big></b><br>
-Please wait...<br></p>
+</p>
 ") +
 
     /* Write dialog help 2/2 */
@@ -42,7 +42,7 @@ An additional dialog informs you whether it is safe to do so.
     "MembershipDialog_nocont" : _("<p><b><big>Selecting Windows Domain Membership</big></b></p>")
     /* translators: Samba workgroup dialog help 1/3 */
 + _("<p>A Linux client can be a member of a workgroup, NT domain, or Active Directory domain.
-Here, specify the name of the membership.</p>
+Specify the name of the membership.</p>
 ") +
 
     /* Samba role dialog help 2/3 */
@@ -78,7 +78,7 @@ allows this host to join the domain.</p>
     "MembershipDialog_config" : _("<p><b>Join Settings</b></p>") +
 
     // Samba membership dialog - additional help for autoyast config
-    _("<p>Set the <b>Username</b> and <b>Password</b> that should be used for joining selected domain during autoinstallation. Note that the password will be saved to the profile in the cleartext (unencrypted) form.</p>") +
+    _("<p>Set the <b>Username</b> and <b>Password</b> that should be used for joining\nthe selected domain during autoinstallation. Note that the password will be saved to the profile in cleartext (unencrypted) form.</p>") +
 
     // Samba membership dialog - additional help for autoyast config
     _("<p>Specify the <b>Active Directory Server</b> to use for joining an Active Directory domain. This is also used as the value for KDC in the Kerberos configuration.</p>"),

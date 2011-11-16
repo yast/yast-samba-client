@@ -451,7 +451,7 @@ symbol MembershipDialog () {
 			),
 			`Left (
 			    // checkbox label
-			   `CheckBox (`id(`ssh), `opt (`notify), _("&Single Sign-On for SSH"),
+			   `CheckBox (`id(`ssh), `opt (`notify), _("&Single Sign-on for SSH"),
 				Samba::GetSSHSupport ())
 			),
 			`VSpacing (0.2)

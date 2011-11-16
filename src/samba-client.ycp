@@ -74,10 +74,10 @@ boolean DomainMemberHandler( map<string, any> options ) {
     
     if( result ) {
 	// translators: result message for isdomainmember command line action 
-	CommandLine::Print( sformat( _("This machine is a member of %1"), domain ) );
+	CommandLine::Print( sformat( _("This machine is a member of %1."), domain ) );
     } else {
 	// translators: result message for isdomainmember command line action 
-	CommandLine::Print( sformat( _("This machine is not a member of %1"), domain ) );
+	CommandLine::Print( sformat( _("This machine is not a member of %1."), domain ) );
     }
     
     return true;
@@ -170,7 +170,7 @@ See Samba documentation for details."),
 	"joindomain"	: $[
 	    "handler"	: JoinDomainHandler,
 	    // translators: command line help text for joindomain action
-	    "help"	: _("Join this machine into a domain")
+	    "help"	: _("Join this machine to a domain")
 	],
 	"configure"	: $[
 	    "handler"	: ChangeConfiguration,
