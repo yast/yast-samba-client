@@ -214,8 +214,9 @@ See Samba documentation for details."),
 	],
 	"user"		:$[
 	    // translators: command line help text for joindomain user option 
-	    "help"	: _("The user used for joining the domain. If omitted, YaST2 will
-try to join the domain without specifying user and password."),
+	    "help"	: _("The user used for joining the domain. If omitted, YaST will
+try to join the domain without specifying user and password.
+"),
 	    "type"	: "string"
 	],
 	"password"	:$[
