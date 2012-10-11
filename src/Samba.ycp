@@ -626,10 +626,9 @@ global boolean AdjustSharesServices (boolean write_only) {
 /**
  * Tell displaymanager (KDM/GDM) to use special windbind greeter
  * @param enable if  winbind is enabled
- * @param write_only do not run SuSEconfig script
  * @return success
  */
-define boolean WriteDisplayManager (boolean enable, boolean write_only) {
+boolean WriteDisplayManager (boolean enable) {
 
     if (!FileUtils::Exists ("/etc/sysconfig/displaymanager"))
 	return false;
@@ -648,10 +647,6 @@ define boolean WriteDisplayManager (boolean enable, boolean write_only) {
 
     string dm = (string) SCR::Read (.sysconfig.displaymanager.DISPLAYMANAGER);
 
-    if (!write_only && dm == "gdm")
-    {
-	SCR::Execute (.target.bash, "/sbin/SuSEconfig --module gdm");
-    }
     return true;
 }
 
@@ -871,8 +866,7 @@ global boolean Write(boolean write_only) {
 
     WriteMkHomeDir (mkhomedir);
 
-    // if autologin was modified, SuSEconfig script will be called there
-    WriteDisplayManager (winbind_enabled, write_only || Autologin::modified);
+    WriteDisplayManager (winbind_enabled);
 
     Autologin::Write(write_only);	// see dialog.ycp
 
