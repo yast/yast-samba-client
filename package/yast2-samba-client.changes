@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 14 15:39:16 CET 2012 - jsuchome@suse.cz
+
+- support for CTDB functionality to join AD Domain (fate#312706)
+- 2.17.22 
+
+-------------------------------------------------------------------
 Thu Jun 30 09:52:45 CEST 2011 - jsuchome@suse.cz
 
 - fixed typo in help text (bnc#702620)

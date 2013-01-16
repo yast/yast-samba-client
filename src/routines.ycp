@@ -195,10 +195,18 @@ define symbol LeaveDomain (string workgroup)
 
 define symbol JoinDomain(string workgroup)
 {
+    string cluster_info = "";
+    if (SambaNetJoin::ClusterPresent (false))
+    {
+      // additional information for cluster environment
+      cluster_info      = _("The configuration will be propagated across cluster nodes.");
+    }
+
     // popup to fill in the domain joining info; %1 is the domain name
     map<string, string> passwd = passwordUserPopup(sformat(_("Enter the username and the password for joining the domain %1."), workgroup)
 	+ "\n\n"
-	+ _("To join the domain anonymously, leave the text entries empty.") + "\n", "Administrator", workgroup, `join);
+	+ _("To join the domain anonymously, leave the text entries empty.\n") + cluster_info,
+      "Administrator", workgroup, `join);
 
     // cancelled the domain joining
     if( passwd == nil ) return `fail;
@@ -234,20 +242,29 @@ define symbol AskJoinDomain( string workgroup, symbol status ) ``{
     if( status == `workgroup || status == `joined_domain ) return `ok;
     
     boolean res = false;
-    
+
+    // popup question, the domain status cannot be found out, ask user what to do
+    string dont_know    = _("Cannot automatically determine if this host\nis a member of the domain %1.");
+    // popup question, first part
+    string not_member   = _("This host is not a member\nof the domain %1.");
+    // last part of popup question
+    string join_q       = "\n\n" + sformat (_("Join the domain %1?"), workgroup);
+
+    if (SambaNetJoin::ClusterPresent (false))
+    {
+      dont_know         = _("Cannot automatically determine if this cluster\nis a member of the domain %1.");
+      not_member        = _("This cluster is not a member\nof the domain %1.");
+    }
+
     // allow to join the domain
-    if( status == `domain ) {	
-    	    // we don't know the domain status
-	    
-	    // translators: popup question, the domain status cannot be found out, ask user what to do
-	    // %1 is the domain name
-	    res = Popup::YesNo(sformat(_("Cannot automatically determine if this host\nis a member of the domain %1."), workgroup)
-		+ "\n\n" + sformat(_("Join the domain %1?"), workgroup) + "\n");
-    } else if( status == `not_joined_domain ) {
-	// translators: popup question, The workgroup is a domain in fact and the machine is not a member, ask user what to do.
-	// %1 is the domain name
-	res = Popup::YesNo(sformat(_("This host is not a member\nof the domain %1."), workgroup)
-	    + "\n\n" + sformat(_("Join the domain %1?"), workgroup) + "\n");
+    if (status == `domain)
+    {
+      // we don't know the domain status
+      res = Popup::YesNo (sformat(dont_know, workgroup) + join_q);
+    }
+    else if (status == `not_joined_domain)
+    {
+      res = Popup::YesNo (sformat(not_member, workgroup) + join_q);
     }
 
     if (!res) {

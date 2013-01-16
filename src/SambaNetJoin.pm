@@ -18,12 +18,197 @@ use YaPI;
 textdomain "samba-client";
 our %TYPEINFO;
 
+YaST::YCP::Import("Package");
 YaST::YCP::Import("SCR");
 YaST::YCP::Import("SambaConfig");
 YaST::YCP::Import("SambaAD");
+YaST::YCP::Import("SambaWinbind");
 YaST::YCP::Import("String");
+YaST::YCP::Import("YaPI::NETWORK");
 
 my %TestJoinCache;
+
+use constant {
+    TRUE => 1,
+    FALSE => 0,
+};
+
+# if cluster cleanup is needed at the end
+my $cleanup_needed      = FALSE;
+
+my $cluster_present     = undef;
+
+# if DNS should be adapted with AD server
+my $adapt_dns           = FALSE;
+
+# name of clone resource
+my $clone_id            = "";
+
+
+# Helper function to execute crm binary (internal only, not part of API).
+# Takes all arguments in one string. 
+sub CRMCall {
+
+    my $params  = shift;
+    my $cmd     = "/usr/sbin/crm $params";
+
+    # it would open interactive mode without params
+    unless ($params) {
+      y2error ("No parameters to crm provided, exiting...");
+      return "";
+    }
+     
+    my $res     = SCR->Execute(".target.bash_output", $cmd);
+
+    y2milestone ("output of '$cmd': ".Dumper($res));
+
+    return $res->{"stdout"} || "";
+}
+
+# Check the presence and state of cluster environment
+# @param force  do force check (otherwise use latest state)
+# @return true when cluster is present and configured
+BEGIN{$TYPEINFO{ClusterPresent}=[
+    "function", "boolean", "boolean"]}
+sub ClusterPresent {
+
+    my ($self, $force) = @_;
+
+    return $cluster_present if (defined $cluster_present) && !$force;
+
+    $cluster_present    = FALSE;
+
+    if (SambaAD->IsDHCPClient (FALSE)) {
+      y2warning ("DHCP client found: Not configuring cluster...");
+      return FALSE;
+    }
+
+    # do we have cluster packages installed?
+    unless (Package->InstalledAll (["ctdb", "crmsh", "pacemaker"])) {
+      return FALSE;
+    }
+
+    my $out     = SCR->Execute (".target.bash_output", "/usr/sbin/crm_mon -s");
+    if ($out->{"exit"} != 0) {
+      y2milestone ("cluster not configured or not online");
+      return FALSE;
+    }
+
+    # find out the clone resource id, to do later crm operations with
+    my $show    = CRMCall ("configure save -");
+    if ($show =~ /primitive (\w+) ocf:heartbeat:CTDB/) {
+      my $primitive = $1;
+      if ($show =~ /clone (.+) $primitive/) {
+        $clone_id        = $1;
+      }
+    }
+
+    $cluster_present    = TRUE;
+    return TRUE;
+}
+
+# Handle the information if DNS should be adapted ($adapt_dns)
+# @param new value - set the new value for $adapt_dns variable
+# @return return current value
+BEGIN{$TYPEINFO{SetAdaptDNS}=[
+    "function", "boolean", "boolean"]}
+sub SetAdaptDNS {
+
+    my ($self, $adapt)  = @_;
+    $adapt_dns          = $adapt;
+    return $adapt_dns;
+}
+
+# Edit the file /etc/resolv.conf and set the nameserver to AD server
+# Do this only when explicitely for AD configurations and when selected by user
+# @return Network adpatation success (the return value of YaPI::NETWORK->Write)
+BEGIN{$TYPEINFO{AdaptDNS}=[
+    "function", ["map","string","any"]]}
+sub AdaptDNS {
+
+    my $server  = SambaAD->ADS ();
+
+    return unless ($adapt_dns && $server);
+
+    my $network         = YaPI::NETWORK->Read ();
+    my $nameservers     = $network->{"dns"}{"nameservers"} || [];
+    push @$nameservers, $server;
+    $network->{"dns"}{"nameservers"}    = $nameservers;
+
+    return YaPI::NETWORK->Write({ "dns" => $network->{"dns"} });
+}
+
+
+
+# Prepare CTDB (Clustered database for Samba) before joining AD domain (fate#312706)
+# The process is documented at
+# http://docserv.suse.de/documents/SLE-HA/SLE-ha-guide/single-html/#pro.ha.samba.config.join-ad
+# CTDB has to be already configured before calling this function
+#
+# @param server AD server
+# @return boolean true if preparation was successfull, false otherwise (also 
+BEGIN{$TYPEINFO{PrepareCTDB}=[
+    "function", "boolean", "string"]}
+sub PrepareCTDB {
+    
+    my ($self, $server) = @_;
+    my $ret             = TRUE;
+
+    return FALSE unless $self->ClusterPresent (0);
+
+    # 3. Run crm configure edit and search for the ctdb resource. Add the following line:
+    # ctdb_manages_winbind="false"
+
+    CRMCall ("resource param ctdb set ctdb_manages_winbind no");
+
+    # 4. save winbind into  /etc/nsswitch.conf
+    # 5. Restart the NSC daemon:
+    SambaWinbind->AdjustNsswitch (TRUE, TRUE);
+
+    # 6. Create the Kerberbos configuration file /etc/krb5.conf (the tmp one from Join is enough)
+    # 7. Cleanup CTDB:
+    CRMCall ("resource cleanup $clone_id");
+
+    # 8. Wait until the “unhealty” status disappears.
+    my $start   = time;
+    my $wait    = 60; # 1 minute timeout
+
+    while (time<$start+$wait) {
+      my $out     = SCR->Execute(".target.bash_output", "/usr/bin/ctdb status");
+      last if ($out->{"exit"} == 0);
+      sleep (1); #0.5);
+    }
+
+    # additional cluster operations will be needed after join
+    $cleanup_needed     = TRUE;
+
+    return $ret;
+}
+
+# Adapt CTDB (Clustered database for Samba) after joining AD domain (fate#312706)
+#
+BEGIN{$TYPEINFO{CleanupCTDB}=["function", "boolean"]}
+sub CleanupCTDB {
+
+    my $self    = shift;
+
+    return TRUE unless $cleanup_needed;
+
+    # 10. Change the ctdb_manages_winbind option:
+
+    # a. Stop the ctdb resource:
+    CRMCall ("resource stop $clone_id");
+
+    # b. Change the value from false to true: ctdb_manages_winbind="true"
+    CRMCall ("resource param ctdb set ctdb_manages_winbind yes");
+
+    # c. Restart the ctdb resource:
+    CRMCall ("resource start $clone_id");
+
+    $cleanup_needed     = FALSE;
+
+    return TRUE;
+}
 
 # Check if this host is a member of a given domain.
 #
@@ -82,7 +267,12 @@ sub Join {
     my $conf_file	= $tmpdir."/smb.conf";
     my $cmd		= "";
 
+    AdaptDNS ();
+
     if ($protocol eq "ads") {
+
+	$self->PrepareCTDB ($server);
+
 	my $krb_file	= $tmpdir."/krb5.conf";
 	my $realm	= SambaAD->Realm ();
 	my $content	= "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n";
@@ -103,7 +293,8 @@ sub Join {
 	. ($protocol ne "ads" ? lc($join_level||"") : "")
 	. ($protocol ne "ads" ? " -w '$domain'" : "")
 	. " -s $conf_file"
-	. (($protocol ne "ads" && $netbios_name)?" -n '$netbios_name'":"")
+#	. (($protocol ne "ads" && $netbios_name)?" -n '$netbios_name'":"")
+	. ($netbios_name  ? " -n '$netbios_name'" : "")
 	. " -U '" . String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
 
     if ($machine) {
@@ -129,11 +320,7 @@ sub Join {
     return ($result && $error ne "") ? $error : "unknown error";
 }
 
-# Joins the host into a given domain. If user is provided, it will use
-# the user and password for joining. If the user is nil, joining will
-# be done anonymously.
-#
-# Attention: It will write the configuration for domain before settings the password
+# Leave given domain.
 #
 # @param domain	a name of a domain to be left
 # @param user		username to be used for joining, or nil for anonymous
