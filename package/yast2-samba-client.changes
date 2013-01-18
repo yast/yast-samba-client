@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jan 18 10:35:39 CET 2013 - jsuchome@suse.cz
+
+- support for CTDB functionality to join AD Domain (fate#312706)
+- do not offer stopping services (confusing)
+- join with netbios name (if available) also to AD domain
+- 2.23.1 
+
+-------------------------------------------------------------------
 Thu Oct 11 15:29:49 CEST 2012 - jsuchome@suse.cz
 
 - remove obsolete SuSEconfig call
