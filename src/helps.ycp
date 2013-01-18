@@ -50,6 +50,10 @@ _("<p><b>Also Use SMB Information for Linux Authentication</b> allows
 verification of passwords with the NT server or the Kerberos server if joining an AD domain.</p>
 ")+
 
+    /* Samba role dialog help 2.5/3 */
+_("<p>Check <b>Change primary DNS suffix</b> to add your AD server into the list of name servers.
+This option is only available for static network setups.</p>") +
+
     /* Samba role dialog help 3/3 */
 _("<p>When you press <b>Finish</b>, the system verifies the membership and,
 if it is a NT domain, allows this host to join the domain.</p>

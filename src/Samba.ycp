@@ -762,6 +762,25 @@ global define void SetWinbind(boolean status) ``{
 }
 
 /**
+ * In cluster environment,
+ * synchronize nodes after the configuration has been written
+ */
+global boolean SynchronizeCluster () {
+
+    if (FileUtils::Exists ("/usr/sbin/csync2"))
+    {
+      map out   = (map) SCR::Execute (.target.bash_output, "/usr/sbin/csync2 -xv");
+      if (out["exit"]:0 != 0)
+      {
+        y2error ("csync2 failed with %1", out);
+        return false;
+      }
+      return true;
+    }
+    return false;
+}
+
+/**
  * Write all samba-client settings
  * @return true on success
  */
@@ -789,6 +808,9 @@ global boolean Write(boolean write_only) {
 	    // translators: write progress finished
 	    _("Finished")
     ];
+
+    // rely on ctdb to perform all changes to the samba services for the clustered case
+    boolean cluster_present     = SambaNetJoin::ClusterPresent (false);
 
     if (SambaAD::ADS () != "" && winbind_enabled)
     {
@@ -845,9 +867,11 @@ global boolean Write(boolean write_only) {
 	ret = false;
     }
 
+    SambaNetJoin::CleanupCTDB ();
+
     // winbind
     Progress::NextStage();
-    if (winbind_enabled) {
+    if (winbind_enabled && !cluster_present) {
 	if (!Package::Installed("samba-winbind") && !Mode::test()) {
 		ret = false;
 	}
@@ -861,7 +885,7 @@ global boolean Write(boolean write_only) {
 	    Report::Error(_("Cannot start winbind daemon."));
 	    ret = false;
 	}
-    } else {
+    } else if (!winbind_enabled) {
 	if (!SambaWinbind::AdjustService(false)) {
 	    // translators: error message, do not change winbind
 	    Report::Error( _("Cannot stop winbind service."));
@@ -901,7 +925,11 @@ global boolean Write(boolean write_only) {
     Autologin::Write(write_only);	// see dialog.ycp
 
     WriteShares ();
-    AdjustSharesServices (write_only);
+
+    if (!cluster_present)
+    {
+      AdjustSharesServices (write_only);
+    }
 
     WriteSSHSupport (ssh_support);
 
@@ -920,6 +948,10 @@ global boolean Write(boolean write_only) {
 	    if (out["stderr"]:"" != "")
 		y2warning ("pam-config failed for service %1", service);
 	});
+    }
+    if (cluster_present)
+    {
+      SynchronizeCluster ();
     }
 
     // finished
