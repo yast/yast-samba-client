@@ -476,7 +476,13 @@ symbol MembershipDialog () {
 			),
 			`VSpacing (0.2)
 		    )
-		)
+		),
+                `Left (
+                  (SambaAD::ADS () != "" && !SambaAD::IsDHCPClient (false)) ?
+		    // checkbox label
+		    `CheckBox (`id(`adapt_dns),_("Change primary DNS suffix")) :
+                    `VBox ()
+                )
 	    )
 	),
 	`VSpacing (0.4),
@@ -606,6 +612,11 @@ symbol MembershipDialog () {
 	    Samba::SetSSHSupport (use_winbind &&
 		(boolean)UI::QueryWidget (`id(`ssh), `Value));
 
+	    if (UI::WidgetExists (`adapt_dns))
+            {
+                SambaNetJoin::SetAdaptDNS ((boolean)UI::QueryWidget (`id (`adapt_dns), `Value));
+            }
+
 	    if (Mode::config())
 	    {
 		foreach (string key, [ "user", "password", "machine" ], {
@@ -698,8 +709,6 @@ Disable hostname changes with DHCP?"));
 	    if (!new_share)
 	    {
 		max = 0;
-		if (allow_share)
-		    Samba::stop_services	= AskToStopServices ();
 	    }
 	    Samba::SetShares (max,(string)UI::QueryWidget(`id(`group),`Value));
 	    Samba::SetGuessAccess (new_share &&
