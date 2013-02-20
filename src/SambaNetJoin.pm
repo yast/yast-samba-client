@@ -41,9 +41,11 @@ my $cluster_present     = undef;
 # if DNS should be adapted with AD server
 my $adapt_dns           = FALSE;
 
+# name of base resource
+my $rsc_id            = "";
+
 # name of clone resource
 my $clone_id            = "";
-
 
 # Helper function to execute crm binary (internal only, not part of API).
 # Takes all arguments in one string. 
@@ -94,12 +96,12 @@ sub ClusterPresent {
       return FALSE;
     }
 
-    # find out the clone resource id, to do later crm operations with
+    # find out resource and clone ids, to do later crm operations with
     my $show    = CRMCall ("configure save -");
     if ($show =~ /primitive (\w+) ocf:heartbeat:CTDB/) {
-      my $primitive = $1;
-      if ($show =~ /clone (.+) $primitive/) {
-        $clone_id        = $1;
+      $rsc_id = $1;
+      if ($show =~ /clone (.+) $rsc_id/) {
+           $clone_id        = $1;
       }
     }
 
@@ -159,7 +161,7 @@ sub PrepareCTDB {
     # 3. Run crm configure edit and search for the ctdb resource. Add the following line:
     # ctdb_manages_winbind="false"
 
-    CRMCall ("resource param ctdb set ctdb_manages_winbind no");
+    CRMCall ("resource param $rsc_id set ctdb_manages_winbind no");
 
     # 4. save winbind into  /etc/nsswitch.conf
     # 5. Restart the NSC daemon:
@@ -200,7 +202,7 @@ sub CleanupCTDB {
     CRMCall ("resource stop $clone_id");
 
     # b. Change the value from false to true: ctdb_manages_winbind="true"
-    CRMCall ("resource param ctdb set ctdb_manages_winbind yes");
+    CRMCall ("resource param $rsc_id set ctdb_manages_winbind yes");
 
     # c. Restart the ctdb resource:
     CRMCall ("resource start $clone_id");
