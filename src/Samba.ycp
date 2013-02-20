@@ -740,7 +740,16 @@ global boolean SynchronizeCluster () {
 
     if (FileUtils::Exists ("/usr/sbin/csync2"))
     {
-      map out   = (map) SCR::Execute (.target.bash_output, "/usr/sbin/csync2 -xv");
+      // first, force syncing of smb.conf (bnc#802814)
+      map out   = (map) SCR::Execute (.target.bash_output, "/usr/sbin/csync2 -f /etc/samba/smb.conf");
+      if (out["exit"]:0 != 0)
+      {
+        y2error ("csync2 failed with %1", out);
+        return false;
+      }
+
+      // sync the rest
+      out   = (map) SCR::Execute (.target.bash_output, "/usr/sbin/csync2 -xv");
       if (out["exit"]:0 != 0)
       {
         y2error ("csync2 failed with %1", out);
@@ -838,8 +847,6 @@ global boolean Write(boolean write_only) {
 	ret = false;
     }
 
-    SambaNetJoin::CleanupCTDB ();
-
     // winbind
     Progress::NextStage();
     if (winbind_enabled && !cluster_present) {
@@ -919,9 +926,11 @@ global boolean Write(boolean write_only) {
 		y2warning ("pam-config failed for service %1", service);
 	});
     }
+
     if (cluster_present)
     {
       SynchronizeCluster ();
+      SambaNetJoin::CleanupCTDB ();
     }
 
     // finished
