@@ -1,24 +1,3 @@
-dump1: [_internal]
-dump1: abc = ABC
-dump1: 
-dump1: [a]
-dump1: Bee Bee = x
-dump1: _comment = A
-dump1: _disabled = 1
-dump1: _modified = 1
-dump1: _xxx = 8
-dump1: 
-dump1: [b]
-dump1: Two Two = 22
-dump1: no = <undefined>
-dump1: 
-dump1: [removed]
-
-dump2: [a]
-dump2: _comment = A
-dump2: _disabled = 1
-dump2: bee bee = x
-dump2: 
-dump2: [b]
-dump2: two two = 22
-
+Dump	$["_internal":$["abc":"ABC"], "a":$["Bee Bee":"x", "_comment":"A", "_disabled":true, "_modified":true, "_xxx":8], "b":$["Two Two":22, "no":nil], "removed":nil]
+Return	nil
+Return	[$["comment":"A", "disabled":true, "name":"a", "parameters":$["bee_bee":"x"]], $["name":"b", "parameters":$["two_two":"22"]]]

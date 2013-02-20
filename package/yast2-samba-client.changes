@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Feb 20 11:44:33 CET 2013 - jsuchome@suse.cz
+
+- synchronize cluster before restarting CTDB clone service
+  (bnc#802814)
+- force synchronization of smb.conf (bnc#802814)
+- do not use hard-coded ctdb resource identifier (bnc#804303) 
+- 2.23.2
+
+-------------------------------------------------------------------
 Fri Jan 18 10:35:39 CET 2013 - jsuchome@suse.cz
 
 - support for CTDB functionality to join AD Domain (fate#312706)
