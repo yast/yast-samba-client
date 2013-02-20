@@ -1,10 +1,10 @@
 -------------------------------------------------------------------
 Wed Feb 20 11:44:33 CET 2013 - jsuchome@suse.cz
 
-- synchronize cluster after before restarting CTDB clone service
+- synchronize cluster before restarting CTDB clone service
   (bnc#802814)
 - force synchronization of smb.conf (bnc#802814)
-- do not use  hard-coded ctdb resource identifier (bnc#804303) 
+- do not use hard-coded ctdb resource identifier (bnc#804303) 
 - 2.23.2
 
 -------------------------------------------------------------------
