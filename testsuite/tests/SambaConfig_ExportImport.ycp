@@ -28,5 +28,5 @@
 
   Testsuite::Test(``(SambaConfig::Import (i)), [ $[], $[], $[] ], 0);
 
-  list<map> ex  = (list<map>) Testsuite::Test (``(SambaConfig::Export ()), [], 0);
+  Testsuite::Test (``(SambaConfig::Export ()), [], 0);
 }
