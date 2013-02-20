@@ -50,9 +50,9 @@ sub IsDHCPClient {
     return $dhcp_client if (defined $dhcp_client) && !$force;
 
     my $network         = YaPI::NETWORK->Read ();
-    $dhcp_client        = FALSE;
+    $dhcp_client        = TRUE;
     foreach my $iface (values %{$network->{"interfaces"}}) {
-      $dhcp_client      = $dhcp_client || (($iface->{"bootproto"} || "") =~ m/^dhcp[46]?$/);
+      $dhcp_client      = $dhcp_client && (($iface->{"bootproto"} || "") =~ m/^dhcp[46]?$/);
     }
     return $dhcp_client;
 }
