@@ -283,6 +283,9 @@ sub Join {
 	if ($kerberos_method) {
 	    $content	= $content."\tkerberos method = $kerberos_method\n";
 	}
+        if ($cluster_present) {
+	    $content	= $content."\tclustering = yes\n\tctdbd socket =\n";
+        }
 	SCR->Write (".target.string", $conf_file, $content);
 	$cmd		= "KRB5_CONFIG=$krb_file ";
 	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
