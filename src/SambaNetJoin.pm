@@ -284,7 +284,13 @@ sub Join {
 	    $content	= $content."\tkerberos method = $kerberos_method\n";
 	}
         if ($cluster_present) {
-	    $content	= $content."\tclustering = yes\n\tctdbd socket =\n";
+            # ensure cluster related options are used from original file (or with reasonable default)
+            # bnc#809208
+            my $clustering      = SambaConfig->GlobalGetStr ("clustering", "yes");
+            my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
+
+            $content .= "\t" . "clustering = $clustering" . "\n";
+            $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
         }
 	SCR->Write (".target.string", $conf_file, $content);
 	$cmd		= "KRB5_CONFIG=$krb_file ";
