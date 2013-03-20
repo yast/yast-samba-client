@@ -287,7 +287,7 @@ sub Join {
             # ensure cluster related options are used from original file
             # bnc#809208
             my $clustering      = SambaConfig->GlobalGetStr ("clustering", undef);
-            if defined $clustering {
+            if (defined $clustering) {
               my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
               $content .= "\t" . "clustering = $clustering" . "\n";
               $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
