@@ -284,13 +284,17 @@ sub Join {
 	    $content	= $content."\tkerberos method = $kerberos_method\n";
 	}
         if ($cluster_present) {
-            # ensure cluster related options are used from original file (or with reasonable default)
+            # ensure cluster related options are used from original file
             # bnc#809208
-            my $clustering      = SambaConfig->GlobalGetStr ("clustering", "yes");
-            my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
-
-            $content .= "\t" . "clustering = $clustering" . "\n";
-            $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
+            my $clustering      = SambaConfig->GlobalGetStr ("clustering", undef);
+            if defined $clustering {
+              my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
+              $content .= "\t" . "clustering = $clustering" . "\n";
+              $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
+            }
+            else {
+              y2warning ("'clustering' not defined in smb.conf, clustered join likely won't work");
+            }
         }
 	SCR->Write (".target.string", $conf_file, $content);
 	$cmd		= "KRB5_CONFIG=$krb_file ";
