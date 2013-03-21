@@ -171,7 +171,7 @@ sub PrepareCTDB {
     # 7. Cleanup CTDB:
     CRMCall ("resource cleanup $clone_id");
 
-    # 8. Wait until the “unhealty” status disappears.
+    # 8. Wait until the unhealty status disappears.
     my $start   = time;
     my $wait    = 60; # 1 minute timeout
 
@@ -293,7 +293,8 @@ sub Join {
               $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
             }
             else {
-              y2warning ("'clustering' not defined in smb.conf, clustered join likely won't work");
+              y2error ("'clustering' not defined in smb.conf, canceling join attempt");
+              return __("Unable to proceed with join: Inconsistent cluster state");
             }
         }
 	SCR->Write (".target.string", $conf_file, $content);

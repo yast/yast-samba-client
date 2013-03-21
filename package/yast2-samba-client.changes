@@ -1,8 +1,9 @@
 -------------------------------------------------------------------
-Thu Mar 14 12:58:48 CET 2013 - jsuchome@suse.cz
+Thu Mar 21 12:40:41 CET 2013 - jsuchome@suse.cz
 
 - ensure cluster options are present in smb.conf during join
   (bnc#809208)
+- show error message when cluster config is not correct (bnc#809208)
 - 2.17.25
 
 -------------------------------------------------------------------
