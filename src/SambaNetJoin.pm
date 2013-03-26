@@ -81,8 +81,22 @@ sub ClusterPresent {
     $cluster_present    = FALSE;
 
     if (SambaAD->IsDHCPClient (FALSE)) {
-      y2warning ("DHCP client found: Not configuring cluster...");
-      return FALSE;
+      y2milestone ("DHCP client found: checking if IP addresses are configured for CTDB traffic...");
+      # Go through IP addresses and check if they are cofigured for CTDB (/etc/ctdb/nodes).
+      # This is not a perfect solution, but as we cannot find out if IP is statically assigned by
+      # DHCP server, we have at least a hint that current addresses seem to be configured correctly.
+      # See bnc#811008
+      my $nodes = SCR->Read (".target.string", "/etc/ctdb/nodes");
+      my $out   = SCR->Execute (".target.bash_output",
+        "LANG=C /sbin/ifconfig | grep 'inet addr' | cut -d: -f2 | cut -d ' ' -f1");
+      my $cluster_ip    = TRUE;
+      foreach my $line (split (/\n/,$result->{"stdout"} || "")) {
+        $cluster_ip     = $cluster_ip && ($nodes =~ /$line/);
+      }
+      unless $cluster_ip {
+        y2warning ("some of devices are not configured for CTDB");
+        return FALSE;
+      };
     }
 
     # do we have cluster packages installed?
@@ -92,7 +106,7 @@ sub ClusterPresent {
 
     my $out     = SCR->Execute (".target.bash_output", "/usr/sbin/crm_mon -s");
     if ($out->{"exit"} != 0) {
-      y2milestone ("cluster not configured or not online");
+      y2warning ("cluster not configured or not online");
       return FALSE;
     }
 
