@@ -243,7 +243,22 @@ sub Test {
 
     if ($protocol eq "ads") {
 	my $realm	= SambaAD->Realm ();
-	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
+        my $content     = "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n";
+        if ($self->ClusterPresent (0)) {
+            # ensure cluster related options are used from original file
+            # bnc#809208
+            my $clustering      = SambaConfig->GlobalGetStr ("clustering", undef);
+            if (defined $clustering) {
+              my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
+              $content .= "\t" . "clustering = $clustering" . "\n";
+              $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
+            }
+            else {
+              y2warning ("'clustering' not defined in smb.conf");
+              return FALSE;
+            }
+        }
+	SCR->Write (".target.string", $conf_file, $content);
     }
     else {
 	SCR->Write (".target.string", $conf_file, "[global]\n\tsecurity = domain\n\tworkgroup = $domain\n");
@@ -297,7 +312,7 @@ sub Join {
 	if ($kerberos_method) {
 	    $content	= $content."\tkerberos method = $kerberos_method\n";
 	}
-        if ($cluster_present) {
+        if ($self->ClusterPresent (0)) {
             # ensure cluster related options are used from original file
             # bnc#809208
             my $clustering      = SambaConfig->GlobalGetStr ("clustering", undef);
