@@ -90,13 +90,13 @@ sub ClusterPresent {
       my $out   = SCR->Execute (".target.bash_output",
         "LANG=C /sbin/ifconfig | grep 'inet addr' | cut -d: -f2 | cut -d ' ' -f1");
       my $cluster_ip    = TRUE;
-      foreach my $line (split (/\n/,$result->{"stdout"} || "")) {
+      foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
         $cluster_ip     = $cluster_ip && ($nodes =~ /$line/);
       }
-      unless $cluster_ip {
+      unless ($cluster_ip) {
         y2warning ("some of devices are not configured for CTDB");
         return FALSE;
-      };
+      }
     }
 
     # do we have cluster packages installed?
