@@ -1,8 +1,10 @@
 -------------------------------------------------------------------
-Thu Mar 21 12:40:41 CET 2013 - jsuchome@suse.cz
+Tue Mar 26 17:32:35 CET 2013 - jsuchome@suse.cz
 
-- ensure cluster options are present in smb.conf during join
-  (bnc#809208)
+- cluster allows DHCP configuration, but check if IPs are configured
+  for it (bnc#811008)
+- ensure cluster options are present in smb.conf during join 
+  (bnc#809208) and testjoin (bnc#810592)
 - show error message when cluster config is not correct (bnc#809208)
 - 2.17.25
 
