@@ -81,8 +81,22 @@ sub ClusterPresent {
     $cluster_present    = FALSE;
 
     if (SambaAD->IsDHCPClient (FALSE)) {
-      y2warning ("DHCP client found: Not configuring cluster...");
-      return FALSE;
+      y2milestone ("DHCP client found: checking if IP addresses are configured for CTDB traffic...");
+      # Go through IP addresses and check if they are cofigured for CTDB (/etc/ctdb/nodes).
+      # This is not a perfect solution, but as we cannot find out if IP is statically assigned by
+      # DHCP server, we have at least a hint that current addresses seem to be configured correctly.
+      # See bnc#811008
+      my $nodes = SCR->Read (".target.string", "/etc/ctdb/nodes");
+      my $out   = SCR->Execute (".target.bash_output",
+        "LANG=C /sbin/ifconfig | grep 'inet addr' | cut -d: -f2 | cut -d ' ' -f1");
+      my $cluster_ip    = TRUE;
+      foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
+        if ($nodes !~ /$line/) {
+          y2warning ("IP address $line is not configured for CTDB");
+          $cluster_ip   = FALSE;
+        }
+      }
+      return FALSE unless $cluster_ip;
     }
 
     # do we have cluster packages installed?
@@ -92,7 +106,7 @@ sub ClusterPresent {
 
     my $out     = SCR->Execute (".target.bash_output", "/usr/sbin/crm_mon -s");
     if ($out->{"exit"} != 0) {
-      y2milestone ("cluster not configured or not online");
+      y2warning ("cluster not configured or not online");
       return FALSE;
     }
 
@@ -171,7 +185,7 @@ sub PrepareCTDB {
     # 7. Cleanup CTDB:
     CRMCall ("resource cleanup $clone_id");
 
-    # 8. Wait until the “unhealty” status disappears.
+    # 8. Wait until the unhealty status disappears.
     my $start   = time;
     my $wait    = 60; # 1 minute timeout
 
@@ -229,7 +243,22 @@ sub Test {
 
     if ($protocol eq "ads") {
 	my $realm	= SambaAD->Realm ();
-	SCR->Write (".target.string", $conf_file, "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n");
+        my $content     = "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n";
+        if ($self->ClusterPresent (0)) {
+            # ensure cluster related options are used from original file
+            # bnc#809208
+            my $clustering      = SambaConfig->GlobalGetStr ("clustering", undef);
+            if (defined $clustering) {
+              my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
+              $content .= "\t" . "clustering = $clustering" . "\n";
+              $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
+            }
+            else {
+              y2warning ("'clustering' not defined in smb.conf");
+              return FALSE;
+            }
+        }
+	SCR->Write (".target.string", $conf_file, $content);
     }
     else {
 	SCR->Write (".target.string", $conf_file, "[global]\n\tsecurity = domain\n\tworkgroup = $domain\n");
@@ -283,6 +312,20 @@ sub Join {
 	if ($kerberos_method) {
 	    $content	= $content."\tkerberos method = $kerberos_method\n";
 	}
+        if ($self->ClusterPresent (0)) {
+            # ensure cluster related options are used from original file
+            # bnc#809208
+            my $clustering      = SambaConfig->GlobalGetStr ("clustering", undef);
+            if (defined $clustering) {
+              my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
+              $content .= "\t" . "clustering = $clustering" . "\n";
+              $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
+            }
+            else {
+              y2error ("'clustering' not defined in smb.conf, canceling join attempt");
+              return __("Unable to proceed with join: Inconsistent cluster state");
+            }
+        }
 	SCR->Write (".target.string", $conf_file, $content);
 	$cmd		= "KRB5_CONFIG=$krb_file ";
 	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");

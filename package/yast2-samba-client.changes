@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Mar 26 17:32:35 CET 2013 - jsuchome@suse.cz
+
+- cluster allows DHCP configuration, but check if IPs are configured
+  for it (bnc#811008)
+- ensure cluster options are present in smb.conf during join 
+  (bnc#809208) and testjoin (bnc#810592)
+- show error message when cluster config is not correct (bnc#809208)
+- 2.17.25
+
+-------------------------------------------------------------------
 Tue Feb 19 09:18:53 CET 2013 - jsuchome@suse.cz
 
 - do not use hard-coded ctdb resource identifier (bnc#804303)
