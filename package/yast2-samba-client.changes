@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Thu Mar 28 16:08:53 CET 2013 - jsuchome@suse.cz
+
+- one more csync2 invocation so smb.conf is correctly propagated
+  to cluster nodes (bnc#802814)
+- cluster allows DHCP configuration, but check if IPs are configured
+  for it (bnc#811008)
+- show error message when cluster config is not correct (bnc#809208)
+- ensure cluster options are present in smb.conf during join
+  (bnc#809208) and testjoin (bnc#810592)
+- 2.24.0
+
+-------------------------------------------------------------------
 Wed Feb 20 11:44:33 CET 2013 - jsuchome@suse.cz
 
 - synchronize cluster before restarting CTDB clone service
