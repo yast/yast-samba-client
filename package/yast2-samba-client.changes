@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar 28 14:31:27 CET 2013 - jsuchome@suse.cz
+
+- one more csync2 invocation so smb.conf is correctly propagated
+  to cluster nodes (bnc#802814) 
+- 2.17.26
+
+-------------------------------------------------------------------
 Tue Mar 26 17:32:35 CET 2013 - jsuchome@suse.cz
 
 - cluster allows DHCP configuration, but check if IPs are configured
