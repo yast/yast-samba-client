@@ -741,10 +741,16 @@ global boolean SynchronizeCluster () {
     if (FileUtils::Exists ("/usr/sbin/csync2"))
     {
       // first, force syncing of smb.conf (bnc#802814)
-      map out   = (map) SCR::Execute (.target.bash_output, "/usr/sbin/csync2 -f /etc/samba/smb.conf");
+      map out   = (map) SCR::Execute (.target.bash_output, "/usr/sbin/csync2 -cr /");
       if (out["exit"]:0 != 0)
       {
-        y2error ("csync2 failed with %1", out);
+        y2error ("csync2 -cr failed with %1", out);
+        return false;
+      }
+      out       = (map) SCR::Execute (.target.bash_output, "/usr/sbin/csync2 -f /etc/samba/smb.conf");
+      if (out["exit"]:0 != 0)
+      {
+        y2error ("csync2 -f failed with %1", out);
         return false;
       }
 
@@ -752,7 +758,7 @@ global boolean SynchronizeCluster () {
       out   = (map) SCR::Execute (.target.bash_output, "/usr/sbin/csync2 -xv");
       if (out["exit"]:0 != 0)
       {
-        y2error ("csync2 failed with %1", out);
+        y2error ("csync2 -x failed with %1", out);
         return false;
       }
       return true;
