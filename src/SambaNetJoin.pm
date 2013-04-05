@@ -88,7 +88,7 @@ sub ClusterPresent {
       # See bnc#811008
       my $nodes = SCR->Read (".target.string", "/etc/ctdb/nodes");
       my $out   = SCR->Execute (".target.bash_output",
-        "LANG=C /sbin/ifconfig | grep 'inet addr' | cut -d: -f2 | cut -d ' ' -f1");
+        "LANG=C /sbin/ifconfig | grep 'inet addr' | grep -v '127.0.0.1' | cut -d: -f2 | cut -d ' ' -f1");
       my $cluster_ip    = TRUE;
       foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
         if ($nodes !~ /$line/) {
