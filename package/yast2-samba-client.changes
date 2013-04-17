@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 17 14:24:50 CEST 2013 - jsuchome@suse.cz
+
+- ignore 127.0.0.1 while going through IP's (bnc#811008)
+- 2.24.1 
+
+-------------------------------------------------------------------
 Thu Mar 28 16:08:53 CET 2013 - jsuchome@suse.cz
 
 - one more csync2 invocation so smb.conf is correctly propagated
