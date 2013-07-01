@@ -481,7 +481,7 @@ sub Export {
     my ($self) = @_;
     # remove modified flags and internal shares from config
     my @myconfig;
-    foreach my $share (keys %Config) {
+    foreach my $share (sort keys %Config) {
 	next unless $Config{$share};	# skip removed shares
 	next if $share =~ /^_/;		# skip internal shares
 	my %section;
