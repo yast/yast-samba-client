@@ -15,6 +15,8 @@ Requires:       yast2 >= 2.21.22
 
 BuildArchitectures:	noarch
 
+Requires:       yast2-ruby-bindings >= 1.0.0
+
 Summary:	YaST2 - Samba Client Configuration
 
 %description
@@ -33,11 +35,10 @@ workgroup/domain and authentication against an SMB domain.
 %defattr(-,root,root)
 %dir @yncludedir@/samba-client
 @yncludedir@/samba-client/*
-@clientdir@/samba-client.ycp
-@clientdir@/samba-client_*.ycp
+@clientdir@/samba-client.rb
+@clientdir@/samba-client_*.rb
 @moduledir@/Samba*.pm
-@moduledir@/Samba.ycp
-@moduledir@/Samba.ybc
+@moduledir@/Samba.rb
 @desktopdir@/samba-client.desktop
 @scrconfdir@/*.scr
 @agentdir@/ag_pam_mount
