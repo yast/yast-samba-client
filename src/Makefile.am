@@ -1,41 +1,40 @@
-#
-# Makefile.am for devtools/devtools/skeletons/config/src
-#
+# Sources for samba-client
+
+module_DATA = \
+  modules/Samba.rb \
+  modules/SambaNmbLookup.pm \
+  modules/SambaConfig.pm \
+  modules/SambaAD.pm \
+  modules/SambaNetJoin.pm \
+  modules/SambaWinbind.pm
+
+client_DATA = \
+  clients/samba-client_auto.rb \
+  clients/samba-client.rb
 
 yncludedir = @yncludedir@/samba-client
-rncdir =  $(schemadir)/autoyast/rnc
+ynclude_DATA = \
+  include/samba-client/wizards.rb \
+  include/samba-client/dialogs.rb \
+  include/samba-client/complex.rb \
+  include/samba-client/routines.rb \
+  include/samba-client/helps.rb
 
-client_DATA =			\
-	samba-client.ycp		\
-	samba-client_auto.ycp	
+scrconf_DATA = \
+  scrconf/cfg_smbconf.scr \
+  scrconf/pam_mount.scr \
+  scrconf/etc_security_winbind.scr
 
-ynclude_DATA =			\
-	helps.ycp		\
-	wizards.ycp		\
-	dialogs.ycp		\
-	complex.ycp		\
-	routines.ycp
+agent_SCRIPTS = \
+  servers_non_y2/ag_pam_mount
 
-desktop_DATA =			\
-	samba-client.desktop
+schemafilesdir = $(schemadir)/autoyast/rnc
+schemafiles_DATA = \
+  autoyast-rnc/samba-client.rnc
 
-module_DATA =			\
-	Samba.ycp		\
-	SambaNetJoin.pm		\
-	SambaWinbind.pm		\
-	SambaNmbLookup.pm	\
-	SambaConfig.pm		\
-	SambaAD.pm
+desktop_DATA = \
+  desktop/samba-client.desktop
 
-rnc_DATA =              \
-        samba-client.rnc
-
-samba-client:
-	ln -sf . samba-client
-
-ycpchook = samba-client
-
-EXTRA_DIST = $(client_DATA) $(ynclude_DATA) $(module_DATA) $(desktop_DATA) $(rnc_DATA)
+EXTRA_DIST = $(module_DATA) $(client_DATA) $(ynclude_DATA) $(scrconf_DATA) $(agent_SCRIPTS) $(schemafiles_DATA) $(desktop_DATA)
 
 include $(top_srcdir)/Makefile.am.common
-
