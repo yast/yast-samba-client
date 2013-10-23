@@ -186,6 +186,12 @@ module Yast
       command = CommandLine.UniqueOption(options, ["enable", "disable"])
       return false if command == nil
 
+      # read AD settings, so the write command does not fallback to non-AD default
+      domain    = Samba.GetWorkgroupOrRealm
+      SambaAD.ReadADS(domain)
+      Samba.SetWorkgroup(domain)
+      SambaAD.ReadRealm
+
       Samba.SetWinbind(command == "enable")
     end
 
