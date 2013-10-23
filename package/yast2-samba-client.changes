@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct 23 08:49:18 CEST 2013 - jsuchome@suse.cz
+
+- CLI; read AD settings, so the write command does not fallback
+  to non-AD defaults (bnc#845878)
+- 3.0.1 
+
+-------------------------------------------------------------------
 Wed Jul 31 08:38:51 UTC 2013 - yast-devel@opensuse.org
 
 - converted from YCP to Ruby by YCP Killer
