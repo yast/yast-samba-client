@@ -187,6 +187,7 @@ module Yast
       return false if command == nil
 
       # read AD settings, so the write command does not fallback to non-AD default
+      #(bnc#845878)
       domain    = Samba.GetWorkgroupOrRealm
       SambaAD.ReadADS(domain)
       Samba.SetWorkgroup(domain)
