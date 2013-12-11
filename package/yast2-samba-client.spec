@@ -26,7 +26,7 @@ Source0:        %{name}-%{version}.tar.bz2
 Group:          System/YaST
 License:        GPL-2.0
 BuildRequires:	yast2-pam yast2-perl-bindings perl-XML-Writer yast2-testsuite update-desktop-files
-BuildRequires:  yast2-devtools >= 3.0.6
+BuildRequires:  yast2-devtools >= 3.1.10
 Requires:	yast2-kerberos-client perl-XML-LibXML
 
 # new Pam.ycp API
