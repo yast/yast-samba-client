@@ -17,7 +17,7 @@
 
 
 Name:           yast2-samba-client
-Version:        3.1.1
+Version:        3.1.2
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -27,7 +27,8 @@ Group:          System/YaST
 License:        GPL-2.0
 BuildRequires:	yast2-pam yast2-perl-bindings perl-XML-Writer yast2-testsuite update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
-Requires:	yast2-kerberos-client perl-XML-LibXML
+Requires:	perl-XML-LibXML
+Conflicts:	yast2-kerberos-client < 3.1.2
 
 # new Pam.ycp API
 Requires:       yast2-pam >= 2.14.0
