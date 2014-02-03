@@ -252,6 +252,18 @@ module Yast
             )
           ),
           VSpacing(0.2),
+          # require_groups
+          Frame("Allowed group(s)",
+          Left(
+            InputField(
+              Id("require_grp"),
+              Opt(:hstretch),
+              "group name(s) or SID(s)",
+              SambaConfig::WinbindGlobalGetStr("require_membership_of", "")
+            )
+          )
+          ),
+          VSpacing(0.2),
           # combobox label
           Left(
             ComboBox(
@@ -260,7 +272,6 @@ module Yast
               kerberos_methods
             )
           ),
-          VSpacing(0.2),
           # frame label
           Frame(
             _("Windows Internet Name Service"),
@@ -389,6 +400,14 @@ module Yast
             kerberos_method == "secrets only" ? nil : kerberos_method
           )
 
+          required_groups = Convert.to_string(
+            UI.QueryWidget(Id("require_grp"), :Value)
+          )
+          #remove leading/trailing spaces from each comma separated entry
+          required_groups = required_groups.split(',').map(&:strip).join(',')
+
+          SambaConfig::WinbindGlobalSetStr("require_membership_of",
+                                           required_groups);
           updated_volumes = deep_copy(non_cifs_volumes)
           Builtins.foreach(mount_map) do |id, volume|
             updated_volumes = Builtins.add(updated_volumes, volume)
