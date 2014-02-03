@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb  3 13:59:29 UTC 2014 - nopower@suse.com
+
+- Add in 'Expert Settings' page  new 'Allowed group(s)' field to 
+  facilitate populating the requires_of_membership field in
+  pam_winbind.conf configuration file. (fate #312146)
+
+-------------------------------------------------------------------
 Wed Oct 23 08:15:18 CEST 2013 - jsuchome@suse.cz
 
 - CLI; read AD settings, so the write command does not fallback
