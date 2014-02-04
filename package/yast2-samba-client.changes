@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 31 17:40:22 UTC 2014 - varkoly@suse.com
+
+- Include Kerberos.rb module because dropping yast2-kerberos-client
+- 3.1.2 
+
+-------------------------------------------------------------------
 Mon Feb  3 13:59:29 UTC 2014 - nopower@suse.com
 
 - Add in 'Expert Settings' page  new 'Allowed group(s)' field to 
