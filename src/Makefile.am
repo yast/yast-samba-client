@@ -1,6 +1,7 @@
 # Sources for samba-client
 
 module_DATA = \
+  modules/Kerberos.rb \
   modules/Samba.rb \
   modules/SambaNmbLookup.pm \
   modules/SambaConfig.pm \
