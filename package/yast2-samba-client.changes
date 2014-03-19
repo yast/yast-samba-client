@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 19 14:00:02 UTC 2014 - ddiss@suse.com
+
+- Fix standalone AD join from a HA cluster; (bnc#865445).
+- 2.17.28
+
+-------------------------------------------------------------------
 Fri Apr  5 14:56:23 CEST 2013 - jsuchome@suse.cz
 
 - ignore 127.0.0.1 while going through IP's (bnc#811008)
