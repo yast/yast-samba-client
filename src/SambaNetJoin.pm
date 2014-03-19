@@ -118,6 +118,9 @@ sub ClusterPresent {
            $clone_id        = $1;
       }
     }
+    else {
+      return FALSE;
+    }
 
     $cluster_present    = TRUE;
     return TRUE;
