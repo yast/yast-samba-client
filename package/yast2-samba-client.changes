@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar 26 15:26:51 UTC 2014 - nopower@suse.com
+
+- Add needed scr agent /usr/share/YaST2/scrconf/etc_ssh_ssh_config.scr;
+  (bnc#870230)
+- 3.1.6
+
+-------------------------------------------------------------------
 Wed Mar 19 14:00:02 UTC 2014 - ddiss@suse.com
 
 - Fix standalone AD join from a HA cluster; (bnc#865445).
