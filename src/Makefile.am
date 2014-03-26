@@ -24,7 +24,8 @@ ynclude_DATA = \
 scrconf_DATA = \
   scrconf/cfg_smbconf.scr \
   scrconf/pam_mount.scr \
-  scrconf/etc_security_winbind.scr
+  scrconf/etc_security_winbind.scr \
+  scrconf/etc_ssh_ssh_config.scr
 
 agent_SCRIPTS = \
   servers_non_y2/ag_pam_mount
