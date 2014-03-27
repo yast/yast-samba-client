@@ -44,9 +44,6 @@ my $adapt_dns           = FALSE;
 # name of base resource
 my $rsc_id            = "";
 
-# name of clone resource
-my $clone_id            = "";
-
 # Helper function to execute crm binary (internal only, not part of API).
 # Takes all arguments in one string. 
 sub CRMCall {
@@ -112,11 +109,8 @@ sub ClusterPresent {
 
     # find out resource and clone ids, to do later crm operations with
     my $show    = CRMCall ("configure save -");
-    if ($show =~ /primitive (\w+) ocf:heartbeat:CTDB/) {
+    if ($show =~ /primitive (\S+) ocf:heartbeat:CTDB/) {
       $rsc_id = $1;
-      if ($show =~ /clone (.+) $rsc_id/) {
-           $clone_id        = $1;
-      }
     }
     else {
       return FALSE;
@@ -186,7 +180,7 @@ sub PrepareCTDB {
 
     # 6. Create the Kerberbos configuration file /etc/krb5.conf (the tmp one from Join is enough)
     # 7. Cleanup CTDB:
-    CRMCall ("resource cleanup $clone_id");
+    CRMCall ("resource cleanup $rsc_id");
 
     # 8. Wait until the unhealty status disappears.
     my $start   = time;
@@ -216,13 +210,13 @@ sub CleanupCTDB {
     # 10. Change the ctdb_manages_winbind option:
 
     # a. Stop the ctdb resource:
-    CRMCall ("resource stop $clone_id");
+    CRMCall ("resource stop $rsc_id");
 
     # b. Change the value from false to true: ctdb_manages_winbind="true"
     CRMCall ("resource param $rsc_id set ctdb_manages_winbind yes");
 
     # c. Restart the ctdb resource:
-    CRMCall ("resource start $clone_id");
+    CRMCall ("resource start $rsc_id");
 
     $cleanup_needed     = FALSE;
 
