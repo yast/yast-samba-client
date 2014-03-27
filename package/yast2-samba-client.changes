@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Mar 27 13:48:04 UTC 2014 - ddiss@suse.com
+
+- Fix handling of CTDB primitives containing hyphens
+- Remove CTDB crm resource hierarchy assumption; (bnc#813462).
+- Add SUSE Samba Team as MAINTAINER
+- 3.1.7
+
+-------------------------------------------------------------------
 Wed Mar 26 15:26:51 UTC 2014 - nopower@suse.com
 
 - Add needed scr agent /usr/share/YaST2/scrconf/etc_ssh_ssh_config.scr;
