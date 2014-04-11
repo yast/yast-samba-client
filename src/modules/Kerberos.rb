@@ -34,7 +34,7 @@ module Yast
   class KerberosClass < Module
     def main
 
-      textdomain "kerberos"
+      textdomain "samba-client"
 
       Yast.import "FileUtils"
       Yast.import "Hostname"
