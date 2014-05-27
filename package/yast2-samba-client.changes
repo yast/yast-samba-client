@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 27 16:00:17 UTC 2014 - noel.power@suse.com
+
+- Mark some strings for translation; (bnc#877744)
+- 3.1.9
+
+-------------------------------------------------------------------
 Fri Apr 11 09:28:03 CEST 2014 - locilka@suse.com
 
 - Fixed textdomain in Kerberos library (kerberos -> samba-client)

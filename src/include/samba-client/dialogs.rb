@@ -253,12 +253,12 @@ module Yast
           ),
           VSpacing(0.2),
           # require_groups
-          Frame("Allowed group(s)",
+          Frame(_("Allowed Group(s)"),
           Left(
             InputField(
               Id("require_grp"),
               Opt(:hstretch),
-              "group name(s) or SID(s)",
+              _("Group Name(s) or SID(s)"),
               SambaConfig::WinbindGlobalGetStr("require_membership_of", "")
             )
           )
