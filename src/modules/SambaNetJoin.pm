@@ -109,7 +109,7 @@ sub ClusterPresent {
 
     # find out resource and clone ids, to do later crm operations with
     my $show    = CRMCall ("configure save -");
-    if ($show =~ /primitive (\S+) ocf:heartbeat:CTDB/) {
+    if ($show =~ /primitive (\S+) (ocf:heartbeat:)?CTDB/) {
       $rsc_id = $1;
     }
     else {

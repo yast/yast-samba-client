@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 21 17:12:19 UTC 2014 - ddiss@suse.com
+
+- Fix CTDB resource primitive path regular expression; (bnc#892975).
+- 3.1.10
+
+-------------------------------------------------------------------
 Tue May 27 16:00:17 UTC 2014 - noel.power@suse.com
 
 - Mark some strings for translation; (bnc#877744)
