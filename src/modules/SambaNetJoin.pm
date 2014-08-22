@@ -169,11 +169,6 @@ sub PrepareCTDB {
 
     return FALSE unless $self->ClusterPresent (0);
 
-    # 3. Run crm configure edit and search for the ctdb resource. Add the following line:
-    # ctdb_manages_winbind="false"
-
-    CRMCall ("resource param $rsc_id set ctdb_manages_winbind no");
-
     # 4. save winbind into  /etc/nsswitch.conf
     # 5. Restart the NSC daemon:
     SambaWinbind->AdjustNsswitch (TRUE, TRUE);
@@ -207,16 +202,8 @@ sub CleanupCTDB {
 
     return TRUE unless $cleanup_needed;
 
-    # 10. Change the ctdb_manages_winbind option:
-
-    # a. Stop the ctdb resource:
-    CRMCall ("resource stop $rsc_id");
-
-    # b. Change the value from false to true: ctdb_manages_winbind="true"
-    CRMCall ("resource param $rsc_id set ctdb_manages_winbind yes");
-
-    # c. Restart the ctdb resource:
-    CRMCall ("resource start $rsc_id");
+    # Restart the ctdb resource, winbind will also be restarted with grouping:
+    CRMCall ("resource restart $rsc_id");
 
     $cleanup_needed     = FALSE;
 
