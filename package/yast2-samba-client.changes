@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 28 13:20:17 UTC 2014 - ddiss@suse.com
+
+- Support non-default ctdbd socket paths; (bnc#893154).
+- 3.1.12
+
+-------------------------------------------------------------------
 Fri Aug 22 17:48:20 UTC 2014 - ddiss@suse.com
 
 - Support separately defined Samba resources; don't manipulate the
