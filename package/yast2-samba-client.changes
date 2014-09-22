@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep 22 14:14:36 UTC 2014 - ddiss@suse.com
+
+- Ensure nmbd is restarted following nmbstatus lookup; (bnc#895319).
+- 2.17.30
+
+-------------------------------------------------------------------
 Thu Mar 27 13:48:04 UTC 2014 - ddiss@suse.com
 
 - Fix handling of CTDB primitives containing hyphens
