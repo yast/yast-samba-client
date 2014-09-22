@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep 22 15:01:33 UTC 2014 - ddiss@suse.com
+
+- Ensure nmbd is restarted following nmbstatus lookup; (bnc#895319).
+- 3.1.13
+
+-------------------------------------------------------------------
 Thu Aug 28 13:20:17 UTC 2014 - ddiss@suse.com
 
 - Support non-default ctdbd socket paths; (bnc#893154).

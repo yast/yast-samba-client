@@ -99,6 +99,7 @@ sub Start {
 
 # Ensure that nmbstatus already finished. Then parse its output into nmbstatus_output
 our $wait = 120;
+BEGIN{$TYPEINFO{checkNmbstatus}=["function","void"]}
 sub checkNmbstatus {
     if ($Nmbstatus_running) {
 
