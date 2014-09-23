@@ -675,6 +675,9 @@ module Yast
 
       ReadPAMMount()
 
+      # ensure nmbd is restarted if stopped for lookup
+      SambaNmbLookup.checkNmbstatus if !Mode.test
+
       # finished
       Progress.NextStage
       @globals_configured = true
