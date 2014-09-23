@@ -740,6 +740,11 @@ global boolean Read() {
 
     ReadPAMMount ();
 
+    if (!Mode::test()) {
+	// ensure nmbd is restarted if stopped for lookup
+	SambaNmbLookup::checkNmbstatus();
+    }
+
     // finished
     Progress::NextStage();
     globals_configured = true;
