@@ -190,7 +190,6 @@ module Yast
       #(bnc#845878)
       domain    = Samba.GetWorkgroupOrRealm
       SambaAD.ReadADS(domain)
-      Samba.SetWorkgroup(domain)
       SambaAD.ReadRealm
 
       Samba.SetWinbind(command == "enable")
