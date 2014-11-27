@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 30 13:55:23 UTC 2014 - nopower@suse.com
+
+- Don't update Workgroup with realm name invoking
+  yast samba-client winbind enable; (bnc#902302)
+- 3.0.2
+
+-------------------------------------------------------------------
 Wed Oct 23 08:49:18 CEST 2013 - jsuchome@suse.cz
 
 - CLI; read AD settings, so the write command does not fallback
