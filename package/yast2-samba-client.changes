@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 30 13:55:23 UTC 2014 - nopower@suse.com
+
+- Don't update Workgroup with realm name invoking 
+  yast samba-client winbind enable; (bnc#902302)
+- 3.1.14
+
+-------------------------------------------------------------------
 Mon Sep 22 15:01:33 UTC 2014 - ddiss@suse.com
 
 - Ensure nmbd is restarted following nmbstatus lookup; (bnc#895319).
