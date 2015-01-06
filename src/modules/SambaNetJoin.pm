@@ -279,9 +279,10 @@ sub Test {
 # @param machine	machine account to join into (fate 301320)
 # @return string	an error message or nil if successful
 BEGIN{$TYPEINFO{Join}=[
-    "function","string","string","string","string","string","string"]}
+    "function","string","string","string","string","string","string", "string", "string"]}
 sub Join {
-    my ($self, $domain, $join_level, $user, $passwd, $machine) = @_;
+    my ($self, $domain, $join_level, $user, $passwd, $machine, $release_name,
+        $release_version) = @_;
     
     my $netbios_name	= SambaConfig->GlobalGetStr("netbios name", undef);
     my $server		= SambaAD->ADS ();
@@ -336,7 +337,9 @@ sub Join {
 #	. (($protocol ne "ads" && $netbios_name)?" -n '$netbios_name'":"")
 # FIXME check if netbios name can be used with AD
 	. ($netbios_name  ? " -n '$netbios_name'" : "")
-	. " -U '" . String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
+	. " -U '" . String->Quote ($user) . "%" . String->Quote ($passwd) . "'"
+	. " osVer='" . String->Quote ($release_version) . "'"
+	. " osName='" . String->Quote ($release_name) . "'";
 
     if ($machine) {
 	$machine	=~ s/dc=([^,]*)//gi; # remove DC=* parts
