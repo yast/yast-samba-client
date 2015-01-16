@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 12 16:53:48 UTC 2015 - nopower@suse.com
+
+- When joining domain provide osName & osVer arguments to "net ads join"
+  (bnc#873922).
+- 3.1.15
+
+-------------------------------------------------------------------
 Thu Oct 30 13:55:23 UTC 2014 - nopower@suse.com
 
 - Don't update Workgroup with realm name invoking 
