@@ -44,6 +44,7 @@ module Yast
       Yast.import "Samba"
       Yast.import "SambaAD"
       Yast.import "SambaNetJoin"
+      Yast.import "OSRelease"
 
       # The main ()
       Builtins.y2milestone("----------------------------------------")
@@ -260,13 +261,16 @@ module Yast
         domain = SambaAD.GetWorkgroup(domain)
         SambaAD.ReadRealm
       end
-
+      relname = OSRelease.ReleaseName
+      relver = OSRelease.ReleaseVersion
       result = SambaNetJoin.Join(
         domain,
         "member",
         Ops.get_string(options, "user"),
         Ops.get_string(options, "password", ""),
-        Ops.get_string(options, "machine")
+        Ops.get_string(options, "machine"),
+        relname,
+        relver
       )
       if result == nil
         # translators: result message for joindomain command line action

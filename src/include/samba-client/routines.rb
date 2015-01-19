@@ -45,6 +45,8 @@ module Yast
       Yast.import "SambaNetJoin"
       Yast.import "SambaNmbLookup"
       Yast.import "SambaAD"
+      Yast.import "OSRelease"
+
     end
 
     # Allow user to type in a user/password pair in a popup.
@@ -255,13 +257,17 @@ module Yast
 
       # cancelled the domain joining
       return :fail if passwd == nil
+      relname = OSRelease.ReleaseName
+      relver = OSRelease.ReleaseVersion
       # try to join the domain
       error = SambaNetJoin.Join(
         workgroup,
         "member",
         Ops.get(passwd, "user"),
         Ops.get(passwd, "password", ""),
-        Ops.get(passwd, "machine")
+        Ops.get(passwd, "machine"),
+        relname,
+        relver
       )
 
       if error != nil

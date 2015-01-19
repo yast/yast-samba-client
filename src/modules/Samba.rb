@@ -53,6 +53,7 @@ module Yast
       Yast.import "String"
       Yast.import "Summary"
       Yast.import "SuSEFirewall"
+      Yast.import "OSRelease"
 
 
       # Data was modified?
@@ -803,6 +804,8 @@ module Yast
         end
         # join the domain during autoinstallation
         if @password_data != {}
+          relname = OSRelease.ReleaseName
+          relver = OSRelease.ReleaseVersion
           SambaNetJoin.Join(
             SambaConfig.GlobalGetStr("workgroup", ""),
             "member",
@@ -816,7 +819,9 @@ module Yast
               "password",
               Ops.get(@password_data, "passwd", "")
             ),
-            Ops.get(@password_data, "machine")
+            Ops.get(@password_data, "machine"),
+            relname,
+            relver
           )
         end
       end
