@@ -2,6 +2,7 @@
 Thu Jan 21 17:56:02 UTC 2016 - lmuelle@suse.com
 
 - Use default_ccache_name FILE:/tmp/krb5cc_%{uid}; (bnc#921530).
+- 3.1.16
 
 -------------------------------------------------------------------
 Mon Jan 12 16:53:48 UTC 2015 - nopower@suse.com
