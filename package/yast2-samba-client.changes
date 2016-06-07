@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun  7 11:06:52 UTC 2016 - igonzalezsosa@suse.com
+
+- Stop generating autodocs (fate#320356)
+- 3.1.17
+
+-------------------------------------------------------------------
 Thu Jan 21 17:56:02 UTC 2016 - lmuelle@suse.com
 
 - Use default_ccache_name FILE:/tmp/krb5cc_%{uid}; (bnc#921530).
