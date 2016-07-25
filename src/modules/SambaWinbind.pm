@@ -57,8 +57,8 @@ sub AdjustSambaConfig {
     if ($status) {
 	# if turning on and there is no values set, use default
 	SambaConfig->GlobalUpdateMap({
-	    "idmap uid" => "10000-20000",
-	    "idmap gid" => "10000-20000"
+	    "idmap config * : backend" => "tdb",
+	    "idmap config * : range"   => "10000-20000"
 	});
 	SambaConfig->GlobalSetStr ("template shell", "/bin/bash");
     }
