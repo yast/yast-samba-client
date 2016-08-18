@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 19 14:00:29 UTC 2016 - aaptel@suse.com
+
+ - Add checkbox for net ads join --no-dns-updates; (bsc#991564).
+ 
+-------------------------------------------------------------------
 Tue Jun  7 11:06:52 UTC 2016 - igonzalezsosa@suse.com
 
 - Stop generating autodocs (fate#320356)

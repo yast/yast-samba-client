@@ -821,7 +821,8 @@ module Yast
             ),
             Ops.get(@password_data, "machine"),
             relname,
-            relver
+            relver,
+            !!@password_data['update_dns']
           )
         end
       end
@@ -959,7 +960,7 @@ module Yast
             Ops.get_string(settings, ["active_directory", "kdc"], "")
           )
         elsif key == "join"
-          @password_data = Ops.get_map(settings, "join", {})
+          @password_data = Ops.get_map(settings, "join", {'update_dns' => true})
         elsif key == "mkhomedir"
           SetMkHomeDir(Ops.get_boolean(settings, "mkhomedir", @mkhomedir))
         elsif key == "disable_dhcp_hostname"

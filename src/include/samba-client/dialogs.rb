@@ -533,7 +533,13 @@ module Yast
                 Ops.get_string(pw_data, "machine", "") != nil ?
                   Ops.get_string(pw_data, "machine", "") :
                   ""
-              )
+              ),
+              CheckBox(
+                Id(:update_dns),
+                Opt(:hstretch),
+                _('Update DNS'),
+                !!pw_data['update_dns'],
+              ),
             )
           ),
           VSpacing(),
@@ -760,6 +766,9 @@ module Yast
               val = Convert.to_string(UI.QueryWidget(Id(key), :Value))
               Ops.set(Samba.password_data, key, val) if val != nil && val != ""
             end
+            # update_dns is a boolean, using to_string is incorrect
+            Samba.password_data["update_dns"] = UI.QueryWidget(Id(:update_dns), :Value)
+
             if Convert.to_string(UI.QueryWidget(Id(:ads), :Value)) != ""
               SambaAD.SetADS(
                 Convert.to_string(UI.QueryWidget(Id(:ads), :Value))

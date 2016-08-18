@@ -282,7 +282,7 @@ BEGIN{$TYPEINFO{Join}=[
     "function","string","string","string","string","string","string", "string", "string"]}
 sub Join {
     my ($self, $domain, $join_level, $user, $passwd, $machine, $release_name,
-        $release_version) = @_;
+        $release_version, $update_dns) = @_;
     
     my $netbios_name	= SambaConfig->GlobalGetStr("netbios name", undef);
     my $server		= SambaAD->ADS ();
@@ -340,6 +340,10 @@ sub Join {
 	. " -U '" . String->Quote ($user) . "%" . String->Quote ($passwd) . "'"
 	. " osVer='" . String->Quote ($release_version) . "'"
 	. " osName='" . String->Quote ($release_name) . "'";
+
+    if ($server ne "" && !$update_dns) {
+        $cmd .= " --no-dns-updates"
+    }
 
     if ($machine) {
 	$machine	=~ s/dc=([^,]*)//gi; # remove DC=* parts
