@@ -60,6 +60,7 @@ module Yast
       default_id = "default_entry"
       # default value of Machine Account
       default_entry = Item(Id(default_id), _("(default)"))
+      update_dns = Empty()
       if SambaAD.ADS != "" && what != :leave
         machines = [default_entry]
         machine_term = HBox(
@@ -77,6 +78,7 @@ module Yast
           ),
           VBox(Label(""), PushButton(Id(:acquire), _("O&btain list")))
         )
+        update_dns = CheckBox(Id(:update_dns), Opt(:hstretch), _('Update DNS'), true)
       end
       UI.OpenDialog(
         Opt(:decorated),
@@ -90,6 +92,7 @@ module Yast
             InputField(Id(:user), Opt(:hstretch), _("&Username"), defaultuser),
             Password(Id(:passwd), Opt(:hstretch), Label.Password),
             machine_term,
+            update_dns,
             VSpacing(0.2),
             ButtonBox(
               PushButton(Id(:ok), Opt(:default), Label.OKButton),
@@ -146,7 +149,7 @@ module Yast
         end
       end
 
-      result = ret == :ok ? { "user" => user, "password" => pass } : nil
+      result = ret == :ok ? { "user" => user, "password" => pass, "update_dns" => UI.QueryWidget(Id(:update_dns), :Value) } : nil
       if SambaAD.ADS != "" && ret == :ok && what != :leave
         machine = Convert.to_string(UI.QueryWidget(Id(:machines), :Value))
         Ops.set(result, "machine", machine) if machine != default_id
@@ -267,7 +270,8 @@ module Yast
         Ops.get(passwd, "password", ""),
         Ops.get(passwd, "machine"),
         relname,
-        relver
+        relver,
+        passwd["update_dns"]
       )
 
       if error != nil
