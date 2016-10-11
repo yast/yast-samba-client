@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 11 13:23:28 UTC 2016 - nopower@suse.com
+
+- Adjust vertical spacing in Server Directories Frame; (bsc#988901).
+- 3.1.16.1
+
+-------------------------------------------------------------------
 Thu Jan 21 17:56:02 UTC 2016 - lmuelle@suse.com
 
 - Use default_ccache_name FILE:/tmp/krb5cc_%{uid}; (bnc#921530).
