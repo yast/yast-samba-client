@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 11 13:23:28 UTC 2016 - nopower@suse.com
+
+- Adjust vertical spacing in Server Directories Frame; (bsc#988901).
+- 3.1.18
+
+-------------------------------------------------------------------
 Tue Jun  7 11:06:52 UTC 2016 - igonzalezsosa@suse.com
 
 - Stop generating autodocs (fate#320356)

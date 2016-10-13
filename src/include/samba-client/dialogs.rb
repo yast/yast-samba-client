@@ -285,6 +285,7 @@ module Yast
           Frame(
             _("Mount Server Directories"),
             VBox(
+              VSpacing(0.2),
               Table(
                 Id(:table),
                 Opt(:notify),
