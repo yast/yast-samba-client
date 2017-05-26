@@ -1145,6 +1145,36 @@ sub WinbindShareSetStr {
     return $modified;
 }
 
+# return global config values from smb.conf (and any overrides passed in)
+BEGIN{ $TYPEINFO{GetGlobalCfgStr} = ["function", "string", "any"]; }
+sub GetGlobalCfgStr {
+    my ($self, $overrides_ref) = @_;
+    my $content = "[global]\n";
+    my %overrides = ();
+    # allow global values to be overridden with contents of hash passed in
+    if ($overridesref && ref $overridesref eq "HASH") {
+        %overrides = %$hashref;
+        # only write out key/value if the value is defined
+        # this allows us to override and remove key/values by passing in
+        # undef for the the key
+        foreach my $key (sort keys %overrides) {
+            my $newval = $overrides{$key};
+            if (defined $newval) {
+                $content .= "\t$key = $newval\n";
+            }
+        }
+    }
+    foreach my $key (sort keys %{$Config{global}}) {
+        next if $key =~ /^_/;
+        my $val = $self->ShareGetStr("global", $key, undef);
+        # only write out keys that we haven't overridden
+        if (!exists $overrides{$key} && defined $val) {
+            $content .= "\t$key = $val\n";
+        }
+    }
+    return $content;
+}
+
 # set share for /etc/security/pam_winbind.conf.
 BEGIN{ $TYPEINFO{WinbindShareSetMap} = ["function", "boolean", "string", ["map", "string", "string"]]; }
 sub WinbindShareSetMap {
@@ -1168,6 +1198,5 @@ sub WinbindGlobalSetStr { return WinbindShareSetStr(shift, "global", @_); }
 
 BEGIN{ $TYPEINFO{WinbindGlobalSetMap} = ["function", "boolean", ["map", "string", "string"]]; }
 sub WinbindGlobalSetMap { return WinbindShareSetMap(shift, "global", @_); }
-
 
 1;
