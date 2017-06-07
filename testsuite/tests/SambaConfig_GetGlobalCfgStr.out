@@ -1,0 +1,15 @@
+Dump	$["global":$["a":1, "b":true, "c":"string"], "share":$["sharekey":"sharevalue"]]
+Dump	[global]
+Dump		a = 1
+Dump		b = 1
+Dump		c = string
+Dump	
+Dump	[global]
+Dump		a = 2
+Dump		b = 1
+Dump		c = string
+Dump	
+Dump	[global]
+Dump		b = 1
+Dump		c = string
+Dump	
