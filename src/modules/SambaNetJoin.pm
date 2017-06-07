@@ -231,31 +231,35 @@ sub Test {
     my $netbios_name 	= SambaConfig->GlobalGetStr("netbios name", undef);
     my $conf_file	= SCR->Read (".target.tmpdir")."/smb.conf";
     my $include		= "";
-    $include	= "\n\tinclude = /etc/samba/dhcp.conf" if (SCR->Read (".sysconfig.network.dhcp.DHCLIENT_MODIFY_SMB_CONF") eq "yes");
+    my $realm	= SambaAD->Realm ();
+    my $content;
+    my %glb_overrides;
+
+    $glb_overrides{"include"} = "/etc/samba/dhcp.conf" if (SCR->Read (".sysconfig.network.dhcp.DHCLIENT_MODIFY_SMB_CONF") eq "yes");
 
     if ($protocol eq "ads") {
-	my $realm	= SambaAD->Realm ();
-	my $content     = "[global]$include\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n";
+	$glb_overrides{"realm"} = $realm;
+	$glb_overrides{"workgroup"} = $domain;
+	$glb_overrides{"security"} = "ads";
+
         if ($self->ClusterPresent (0)) {
             # ensure cluster related options are used from original file
             # bnc#809208
             my $clustering      = SambaConfig->GlobalGetStr ("clustering", undef);
-            if (defined $clustering) {
-              my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
-              $content .= "\t" . "clustering = $clustering" . "\n";
-              $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
-            }
-            else {
+            if (!defined $clustering) {
               y2warning ("'clustering' not defined in smb.conf");
               return FALSE;
             }
         }
-	SCR->Write (".target.string", $conf_file, $content);
     }
     else {
-	SCR->Write (".target.string", $conf_file, "[global]$include\n\tsecurity = domain\n\tworkgroup = $domain\n");
-    }
+	$glb_overrides{"realm"} = undef;
+	$glb_overrides{"workgroup"} = $domain;
+	$glb_overrides{"security"} = "domain";
 
+    }
+    $content = SambaConfig->GetGlobalCfgStr(\%glb_overrides);
+    SCR->Write (".target.string", $conf_file, $content);
     # FIXME -P is probably wrong, but suppresses password prompt
     my $cmd = "LANG=C net $protocol testjoin -s $conf_file -P";
     if ($protocol ne "ads") {
@@ -292,8 +296,11 @@ sub Join {
     my $cmd		= "";
 
     my $include		= "";
+    my $realm	= SambaAD->Realm ();
+    my $content;
+    my %glb_overrides;
     # bnc#520648 (DHCP may know WINS server address)
-    $include	= "\n\tinclude = /etc/samba/dhcp.conf" if (SCR->Read (".sysconfig.network.dhcp.DHCLIENT_MODIFY_SMB_CONF") eq "yes");
+    $glb_overrides{"include"} = "/etc/samba/dhcp.conf" if (SCR->Read (".sysconfig.network.dhcp.DHCLIENT_MODIFY_SMB_CONF") eq "yes");
 
     AdaptDNS ();
 
@@ -302,34 +309,33 @@ sub Join {
 	$self->PrepareCTDB ($server);
 
 	my $krb_file	= $tmpdir."/krb5.conf";
-	my $realm	= SambaAD->Realm ();
-	my $content     = "[global]$include\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n";
+	$glb_overrides{"realm"} = $realm;
+	$glb_overrides{"workgroup"} = $domain;
+	$glb_overrides{"security"} = "ads";
 	my $kerberos_method	= SambaConfig->GlobalGetStr ("kerberos method", "");
 	if ($kerberos_method) {
-	    $content	= $content."\tkerberos method = $kerberos_method\n";
+            $glb_overrides{"kerberos method"} = $kerberos_method;
 	}
         if ($self->ClusterPresent (0)) {
             # ensure cluster related options are used from original file
             # bnc#809208
             my $clustering      = SambaConfig->GlobalGetStr ("clustering", undef);
-            if (defined $clustering) {
-              my $ctdbd_socket    = SambaConfig->GlobalGetStr ("ctdbd socket", "");
-              $content .= "\t" . "clustering = $clustering" . "\n";
-              $content .= "\t" . "ctdbd socket =$ctdbd_socket" . "\n";
-            }
-            else {
+            if (!defined $clustering) {
               y2error ("'clustering' not defined in smb.conf, canceling join attempt");
               return __("Unable to proceed with join: Inconsistent cluster state");
             }
         }
-	SCR->Write (".target.string", $conf_file, $content);
 	$cmd		= "KRB5_CONFIG=$krb_file ";
 	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
     }
     else {
-	SCR->Write (".target.string", $conf_file, "[global]$include\n\tsecurity = domain\n\tworkgroup = $domain\n");
+	$glb_overrides{"realm"} = undef;
+	$glb_overrides{"workgroup"} = $domain;
+	$glb_overrides{"security"} = "domain";
     }
 
+    $content = SambaConfig->GetGlobalCfgStr(\%glb_overrides);
+    SCR->Write (".target.string", $conf_file, $content);
     $cmd = $cmd."net $protocol join "
 	. ($protocol ne "ads" ? lc($join_level||"") : "")
 	. ($protocol ne "ads" ? " -w '$domain'" : "")
