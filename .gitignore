@@ -29,3 +29,6 @@ Makefile.am.common
 tmp.*
 *.log
 *.ybc
+/.yardoc
+/doc
+/testsuite/raw.tmp*
