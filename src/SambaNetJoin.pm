@@ -306,6 +306,10 @@ sub Join {
 	my $content	= "[global]\n\trealm = $realm\n\tsecurity = ADS\n\tworkgroup = $domain\n";
 
 	my $kerberos_method	= SambaConfig->GlobalGetStr ("kerberos method", "");
+	my $client_ipc_signing = SambaConfig->GlobalGetStr ("client ipc signing", "");
+	if ($client_ipc_signing) {
+	    $content	= $content."\tclient ipc signing = $client_ipc_signing\n";
+	}
 	if ($kerberos_method) {
 	    $content	= $content."\tkerberos method = $kerberos_method\n";
 	}

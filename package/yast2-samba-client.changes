@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri May 19 09:28:19 UTC 2017 - nopower@suse.com
+
+- Allow client ipc signing param specified in smb.conf to be used
+  by yast when performing 'net ads join' to join the domain;
+  (bnc#1035099).
+- 2.17.31
+
+-------------------------------------------------------------------
 Mon Sep 22 14:14:36 UTC 2014 - ddiss@suse.com
 
 - Ensure nmbd is restarted following nmbstatus lookup; (bnc#895319).
