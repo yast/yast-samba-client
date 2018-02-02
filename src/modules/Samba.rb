@@ -29,6 +29,7 @@
 # Representation of the configuration of samba-client.
 # Input and output routines.
 require "yast"
+require "y2firewall/firewalld"
 
 module Yast
   class SambaClass < Module
@@ -52,7 +53,6 @@ module Yast
       Yast.import "SambaNmbLookup"
       Yast.import "String"
       Yast.import "Summary"
-      Yast.import "SuSEFirewall"
       Yast.import "OSRelease"
 
 
@@ -141,6 +141,10 @@ module Yast
 
       # network configuration (to be read from NetworkConfig module)
       @network_setup = NetworkConfig.Export
+    end
+
+    def firewalld
+      Y2Firewall::Firewalld.instance
     end
 
     def PAMMountModified
@@ -672,7 +676,7 @@ module Yast
       NetworkConfig.Read
       @network_setup = NetworkConfig.Export
 
-      SuSEFirewall.Read
+      firewalld.read
 
       ReadPAMMount()
 
@@ -903,8 +907,7 @@ module Yast
 
       WriteHostsResolution()
 
-      SuSEFirewall.WriteOnly
-      SuSEFirewall.ActivateConfiguration if !write_only
+      write_only ? firewalld.write_only : firewalld.write
 
       if WritePAMMount() &&
           Ops.greater_than(Builtins.size(@pam_mount_volumes), 0)
