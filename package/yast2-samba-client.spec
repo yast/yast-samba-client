@@ -17,7 +17,7 @@
 
 
 Name:           yast2-samba-client
-Version:        3.1.19
+Version:        4.0.0
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -33,9 +33,8 @@ Conflicts:	yast2-kerberos-client < 3.1.2
 # new Pam.ycp API
 Requires:       yast2-pam >= 2.14.0
 
-# .etc.ssh.sshd_config
-# Wizard::SetDesktopTitleAndIcon
-Requires:       yast2 >= 2.21.22
+# SuSEFirewall2 replaced by firewalld (fate#323460)
+Requires:       yast2 >= 4.0.39
 
 BuildArchitectures:	noarch
 
