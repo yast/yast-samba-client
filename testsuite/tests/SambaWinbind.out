@@ -4,8 +4,8 @@ $VAR1 = 1;
 
 SambaConfig: [global]
 SambaConfig: _modified = 1
-SambaConfig: idmap gid = 10000-20000
-SambaConfig: idmap uid = 10000-20000
+SambaConfig: idmap config * : backend = tdb
+SambaConfig: idmap config * : range = 10000-20000
 
 Nsswitch::WriteDB(passwd, [files,nis])
 Nsswitch::WriteDB(group, [files,ldap,nis])
