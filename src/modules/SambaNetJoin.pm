@@ -379,9 +379,7 @@ sub Leave {
 
     my ($self, $domain, $user, $passwd) = @_;
     
-    my $tmpdir		= SCR->Read (".target.tmpdir");
     my $realm		= SambaAD->Realm ();
-    
     my $cmd = "net ads leave -U '"
 	. String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
 
