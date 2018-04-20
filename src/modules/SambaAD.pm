@@ -128,7 +128,7 @@ sub GetADS {
 
     y2milestone ("get ads: workgroup: $workgroup");
     
-    if (Mode->config ()) {
+    if (Mode->config () || !$workgroup) {
 	return "";
     }
 
