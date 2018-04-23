@@ -49,6 +49,9 @@ use constant {
     FALSE => 0,
 };
 
+# create a dummy smb.conf file only for performing the libnet commands
+my $dummy_conf_file = SCR->Read (".target.tmpdir") . "/dummy-smb.conf";
+SCR->Write (".target.string", $dummy_conf_file, "");
 
 # Active Directory server
 my $ads		= "";
@@ -122,13 +125,12 @@ sub GetMachines {
 # @return string	non empty when ADS was found
 BEGIN{$TYPEINFO{GetADS}=["function","string","string"]}
 sub GetADS {
-
     my ($self, $workgroup) 	= @_;
     my $server			= "";
 
     y2milestone ("get ads: workgroup: $workgroup");
     
-    if (Mode->config ()) {
+    if (Mode->config () || !$workgroup) {
 	return "";
     }
 
@@ -151,7 +153,7 @@ sub GetADS {
 		chop $tmpserver;
 	    }
 	    if ($tmpserver) {
-		my $cmd	= "LANG=C net ads lookup -S $tmpserver";
+		my $cmd	= "LANG=C net -s $dummy_conf_file ads lookup -S $tmpserver";
 		$out	= SCR->Execute (".target.bash_output", $cmd);
 		if ($out->{"exit"} eq 0) {
 		    foreach my $l (split (/\n/,$out->{"stdout"} || "")) {
@@ -228,7 +230,7 @@ sub GetADS {
 	}
     }
     if ($server eq "") {
-	my $out = SCR->Execute (".target.bash_output", "LANG=C net LOOKUP DC $workgroup");
+	my $out = SCR->Execute (".target.bash_output", "LANG=C net -s $dummy_conf_file LOOKUP DC $workgroup");
 	y2debug ("net LOOKUP DC $workgroup: ", Dumper ($out));
 	if ($out->{"exit"} eq 0) {
 	    foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
@@ -240,7 +242,7 @@ sub GetADS {
 	}
     }
     if ($server ne "" &&
-	SCR->Execute (".target.bash", "net ads lookup -U% -S $server") ne 0) {
+	SCR->Execute (".target.bash", "net -s $dummy_conf_file ads lookup -U% -S $server") ne 0) {
 	$server	= "";
     }
     y2milestone ("returning server: $server");
@@ -293,7 +295,7 @@ sub ADDomain2Workgroup {
 
     return "" if $server eq "";
 
-    my $out	= SCR->Execute (".target.bash_output", "net ads lookup -S $server | grep 'Pre-Win2k Domain' | cut -f 2");
+    my $out	= SCR->Execute (".target.bash_output", "net -s $dummy_conf_file ads lookup -S $server | grep 'Pre-Win2k Domain' | cut -f 2");
 
     y2debug ("net ads lookup -S $server: ", Dumper ($out));
     if ($out->{"exit"} ne 0 || $out->{"stdout"} eq "") {
@@ -326,7 +328,7 @@ sub GetRealm {
 
     return "" if $server eq "";
 
-    my $out	= SCR->Execute (".target.bash_output", "net ads info -S $server | grep Realm | cut -f 2 -d ' '");
+    my $out	= SCR->Execute (".target.bash_output", "net -s $dummy_conf_file ads info -S $server | grep Realm | cut -f 2 -d ' '");
     
     y2debug ("net ads info -S $server: ", Dumper ($out));
 
