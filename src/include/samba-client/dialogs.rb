@@ -557,7 +557,7 @@ module Yast
       text_fam = _("Start File Alteration Monitor")
 
       firewall_widget = CWMFirewallInterfaces.CreateOpenFirewallWidget(
-        { "services" => ["samba-server"], "display_details" => true }
+        { "services" => ["samba"], "display_details" => true }
       )
       firewall_layout = Ops.get_term(firewall_widget, "custom_widget", VBox())
 
