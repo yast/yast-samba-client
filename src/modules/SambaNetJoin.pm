@@ -323,6 +323,9 @@ sub Join {
               return __("Unable to proceed with join: Inconsistent cluster state");
             }
         }
+	# do not allow samba create and use a local krb5 conf that would override ours
+	$glb_overrides{"create krb5 conf"} = "no";
+
 	$cmd		= "KRB5_CONFIG=$krb_file ";
 	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
     }
@@ -379,9 +382,7 @@ sub Leave {
 
     my ($self, $domain, $user, $passwd) = @_;
     
-    my $tmpdir		= SCR->Read (".target.tmpdir");
     my $realm		= SambaAD->Realm ();
-    
     my $cmd = "net ads leave -U '"
 	. String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
 
