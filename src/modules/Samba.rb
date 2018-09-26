@@ -357,7 +357,7 @@ module Yast
           SCR.Execute(
             path(".target.bash_output"),
             Builtins.sformat(
-              "getent group | grep \":%1:\" | /usr/bin/cut -f 1 -d :",
+              "getent group %1 | /usr/bin/cut -f 1 -d :",
               Ops.get_integer(stat, "gid", 100)
             )
           )

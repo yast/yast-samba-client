@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 26 14:02:33 UTC 2018 - Samuel Cabrero <scabrero@suse.de>
+
+- Fix reading the permitted group to create "user shares";
+  (bsc#1107574).
+- 3.1.20
+
+-------------------------------------------------------------------
 Fri May 26 09:37:23 UTC 2017 - nopower@suse.com
 
 - Enable yast to create temporary smb.conf based on existing
