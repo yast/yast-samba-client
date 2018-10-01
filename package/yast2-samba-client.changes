@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 26 14:02:33 UTC 2018 - Samuel Cabrero <scabrero@suse.de>
+
+- Fix reading the permitted group to create "user shares";
+  (bsc#1107574).
+- 4.0.3
+
+-------------------------------------------------------------------
 Mon Aug 20 14:06:28 CEST 2018 - schubi@suse.de
 
 - Switched license in spec file from SPDX2 to SPDX3 format.
