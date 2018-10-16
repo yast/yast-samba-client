@@ -69,3 +69,4 @@ workgroup/domain and authentication against an SMB domain.
 %{yast_agentdir}/ag_pam_mount
 %{yast_schemadir}/autoyast/rnc/samba-client.rnc
 %doc %{yast_docdir}
+%license COPYING
