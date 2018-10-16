@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 16 16:30:49 CEST 2018 - schubi@suse.de
+
+- Added license file to spec.
+
+-------------------------------------------------------------------
 Wed Sep 26 14:02:33 UTC 2018 - Samuel Cabrero <scabrero@suse.de>
 
 - Fix reading the permitted group to create "user shares";
