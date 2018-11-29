@@ -17,7 +17,7 @@
 
 
 Name:           yast2-samba-client
-Version:        4.0.3
+Version:        4.0.4
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -68,5 +68,6 @@ workgroup/domain and authentication against an SMB domain.
 %{yast_scrconfdir}/*.scr
 %{yast_agentdir}/ag_pam_mount
 %{yast_schemadir}/autoyast/rnc/samba-client.rnc
+%{yast_icondir}
 %doc %{yast_docdir}
 %license COPYING
