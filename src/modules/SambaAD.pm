@@ -136,7 +136,7 @@ sub GetADS {
 	return "";
     }
 
-    # First look for a server via a RootDSE query via samba
+    # First look for a server via a RootDSE query via samba (bsc#1122534)
     $server = SambaAD2->GetLDAPDS($workgroup);
 
     # use DNS for finding DC
