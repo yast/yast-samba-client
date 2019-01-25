@@ -6,7 +6,7 @@ module_DATA = \
   modules/SambaNmbLookup.pm \
   modules/SambaConfig.pm \
   modules/SambaAD.pm \
-  modules/SambaAD2.py \
+  modules/SambaAPI.py \
   modules/SambaNetJoin.pm \
   modules/SambaWinbind.pm
 

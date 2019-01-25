@@ -43,7 +43,7 @@ YaST::YCP::Import ("Mode");
 YaST::YCP::Import ("SCR");
 YaST::YCP::Import ("SambaConfig");
 YaST::YCP::Import ("YaPI::NETWORK");
-YaST::YCP::Import ("SambaAD2");
+YaST::YCP::Import ("SambaAPI");
 
 use constant {
     TRUE => 1,
@@ -137,7 +137,7 @@ sub GetADS {
     }
 
     # First look for a server via a RootDSE query via samba (bsc#1122534)
-    $server = SambaAD2->GetLDAPDS($workgroup);
+    $server = SambaAPI->GetLDAPDS($workgroup);
 
     # use DNS for finding DC
     if ($server eq "" && FileUtils->Exists ("/usr/bin/dig")) {
