@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 18 19:38:21 UTC 2019 - David Mulder <dmulder@suse.com>
+
+- Use a cldap ping to search for the join server; (bsc#1122534).
+- 4.1.0
+
+-------------------------------------------------------------------
 Mon Nov 26 02:32:32 UTC 2018 - Noah Davis <noahadvs@gmail.com>
 
 - Provide icon with module (boo#1109310)

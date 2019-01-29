@@ -43,6 +43,7 @@ YaST::YCP::Import ("Mode");
 YaST::YCP::Import ("SCR");
 YaST::YCP::Import ("SambaConfig");
 YaST::YCP::Import ("YaPI::NETWORK");
+YaST::YCP::Import ("SambaAPI");
 
 use constant {
     TRUE => 1,
@@ -135,8 +136,11 @@ sub GetADS {
 	return "";
     }
 
+    # First look for a server via a RootDSE query via samba (bsc#1122534)
+    $server = SambaAPI->GetLDAPDS($workgroup);
+
     # use DNS for finding DC
-    if (FileUtils->Exists ("/usr/bin/dig")) {
+    if ($server eq "" && FileUtils->Exists ("/usr/bin/dig")) {
 
 	# we have to select server from correct site - see bug #238249.
 	# TODO use +short instead?

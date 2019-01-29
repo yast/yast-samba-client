@@ -17,7 +17,7 @@
 
 
 Name:           yast2-samba-client
-Version:        4.0.4
+Version:        4.1.0
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -39,6 +39,8 @@ Requires:       yast2 >= 4.0.39
 BuildArchitectures:	noarch
 
 Requires:       yast2-ruby-bindings >= 1.0.0
+Requires:       yast2-python3-bindings >= 4.0.8
+Recommends:     samba-python3
 
 Summary:	YaST2 - Samba Client Configuration
 
@@ -64,6 +66,7 @@ workgroup/domain and authentication against an SMB domain.
 %{yast_clientdir}/samba-client_*.rb
 %{yast_moduledir}/Samba*.pm
 %{yast_moduledir}/*.rb
+%{yast_moduledir}/*.py
 %{yast_desktopdir}/samba-client.desktop
 %{yast_scrconfdir}/*.scr
 %{yast_agentdir}/ag_pam_mount
