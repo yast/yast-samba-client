@@ -2,18 +2,19 @@ from yast import Declare, ycpbuiltins, import_module
 import_module('PackageSystem')
 import_module('Package')
 from yast import PackageSystem, Package
+if not PackageSystem.Installed('samba-python3'):
+    if Package.InstallAll(['samba-python3']):
+        from samba.net import Net
+        from samba.credentials import Credentials
+        from samba.dcerpc import nbt
+    else:
+        raise ImportError("Failed to install samba python bindings samba-python3")
 
 # Global response to net.finddc()
 cldap_ret = None
 
 def net_lookup(domain):
     global cldap_ret
-    if not PackageSystem.Installed('samba-python3'):
-        if not Package.InstallAll(['samba-python3']):
-            return
-    from samba.net import Net
-    from samba.credentials import Credentials
-    from samba.dcerpc import nbt
     net = Net(Credentials())
     cldap_ret = net.finddc(domain=domain, flags=(nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS))
 
