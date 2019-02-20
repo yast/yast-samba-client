@@ -287,31 +287,6 @@ sub SetADS {
 }
 
     
-
-# Get AD Domain name and return the name of work group ("Pre-Win2k Domain")
-# @param domain	the domain user entered
-# @param server AD server (used for querying)
-# @return	workgroup (returns domain if anything fails)
-BEGIN{$TYPEINFO{ADDomain2Workgroup}=["function","string","string", "string"]}
-sub ADDomain2Workgroup {
-
-    my ($self, $domain, $server) = @_;
-
-
-    return "" if $server eq "";
-
-    my $out	= SCR->Execute (".target.bash_output", "net -s $dummy_conf_file ads lookup -S $server | grep 'Pre-Win2k Domain' | cut -f 2");
-
-    y2debug ("net ads lookup -S $server: ", Dumper ($out));
-    if ($out->{"exit"} ne 0 || $out->{"stdout"} eq "") {
-	return $domain;
-    }
-    my $workgroup	= $out->{"stdout"};
-    chomp $workgroup;
-    y2milestone ("workgroup: $workgroup");
-    return $workgroup;
-}
-
 # Return the value of AD work group ("Pre-Win2k Domain") for the current ADS
 # @param domain	the domain user entered
 # @return	workgroup (returns domain if anything fails)
@@ -319,7 +294,8 @@ BEGIN{$TYPEINFO{GetWorkgroup}=["function","string","string"]}
 sub GetWorkgroup {
 
     my ($self, $domain)	= @_;
-    return $self->ADDomain2Workgroup ($domain, $ads);
+    # Perform the workgroup lookup using samba python bindings (bsc#1124390)
+    return SambaAPI->ADDomain2Workgroup($domain, $ads);
 }
 
 
