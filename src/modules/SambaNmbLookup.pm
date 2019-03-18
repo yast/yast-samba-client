@@ -7,7 +7,7 @@
 # $Id$
 #
 # Representation of the configuration of samba-client.
-# Input and output routines. 
+# Input and output routines.
 
 package SambaNmbLookup;
 
@@ -15,6 +15,7 @@ use strict;
 use Data::Dumper;
 
 use YaST::YCP qw(:DATA :LOGGING);
+use YaPI;
 
 textdomain "samba-client";
 our %TYPEINFO;

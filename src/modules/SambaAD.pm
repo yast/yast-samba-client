@@ -32,6 +32,7 @@ use strict;
 use Data::Dumper;
 
 use YaST::YCP qw(:DATA :LOGGING);
+use YaPI;
 
 textdomain "samba-client";
 our %TYPEINFO;

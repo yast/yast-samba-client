@@ -13,6 +13,7 @@ use strict;
 use Data::Dumper;
 
 use YaST::YCP qw(:LOGGING);
+use YaPI;
 
 textdomain "samba-client";
 our %TYPEINFO;
@@ -144,7 +145,7 @@ sub AdaptDNS {
 
     DNS->Read();
     my @nameservers = DNS->nameservers;
-    push @$nameservers, $server;
+    push @nameservers, $server;
     DNS->nameservers(@nameservers);
     DNS->modified(1);
     DNS->Write();
