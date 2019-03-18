@@ -32,17 +32,16 @@ use strict;
 use Data::Dumper;
 
 use YaST::YCP qw(:DATA :LOGGING);
-use YaPI;
 
 textdomain "samba-client";
 our %TYPEINFO;
 
 YaST::YCP::Import ("FileUtils");
 YaST::YCP::Import ("Kerberos");
+YaST::YCP::Import ("LanItems");
 YaST::YCP::Import ("Mode");
 YaST::YCP::Import ("SCR");
 YaST::YCP::Import ("SambaConfig");
-YaST::YCP::Import ("YaPI::NETWORK");
 YaST::YCP::Import ("SambaAPI");
 
 use constant {
@@ -71,12 +70,14 @@ sub IsDHCPClient {
     my ($self, $force) = @_;
 
     return $dhcp_client if (defined $dhcp_client) && !$force;
-
-    my $network         = YaPI::NETWORK->Read ();
     $dhcp_client        = TRUE;
-    foreach my $iface (values %{$network->{"interfaces"}}) {
-      $dhcp_client      = $dhcp_client && (($iface->{"bootproto"} || "") =~ m/^dhcp[46]?$/);
+    foreach my $devnum (sort keys %{LanItems->Items}){
+      LanItems->current($devnum);
+      if (LanItems->IsCurrentConfigured()){
+        $dhcp_client      = $dhcp_client && ((LanItems->bootproto || "") =~ m/^dhcp[46]?$/);
+      }
     }
+
     return $dhcp_client;
 }
 
