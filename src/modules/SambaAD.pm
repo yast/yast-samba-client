@@ -71,6 +71,7 @@ sub IsDHCPClient {
     my ($self, $force) = @_;
 
     return $dhcp_client if (defined $dhcp_client) && !$force;
+    LanItems->Read();
     $dhcp_client        = TRUE;
     foreach my $devnum (sort keys %{LanItems->Items}){
       LanItems->current($devnum);
