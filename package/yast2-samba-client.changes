@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 04 19:00:44 UTC 2019 - David Mulder <dmulder@suse.com>
+
+- Fix join fails with 'Failed to join domain: Invalid configuration';
+  (bsc#1131607).
+- 4.1.2
+
+-------------------------------------------------------------------
 Tue Feb  5 20:12:18 UTC 2019 - David Mulder <dmulder@suse.com>
 
 - Perform the workgroup lookup using samba python bindings;
