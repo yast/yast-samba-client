@@ -3,12 +3,11 @@ import_module('PackageSystem')
 import_module('Package')
 from yast import PackageSystem, Package
 if not PackageSystem.Installed('samba-python3'):
-    if Package.InstallAll(['samba-python3']):
-        from samba.net import Net
-        from samba.credentials import Credentials
-        from samba.dcerpc import nbt
-    else:
+    if not Package.InstallAll(['samba-python3']):
         raise ImportError("Failed to install samba python bindings samba-python3")
+from samba.net import Net
+from samba.credentials import Credentials
+from samba.dcerpc import nbt
 
 # Global response to net.finddc()
 cldap_ret = None
