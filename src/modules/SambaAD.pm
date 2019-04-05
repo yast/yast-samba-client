@@ -72,15 +72,8 @@ sub IsDHCPClient {
 
     return $dhcp_client if (defined $dhcp_client) && !$force;
     LanItems->Read();
-    $dhcp_client        = TRUE;
-    foreach my $devnum (sort keys %{LanItems->Items}){
-      LanItems->current($devnum);
-      if (LanItems->IsCurrentConfigured()){
-        $dhcp_client      = $dhcp_client && ((LanItems->bootproto || "") =~ m/^dhcp[46]?$/);
-      }
-    }
-
-    return $dhcp_client;
+    my @dhcp_interfaces = LanItems->find_dhcp_ifaces();
+    return scalar (@dhcp_interfaces) > 0;
 }
 
 # Read the list of available machine accounts in the current domain
