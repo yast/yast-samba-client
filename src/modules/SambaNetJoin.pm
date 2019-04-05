@@ -18,13 +18,13 @@ use YaPI;
 textdomain "samba-client";
 our %TYPEINFO;
 
+YaST::YCP::Import("DNS");
 YaST::YCP::Import("Package");
 YaST::YCP::Import("SCR");
 YaST::YCP::Import("SambaConfig");
 YaST::YCP::Import("SambaAD");
 YaST::YCP::Import("SambaWinbind");
 YaST::YCP::Import("String");
-YaST::YCP::Import("YaPI::NETWORK");
 
 my %TestJoinCache;
 
@@ -143,12 +143,14 @@ sub AdaptDNS {
 
     return unless ($adapt_dns && $server);
 
-    my $network         = YaPI::NETWORK->Read ();
-    my $nameservers     = $network->{"dns"}{"nameservers"} || [];
-    push @$nameservers, $server;
-    $network->{"dns"}{"nameservers"}    = $nameservers;
+    DNS->Read();
+    my @nameservers = DNS->nameservers;
+    push @nameservers, $server;
+    DNS->nameservers(@nameservers);
+    DNS->modified(1);
+    DNS->Write();
 
-    return YaPI::NETWORK->Write({ "dns" => $network->{"dns"} });
+    return {'exit'=>0, 'error'=>''};
 }
 
 
