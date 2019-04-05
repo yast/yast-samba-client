@@ -39,10 +39,10 @@ our %TYPEINFO;
 
 YaST::YCP::Import ("FileUtils");
 YaST::YCP::Import ("Kerberos");
+YaST::YCP::Import ("LanItems");
 YaST::YCP::Import ("Mode");
 YaST::YCP::Import ("SCR");
 YaST::YCP::Import ("SambaConfig");
-YaST::YCP::Import ("YaPI::NETWORK");
 YaST::YCP::Import ("SambaAPI");
 
 use constant {
@@ -71,13 +71,9 @@ sub IsDHCPClient {
     my ($self, $force) = @_;
 
     return $dhcp_client if (defined $dhcp_client) && !$force;
-
-    my $network         = YaPI::NETWORK->Read ();
-    $dhcp_client        = TRUE;
-    foreach my $iface (values %{$network->{"interfaces"}}) {
-      $dhcp_client      = $dhcp_client && (($iface->{"bootproto"} || "") =~ m/^dhcp[46]?$/);
-    }
-    return $dhcp_client;
+    LanItems->Read();
+    my @dhcp_interfaces = LanItems->find_dhcp_ifaces();
+    return scalar (@dhcp_interfaces) > 0;
 }
 
 # Read the list of available machine accounts in the current domain

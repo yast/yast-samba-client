@@ -17,7 +17,7 @@
 
 
 Name:           yast2-samba-client
-Version:        4.1.1
+Version:        4.2.0
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -35,6 +35,9 @@ Requires:       yast2-pam >= 2.14.0
 
 # SuSEFirewall2 replaced by firewalld (fate#323460)
 Requires:       yast2 >= 4.0.39
+
+# LanItems::find_dhcp_ifaces
+Requires:       yast2-network >= 4.2.0
 
 BuildArchitectures:	noarch
 
