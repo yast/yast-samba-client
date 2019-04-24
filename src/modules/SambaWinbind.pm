@@ -51,15 +51,20 @@ sub IsEnabled {
 # Change samba configuration file (/etc/samba/smb.conf)
 #
 # @param status a new status
-BEGIN{$TYPEINFO{AdjustSambaConfig}=["function","void","boolean"]}
+BEGIN{$TYPEINFO{AdjustSambaConfig}=["function","void","boolean","string"]}
 sub AdjustSambaConfig {
-    my ($self, $status) = @_;
+    my ($self, $status, $workgroup) = @_;
     if ($status) {
 	# if turning on and there is no values set, use default
-	SambaConfig->GlobalUpdateMap({
-	    "idmap uid" => "10000-20000",
-	    "idmap gid" => "10000-20000"
-	});
+	if (SambaConfig->GlobalGetStr("idmap uid", "") == "" &&
+            SambaConfig->GlobalGetStr("idmap gid", "") == "") {
+            SambaConfig->GlobalUpdateMap({
+                "idmap config * : backend" => "tdb",
+                "idmap config * : range" => "10000-20000",
+                "idmap config $workgroup : backend" => "rid",
+                "idmap config $workgroup : range" => "20001-99999"
+            });
+        }
 	SambaConfig->GlobalSetStr ("template shell", "/bin/bash");
     }
     else {

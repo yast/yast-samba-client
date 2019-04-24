@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May  7 16:55:53 UTC 2019 - David Mulder <dmulder@suse.com>
+
+- Stop using deprecated idmap options; (jsc#SLE-5632); (jsc#SLE-6283);
+- 3.1.21
+
+-------------------------------------------------------------------
 Wed Sep 26 14:02:33 UTC 2018 - Samuel Cabrero <scabrero@suse.de>
 
 - Fix reading the permitted group to create "user shares";
