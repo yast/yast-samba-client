@@ -190,10 +190,11 @@ module Yast
       # read AD settings, so the write command does not fallback to non-AD default
       #(bnc#845878)
       domain    = Samba.GetWorkgroupOrRealm
+      workgroup = Samba.GetWorkgroup
       SambaAD.ReadADS(domain)
       SambaAD.ReadRealm
 
-      Samba.SetWinbind(command == "enable")
+      Samba.SetWinbind(command == "enable", workgroup)
     end
 
     # Check domain membership.
