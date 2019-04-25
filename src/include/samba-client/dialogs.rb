@@ -157,6 +157,8 @@ module Yast
       default_max = Builtins.tointeger(Ops.get_string(l, 1, "20000"))
       default_max = 20000 if default_max == nil
 
+      idmap_domain_backend_setting = Builtins.sformat("idmap config %1 : backend", workgroup)
+      idmap_domain_backend = SambaConfig.GlobalGetStr(idmap_domain_backend_setting, "rid")
       idmap_domain_setting = Builtins.sformat("idmap config %1 : range", workgroup)
       idmap_domain = SambaConfig.GlobalGetStr(idmap_domain_setting, "20001-99999")
       l = Builtins.splitstring(idmap_domain, "-")
@@ -226,6 +228,15 @@ module Yast
       ) do |method|
         Item(Id(method), method, method == kerberos_method)
       end
+      idmap_domain_backends = Builtins.maplist(
+        [
+          "ad",
+          "rid",
+          "autorid"
+        ]
+      ) do |method|
+        Item(Id(method), method, method == idmap_domain_backend)
+      end
 
       contents = HBox(
         HSpacing(3),
@@ -249,7 +260,8 @@ module Yast
               # int field label
               IntField(Id(:domain_min), _("M&inimum"), 0, 99999, domain_min),
               # int field label
-              IntField(Id(:domain_max), _("M&aximum"), 0, 99999, domain_max)
+              IntField(Id(:domain_max), _("M&aximum"), 0, 99999, domain_max),
+              ComboBox(Id(:backend), _("Back&end"), idmap_domain_backends),
             )
           ),
           VSpacing(0.2),
@@ -371,6 +383,7 @@ module Yast
           default_max = Convert.to_integer(UI.QueryWidget(Id(:default_max), :Value))
           domain_min = Convert.to_integer(UI.QueryWidget(Id(:domain_min), :Value))
           domain_max = Convert.to_integer(UI.QueryWidget(Id(:domain_max), :Value))
+          idmap_domain_backend_new = Convert.to_string(UI.QueryWidget(Id(:backend), :Value))
           if Ops.greater_or_equal(default_min, default_max) ||
               Ops.greater_or_equal(domain_min, domain_max)
             # error popup: min >= max
@@ -389,6 +402,15 @@ module Yast
           if idmap_domain_new != idmap_domain && workgroup != ""
             idmap_domain_setting = Builtins.sformat("idmap config %1 : range", workgroup)
             SambaConfig.GlobalSetStr(idmap_domain_setting, idmap_domain_new)
+          end
+          if idmap_domain_backend_new != idmap_domain_backend && workgroup != ""
+            SambaConfig.GlobalSetStr(idmap_domain_backend_setting, idmap_domain_backend_new)
+            if idmap_domain_backend_new == "ad"
+              idmap_domain_schema_mode = Builtins.sformat("idmap config %1 : schema_mode", workgroup)
+              SambaConfig.GlobalSetStr(idmap_domain_schema_mode, "rfc2307")
+              idmap_domain_unix_nss_info = Builtins.sformat("idmap config %1 : unix_nss_info", workgroup)
+              SambaConfig.GlobalSetStr(idmap_domain_unix_nss_info, "yes")
+            end
           end
           Samba.SetDHCP(Convert.to_boolean(UI.QueryWidget(Id(:dhcp), :Value)))
           Samba.SetHostsResolution(
