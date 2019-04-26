@@ -56,12 +56,15 @@ sub AdjustSambaConfig {
     my ($self, $status, $workgroup) = @_;
     if ($status) {
 	# if turning on and there is no values set, use default
-	SambaConfig->GlobalUpdateMap({
-	    "idmap config * : backend" => "tdb",
-	    "idmap config * : range" => "10000-20000",
-	    "idmap config $workgroup : backend" => "rid",
-	    "idmap config $workgroup : range" => "20001-99999"
-	});
+	if (SambaConfig->GlobalGetStr("idmap uid", "") == "" &&
+            SambaConfig->GlobalGetStr("idmap gid", "") == "") {
+            SambaConfig->GlobalUpdateMap({
+                "idmap config * : backend" => "tdb",
+                "idmap config * : range" => "10000-20000",
+                "idmap config $workgroup : backend" => "rid",
+                "idmap config $workgroup : range" => "20001-99999"
+            });
+        }
 	SambaConfig->GlobalSetStr ("template shell", "/bin/bash");
     }
     else {
