@@ -64,6 +64,7 @@ my %OriginalKeys;	# saving original names of smb.conf keys
 my %Synonyms = (
     "timestamp logs" => "debug timestamp",
     "default" => "default service",
+    "idmap backend" => "idmap config * : backend",
     "winbind gid" => "idmap config * : range",
     "winbind uid" => "idmap config * : range",
     "idmap gid" => "idmap config * : range",
