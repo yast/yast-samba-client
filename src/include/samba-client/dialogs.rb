@@ -247,9 +247,9 @@ module Yast
             _("&Default Range"),
             HBox(
               # int field label
-              IntField(Id(:default_min), _("&Minimum"), 0, 99999, default_min),
+              IntField(Id(:default_min), _("&Minimum"), 0, 999999, default_min),
               # int field label
-              IntField(Id(:default_max), _("Ma&ximum"), 0, 99999, default_max)
+              IntField(Id(:default_max), _("Ma&ximum"), 0, 999999, default_max)
             )
           ),
           VSpacing(0.5),
@@ -258,9 +258,9 @@ module Yast
             _("Domain &Range"),
             HBox(
               # int field label
-              IntField(Id(:domain_min), _("M&inimum"), 0, 99999, domain_min),
+              IntField(Id(:domain_min), _("M&inimum"), 0, 999999, domain_min),
               # int field label
-              IntField(Id(:domain_max), _("M&aximum"), 0, 99999, domain_max),
+              IntField(Id(:domain_max), _("M&aximum"), 0, 999999, domain_max),
               ComboBox(Id(:backend), _("Back&end"), idmap_domain_backends),
             )
           ),
