@@ -149,20 +149,23 @@ module Yast
     end
 
     # dialog for setting expert settings, like winbind uid/gid keys (F301518)
-    def ExpertSettingsDialog(use_winbind)
-      winbind_uid = SambaConfig.GlobalGetStr("winbind uid", "10000-20000")
-      l = Builtins.splitstring(winbind_uid, "-")
-      uid_min = Builtins.tointeger(Ops.get_string(l, 0, "10000"))
-      uid_min = 10000 if uid_min == nil
-      uid_max = Builtins.tointeger(Ops.get_string(l, 1, "20000"))
-      uid_max = 20000 if uid_max == nil
+    def ExpertSettingsDialog(use_winbind, workgroup)
+      idmap_default = SambaConfig.GlobalGetStr("idmap config * : range", "10000-20000")
+      l = Builtins.splitstring(idmap_default, "-")
+      default_min = Builtins.tointeger(Ops.get_string(l, 0, "10000"))
+      default_min = 10000 if default_min == nil
+      default_max = Builtins.tointeger(Ops.get_string(l, 1, "20000"))
+      default_max = 20000 if default_max == nil
 
-      winbind_gid = SambaConfig.GlobalGetStr("winbind gid", "10000-20000")
-      l = Builtins.splitstring(winbind_gid, "-")
-      gid_min = Builtins.tointeger(Ops.get_string(l, 0, "10000"))
-      gid_min = 10000 if gid_min == nil
-      gid_max = Builtins.tointeger(Ops.get_string(l, 1, "20000"))
-      gid_max = 20000 if gid_max == nil
+      idmap_domain_backend_setting = Builtins.sformat("idmap config %1 : backend", workgroup)
+      idmap_domain_backend = SambaConfig.GlobalGetStr(idmap_domain_backend_setting, "rid")
+      idmap_domain_setting = Builtins.sformat("idmap config %1 : range", workgroup)
+      idmap_domain = SambaConfig.GlobalGetStr(idmap_domain_setting, "20001-99999")
+      l = Builtins.splitstring(idmap_domain, "-")
+      domain_min = Builtins.tointeger(Ops.get_string(l, 0, "20001"))
+      domain_min = 20001 if domain_min == nil
+      domain_max = Builtins.tointeger(Ops.get_string(l, 1, "99999"))
+      domain_max = 99999 if domain_max == nil
       dhcp_support = Samba.GetDHCP
       kerberos_method = SambaConfig.GlobalGetStr("kerberos method", "")
 
@@ -225,6 +228,16 @@ module Yast
       ) do |method|
         Item(Id(method), method, method == kerberos_method)
       end
+      idmap_domain_backends = Builtins.maplist(
+        [
+          "tdb",
+          "ad",
+          "rid",
+          "autorid"
+        ]
+      ) do |method|
+        Item(Id(method), method, method == idmap_domain_backend)
+      end
 
       contents = HBox(
         HSpacing(3),
@@ -232,23 +245,26 @@ module Yast
           VSpacing(0.4),
           # frame label
           Frame(
-            _("&UID Range"),
+            _("&Default Range"),
             HBox(
               # int field label
-              IntField(Id(:uid_min), _("&Minimum"), 0, 99999, uid_min),
+              IntField(Id(:default_min), _("&Minimum"), 0, 999999, default_min),
               # int field label
-              IntField(Id(:uid_max), _("Ma&ximum"), 0, 99999, uid_max)
+              IntField(Id(:default_max), _("Ma&ximum"), 0, 999999, default_max)
             )
           ),
           VSpacing(0.5),
           # frame label
           Frame(
-            _("&GID Range"),
-            HBox(
+            _("Domain &Range"),
+            VBox(HBox(
               # int field label
-              IntField(Id(:gid_min), _("M&inimum"), 0, 99999, gid_min),
+              IntField(Id(:domain_min), _("M&inimum"), 0, 999999, domain_min),
               # int field label
-              IntField(Id(:gid_max), _("M&aximum"), 0, 99999, gid_max)
+              IntField(Id(:domain_max), _("M&aximum"), 0, 999999, domain_max),
+              ComboBox(Id(:backend), _("Back&end"), idmap_domain_backends),
+            ),
+            RichText("If you're unsure of which backend to choose, please <a href=\"https://www.suse.com/support/kb/doc/?id=7007006\">read kb article 7007006</a>. For the tdb, ad, rid, and autorid idmap backend details, see the idmap_tdb(8), idmap_ad(8), idmap_rid(8) and idmap_autorid(8) man pages. Please refer to the smb.conf(5) man page for further options which may need to be manually configured. For other idmap backends, see the idmap_tdb2(8), idmap_ldap(8), idmap_hash(8), idmap_nss(8) and idmap_rfc2307(8) man pages.")
             )
           ),
           VSpacing(0.2),
@@ -366,12 +382,13 @@ module Yast
           end
         end
         if ret2 == :ok
-          uid_min = Convert.to_integer(UI.QueryWidget(Id(:uid_min), :Value))
-          uid_max = Convert.to_integer(UI.QueryWidget(Id(:uid_max), :Value))
-          gid_min = Convert.to_integer(UI.QueryWidget(Id(:gid_min), :Value))
-          gid_max = Convert.to_integer(UI.QueryWidget(Id(:gid_max), :Value))
-          if Ops.greater_or_equal(uid_min, uid_max) ||
-              Ops.greater_or_equal(gid_min, gid_max)
+          default_min = Convert.to_integer(UI.QueryWidget(Id(:default_min), :Value))
+          default_max = Convert.to_integer(UI.QueryWidget(Id(:default_max), :Value))
+          domain_min = Convert.to_integer(UI.QueryWidget(Id(:domain_min), :Value))
+          domain_max = Convert.to_integer(UI.QueryWidget(Id(:domain_max), :Value))
+          idmap_domain_backend_new = Convert.to_string(UI.QueryWidget(Id(:backend), :Value))
+          if Ops.greater_or_equal(default_min, default_max) ||
+              Ops.greater_or_equal(domain_min, domain_max)
             # error popup: min >= max
             Popup.Error(
               _(
@@ -380,13 +397,23 @@ module Yast
             )
             next
           end
-          winbind_uid_new = Builtins.sformat("%1-%2", uid_min, uid_max)
-          winbind_gid_new = Builtins.sformat("%1-%2", gid_min, gid_max)
-          if winbind_uid_new != winbind_uid
-            SambaConfig.GlobalSetStr("winbind uid", winbind_uid_new)
+          idmap_default_new = Builtins.sformat("%1-%2", default_min, default_max)
+          idmap_domain_new = Builtins.sformat("%1-%2", domain_min, domain_max)
+          if idmap_default_new != idmap_default
+            SambaConfig.GlobalSetStr("idmap config * : range", idmap_default_new)
           end
-          if winbind_gid_new != winbind_gid
-            SambaConfig.GlobalSetStr("winbind gid", winbind_gid_new)
+          if idmap_domain_new != idmap_domain && workgroup != ""
+            idmap_domain_setting = Builtins.sformat("idmap config %1 : range", workgroup)
+            SambaConfig.GlobalSetStr(idmap_domain_setting, idmap_domain_new)
+          end
+          if idmap_domain_backend_new != idmap_domain_backend && workgroup != ""
+            SambaConfig.GlobalSetStr(idmap_domain_backend_setting, idmap_domain_backend_new)
+            if idmap_domain_backend_new == "ad"
+              idmap_domain_schema_mode = Builtins.sformat("idmap config %1 : schema_mode", workgroup)
+              SambaConfig.GlobalSetStr(idmap_domain_schema_mode, "rfc2307")
+              idmap_domain_unix_nss_info = Builtins.sformat("idmap config %1 : unix_nss_info", workgroup)
+              SambaConfig.GlobalSetStr(idmap_domain_unix_nss_info, "yes")
+            end
           end
           Samba.SetDHCP(Convert.to_boolean(UI.QueryWidget(Id(:dhcp), :Value)))
           Samba.SetHostsResolution(
@@ -699,7 +726,11 @@ module Yast
             )
           end
         elsif ret == :expert
-          ExpertSettingsDialog(use_winbind)
+          workgroup = Convert.to_string(
+            UI.QueryWidget(Id(:workgroup), :Value)
+          )
+          workgroup = SambaAD.GetWorkgroup(workgroup)
+          ExpertSettingsDialog(use_winbind, workgroup)
         elsif ret == :ntp
           if Package.InstallAll(["yast2-ntp-client"])
             workgroup = Convert.to_string(
@@ -719,7 +750,7 @@ module Yast
             workgroup = Samba.GetWorkgroup
           end
 
-          Samba.SetWinbind(use_winbind)
+          Samba.SetWinbind(use_winbind, workgroup)
 
           if use_winbind
             packages = ["samba-winbind"]

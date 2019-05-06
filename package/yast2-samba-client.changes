@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 25 18:45:43 UTC 2019 - David Mulder <dmulder@suse.com>
+
+- Stop using deprecated idmap options; (jsc#SLE-5632); (jsc#SLE-6283);
+- 4.2.1
+
+-------------------------------------------------------------------
 Fri Apr  5 08:24:37 UTC 2019 - jreidinger <jreidinger@suse.com>
 
 - Replace YaPI calls (fate#323734)
