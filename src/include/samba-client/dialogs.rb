@@ -230,6 +230,7 @@ module Yast
       end
       idmap_domain_backends = Builtins.maplist(
         [
+          "tdb",
           "ad",
           "rid",
           "autorid"
