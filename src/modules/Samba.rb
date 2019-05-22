@@ -689,13 +689,13 @@ module Yast
     # Set a windind status
     #
     # @param group	a new winbind status
-    def SetWinbind(status)
+    def SetWinbind(status, workgroup)
       if status != @winbind_enabled
         @modified = true
         @winbind_enabled = status
       end
       SambaAD.AdjustSambaConfig(status)
-      SambaWinbind.AdjustSambaConfig(status)
+      SambaWinbind.AdjustSambaConfig(status, workgroup)
 
       nil
     end
@@ -983,7 +983,8 @@ module Yast
         "winbind",
         Ops.get_boolean(settings, ["global", "winbind"], false)
       )
-      SetWinbind(winbind) if winbind != nil
+      @workgroup = Ops.get_string(settings, ["global", "workgroup"], "")
+      SetWinbind(winbind, @workgroup) if winbind != nil
 
       SambaConfig.Import(sections) if sections != []
 
