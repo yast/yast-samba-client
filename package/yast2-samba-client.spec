@@ -12,68 +12,62 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
 
 Name:           yast2-samba-client
 Version:        4.2.1
 Release:        0
-
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Source0:        %{name}-%{version}.tar.bz2
-
+Summary:        YaST2 - Samba Client Configuration
 Group:          System/YaST
 License:        GPL-2.0-only
+Url:            https://github.com/yast/yast-samba-client
+
+Source0:        %{name}-%{version}.tar.bz2
+
 BuildRequires:	yast2-pam yast2-perl-bindings perl-XML-Writer yast2-testsuite update-desktop-files
 BuildRequires:  yast2-devtools >= 3.1.10
-Requires:	perl-XML-LibXML
-Conflicts:	yast2-kerberos-client < 3.1.2
 
+Requires:	perl-XML-LibXML
 # new Pam.ycp API
 Requires:       yast2-pam >= 2.14.0
-
 # SuSEFirewall2 replaced by firewalld (fate#323460)
 Requires:       yast2 >= 4.0.39
-
 # LanItems::find_dhcp_ifaces
 Requires:       yast2-network >= 4.2.0
-
-BuildArchitectures:	noarch
-
 Requires:       yast2-ruby-bindings >= 1.0.0
 Requires:       yast2-python3-bindings >= 4.0.8
+
+Conflicts:      yast2-kerberos-client < 3.1.2
+
 Recommends:     samba-python3
 
-Summary:	YaST2 - Samba Client Configuration
+BuildArch:      noarch
 
 %description
 This package contains the YaST2 component for configuration of an SMB
 workgroup/domain and authentication against an SMB domain.
 
 %prep
-%setup -n %{name}-%{version}
+%setup -q
 
 %build
 %yast_build
 
 %install
 %yast_install
-
+%yast_metainfo
 
 %files
-%defattr(-,root,root)
-%dir %{yast_yncludedir}/samba-client
-%{yast_yncludedir}/samba-client/*
-%{yast_clientdir}/samba-client.rb
-%{yast_clientdir}/samba-client_*.rb
-%{yast_moduledir}/Samba*.pm
-%{yast_moduledir}/*.rb
-%{yast_moduledir}/*.py
-%{yast_desktopdir}/samba-client.desktop
-%{yast_scrconfdir}/*.scr
-%{yast_agentdir}/ag_pam_mount
-%{yast_schemadir}/autoyast/rnc/samba-client.rnc
+%{yast_yncludedir}
+%{yast_clientdir}
+%{yast_moduledir}
+%{yast_desktopdir}
+%{yast_metainfodir}
+%{yast_scrconfdir}
+%{yast_agentdir}
+%{yast_schemadir}
 %{yast_icondir}
 %doc %{yast_docdir}
 %license COPYING
