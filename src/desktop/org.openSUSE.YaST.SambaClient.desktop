@@ -21,6 +21,7 @@ X-SuSE-YaST-Keywords=authentication,samba,windows
 Icon=yast-samba-client
 Exec=xdg-su -c "/sbin/yast2 samba-client"
 
-Name=Windows Domain Membership
-GenericName=Configure the Windows Domain Membership
+Name=YaST Windows Domain Membership
+GenericName=Windows Domain Membership
+Comment=Configure the Windows Domain Membership
 StartupNotify=true
