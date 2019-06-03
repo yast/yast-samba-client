@@ -26,10 +26,14 @@ Url:            https://github.com/yast/yast-samba-client
 
 Source0:        %{name}-%{version}.tar.bz2
 
-BuildRequires:	yast2-pam yast2-perl-bindings perl-XML-Writer yast2-testsuite update-desktop-files
-BuildRequires:  yast2-devtools >= 3.1.10
+BuildRequires:  yast2-pam
+BuildRequires:  yast2-perl-bindings
+BuildRequires:  perl-XML-Writer
+BuildRequires:  yast2-testsuite
+BuildRequires:  update-desktop-files
+BuildRequires:  yast2-devtools >= 4.2.2
 
-Requires:	perl-XML-LibXML
+Requires:       perl-XML-LibXML
 # new Pam.ycp API
 Requires:       yast2-pam >= 2.14.0
 # SuSEFirewall2 replaced by firewalld (fate#323460)
