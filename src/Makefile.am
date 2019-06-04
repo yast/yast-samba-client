@@ -36,7 +36,7 @@ schemafiles_DATA = \
   autoyast-rnc/samba-client.rnc
 
 desktop_DATA = \
-  desktop/samba-client.desktop
+  desktop/org.opensuse.yast.SambaClient.desktop
 
 scalabledir = @icondir@/hicolor/scalable/apps
 scalable_DATA = \
