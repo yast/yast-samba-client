@@ -293,7 +293,7 @@ sub ADDomain2Workgroup {
 
     return "" if $server eq "";
 
-    my $out	= SCR->Execute (".target.bash_output", "net ads lookup -S $server | grep 'Pre-Win2k Domain' | cut -f 2");
+    my $out	= SCR->Execute (".target.bash_output", "net ads lookup -S $server | grep 'Pre-Win2k Domain' | awk '{print \$3}'");
 
     y2debug ("net ads lookup -S $server: ", Dumper ($out));
     if ($out->{"exit"} ne 0 || $out->{"stdout"} eq "") {
