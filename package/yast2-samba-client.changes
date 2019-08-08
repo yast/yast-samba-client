@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug  8 10:24:29 UTC 2019 - Noel Power <nopower@suse.com>
+
+- Adjust ADDomain2Workgroup function to parse workgroup/domain
+  name for newer samba versions; (bsc#1144828).
+- 3.1.22
+
+-------------------------------------------------------------------
 Tue May  7 16:55:53 UTC 2019 - David Mulder <dmulder@suse.com>
 
 - Stop using deprecated idmap options; (jsc#SLE-5632); (jsc#SLE-6283);
