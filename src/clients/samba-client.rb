@@ -271,7 +271,8 @@ module Yast
         Ops.get_string(options, "password", ""),
         Ops.get_string(options, "machine"),
         relname,
-        relver
+        relver,
+        TRUE
       )
       if result == nil
         # translators: result message for joindomain command line action

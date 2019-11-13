@@ -197,6 +197,9 @@ module Yast
 
     # Leave an AD domain
     def LeaveDomain(workgroup)
+      # Join with kerberos
+      kerb = Convert.to_boolean(UI.QueryWidget(Id(:kerberos), :Value))
+
       # popup to fill in the domain leaving info; %1 is the domain name
       passwd = passwordUserPopup(
         Builtins.sformat(
@@ -214,7 +217,8 @@ module Yast
       error = SambaNetJoin.Leave(
         workgroup,
         Ops.get(passwd, "user"),
-        Ops.get(passwd, "password", "")
+        Ops.get(passwd, "password", ""),
+        kerb
       )
 
       if error != nil
@@ -225,6 +229,9 @@ module Yast
     end
 
     def JoinDomain(workgroup)
+      # Join with kerberos
+      kerb = Convert.to_boolean(UI.QueryWidget(Id(:kerberos), :Value))
+
       cluster_info = ""
       if SambaNetJoin.ClusterPresent(false)
         # additional information for cluster environment
@@ -267,7 +274,8 @@ module Yast
         Ops.get(passwd, "password", ""),
         Ops.get(passwd, "machine"),
         relname,
-        relver
+        relver,
+        kerb
       )
 
       if error != nil

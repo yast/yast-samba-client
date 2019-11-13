@@ -284,10 +284,10 @@ sub Test {
 # @param machine	machine account to join into (fate 301320)
 # @return string	an error message or nil if successful
 BEGIN{$TYPEINFO{Join}=[
-    "function","string","string","string","string","string","string", "string", "string"]}
+    "function","string","string","string","string","string","string", "string", "string", "boolean"]}
 sub Join {
     my ($self, $domain, $join_level, $user, $passwd, $machine, $release_name,
-        $release_version) = @_;
+        $release_version, $kerb) = @_;
     
     my $netbios_name	= SambaConfig->GlobalGetStr("netbios name", undef);
     my $server		= SambaAD->ADS ();
@@ -343,6 +343,7 @@ sub Join {
 	. ($protocol ne "ads" ? lc($join_level||"") : "")
 	. ($protocol ne "ads" ? " -w '$domain'" : "")
 	. " -s $conf_file"
+	. ($kerb ? " -k" : "")
 #	. (($protocol ne "ads" && $netbios_name)?" -n '$netbios_name'":"")
 # FIXME check if netbios name can be used with AD
 	. ($netbios_name  ? " -n '$netbios_name'" : "")
@@ -379,14 +380,15 @@ sub Join {
 # @param user		username to be used for joining, or nil for anonymous
 # @param passwd		password for the user
 # @return string	an error message or nil if successful
-BEGIN{$TYPEINFO{Leave}= [ "function","string","string","string","string"]}
+BEGIN{$TYPEINFO{Leave}= [ "function","string","string","string","string","boolean"]}
 sub Leave {
 
-    my ($self, $domain, $user, $passwd) = @_;
+    my ($self, $domain, $user, $passwd, $kerb) = @_;
     
     my $realm		= SambaAD->Realm ();
-    my $cmd = "net ads leave -U '"
-	. String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
+    my $cmd = "net ads leave"
+        . ($kerb ? " -k" : "")
+        . " -U '" . String->Quote ($user) . "%" . String->Quote ($passwd) . "'";
 
     my $result = SCR->Execute(".target.bash_output", $cmd);
     $cmd =~ s/(-U '[^%]*)%[^']*'/$1'/; # hide password in the log

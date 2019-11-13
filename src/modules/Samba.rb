@@ -825,7 +825,8 @@ module Yast
             ),
             Ops.get(@password_data, "machine"),
             relname,
-            relver
+            relver,
+            TRUE
           )
         end
       end

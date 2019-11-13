@@ -611,7 +611,16 @@ module Yast
                   )
                 ),
                 status_term,
-                winbind_term,
+                HBox(
+                  winbind_term,
+                  Right(
+                    CheckBox(
+                      Id(:kerberos),
+                      _("Use &Kerberos"),
+                      TRUE,
+                    )
+                  )
+                ),
                 HBox(
                   Stage.cont ? Empty() : HSpacing(2),
                   VBox(
