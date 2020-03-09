@@ -41,11 +41,6 @@ our %Nmbstatus_output;
 
 our $Nmbstatus_available;
 
-# Flag, if we should restart nmbd after finishing nmbstatus.
-# nmbd must be stopped, when doing nmbstatus, otherwise only
-# local host is shown.
-our $Nmbd_was_running;
-
 # ID of NMBSTATUS_EXE process, as returend from .process agent (NOT its PID)
 our $process_id;
 
@@ -65,14 +60,6 @@ sub Start {
 	return FALSE;
     }
 
-    # first, check if nmbd is running
-    if (PackageSystem->Installed("samba") && Service->Status("nmb")==0) {
-        $Nmbd_was_running = 1;
-        y2debug("Stopping nmbd for nmbstatus");
-        # FIXME: we should check, if stop did not fail
-        Service->Stop("nmb");
-    }
-    
     # start nmbstatus
     my $out = SCR->Execute(".target.bash_output", "/usr/bin/id --user");
     my $cmd	= NMBSTATUS_EXE;
@@ -85,12 +72,6 @@ sub Start {
     if(!$Nmbstatus_running) {
         y2error ("Cannot start nmbstatus (shell returned $Nmbstatus_running)");
         $Nmbstatus_available = 0;
-        # restore nmbd
-        if ($Nmbd_was_running) {
-	    y2debug("Restarting nmbd for nmbstatus");
-	    Service->Start("nmb");
-	    $Nmbd_was_running = 0;
-	}
 	return FALSE;
     }
     
@@ -146,13 +127,6 @@ sub checkNmbstatus {
 	    } else {
 		$Nmbstatus_output{$current_group}{uc $1} = uc $2;
 	    }
-	}
-	
-	# restore nmbd
-	if ($Nmbd_was_running) {
-	    y2debug("Restarting nmbd for nmbstatus");
-	    Service->Start("nmb");
-	    $Nmbd_was_running = 0;
 	}
     }
 }
