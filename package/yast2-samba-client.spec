@@ -28,8 +28,6 @@ Source0:        %{name}-%{version}.tar.bz2
 
 BuildRequires:  yast2-pam
 BuildRequires:  yast2-perl-bindings
-BuildRequires:  perl-XML-Writer
-BuildRequires:  yast2-testsuite
 BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 4.2.2
 
