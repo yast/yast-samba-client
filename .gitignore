@@ -31,4 +31,3 @@ tmp.*
 *.ybc
 /.yardoc
 /doc
-/testsuite/raw.tmp*
