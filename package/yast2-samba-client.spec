@@ -17,7 +17,7 @@
 
 
 Name:           yast2-samba-client
-Version:        4.3.0
+Version:        4.3.1
 Release:        0
 Summary:        YaST2 - Samba Client Configuration
 Group:          System/YaST
@@ -28,8 +28,6 @@ Source0:        %{name}-%{version}.tar.bz2
 
 BuildRequires:  yast2-pam
 BuildRequires:  yast2-perl-bindings
-BuildRequires:  perl-XML-Writer
-BuildRequires:  yast2-testsuite
 BuildRequires:  update-desktop-files
 BuildRequires:  yast2-devtools >= 4.2.2
 
