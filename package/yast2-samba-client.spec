@@ -17,7 +17,7 @@
 
 
 Name:           yast2-samba-client
-Version:        4.3.1
+Version:        4.3.2
 Release:        0
 Summary:        YaST2 - Samba Client Configuration
 Group:          System/YaST
@@ -44,6 +44,8 @@ Requires:       yast2-python3-bindings >= 4.0.8
 Conflicts:      yast2-kerberos-client < 3.1.2
 
 Recommends:     samba-python3
+
+Supplements:    autoyast(samba-client)
 
 BuildArch:      noarch
 
