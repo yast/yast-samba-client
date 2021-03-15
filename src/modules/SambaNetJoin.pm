@@ -83,23 +83,9 @@ sub ClusterPresent {
       return FALSE;
     }
 
-    if (SambaNetUtils->IsDHCPClient ()) {
-      y2milestone ("DHCP client found: checking if IP addresses are configured for CTDB traffic...");
-      # Go through IP addresses and check if they are cofigured for CTDB (/etc/ctdb/nodes).
-      # This is not a perfect solution, but as we cannot find out if IP is statically assigned by
-      # DHCP server, we have at least a hint that current addresses seem to be configured correctly.
-      # See bnc#811008
-      my $nodes = SCR->Read (".target.string", "/etc/ctdb/nodes") || "";
-      my $out   = SCR->Execute (".target.bash_output",
-        "LANG=C /sbin/ifconfig | grep 'inet addr' | grep -v '127.0.0.1' | cut -d: -f2 | cut -d ' ' -f1");
-      my $cluster_ip    = TRUE;
-      foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
-        if ($nodes !~ /$line/) {
-          y2warning ("IP address $line is not configured for CTDB");
-          $cluster_ip   = FALSE;
-        }
-      }
-      return FALSE unless $cluster_ip;
+    # are IP addresses configured for CTDB?
+    unless (SambaNetUtils->IsIPValidForCTDB ()) {
+      return FALSE;
     }
 
     my $out     = SCR->Execute (".target.bash_output", "/usr/sbin/crm_mon -s");
