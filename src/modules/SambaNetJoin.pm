@@ -23,6 +23,7 @@ YaST::YCP::Import("Package");
 YaST::YCP::Import("SCR");
 YaST::YCP::Import("SambaConfig");
 YaST::YCP::Import("SambaAD");
+YaST::YCP::Import("SambaNetUtils");
 YaST::YCP::Import("SambaWinbind");
 YaST::YCP::Import("String");
 
@@ -82,7 +83,7 @@ sub ClusterPresent {
       return FALSE;
     }
 
-    if (SambaAD->IsDHCPClient (FALSE)) {
+    if (SambaNetUtils->IsDHCPClient ()) {
       y2milestone ("DHCP client found: checking if IP addresses are configured for CTDB traffic...");
       # Go through IP addresses and check if they are cofigured for CTDB (/etc/ctdb/nodes).
       # This is not a perfect solution, but as we cannot find out if IP is statically assigned by

@@ -38,7 +38,7 @@ Requires:       perl-XML-LibXML
 Requires:       yast2-pam >= 2.14.0
 # SuSEFirewall2 replaced by firewalld (fate#323460)
 Requires:       yast2 >= 4.0.39
-# LanItems::find_dhcp_ifaces
+# Yast::Lan.yast_config
 Requires:       yast2-network >= 4.2.0
 Requires:       yast2-ruby-bindings >= 1.0.0
 Requires:       yast2-python3-bindings >= 4.0.8

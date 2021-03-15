@@ -8,6 +8,7 @@ module_DATA = \
   modules/SambaAD.pm \
   modules/SambaAPI.py \
   modules/SambaNetJoin.pm \
+  modules/SambaNetUtils.rb \
   modules/SambaWinbind.pm
 
 client_DATA = \
