@@ -169,15 +169,9 @@ sub PrepareCTDB {
     # 8. Wait until the unhealthy status disappears.
     my $start   = time;
     my $wait    = 60; # 1 minute timeout
-    my $ctdbd_socket = SambaConfig->GlobalGetStr("ctdbd socket", undef);
-    my $ctdb_args = "";
-    if (defined $ctdbd_socket) {
-      $ctdb_args = "--socket=$ctdbd_socket";
-    }
 
     while (time<$start+$wait) {
-      my $out = SCR->Execute(".target.bash_output",
-			     "/usr/bin/ctdb $ctdb_args status");
+      my $out = SCR->Execute(".target.bash_output", "/usr/bin/ctdb status");
       last if ($out->{"exit"} == 0);
       sleep (1); #0.5);
     }
