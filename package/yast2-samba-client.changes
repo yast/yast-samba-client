@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 15 12:24:52 UTC 2021 - Petr Pavlu <petr.pavlu@suse.com>
+
+- Fix joining a domain when running a clustered Samba environment
+  (bsc#1181595).
+- 4.2.4
+
+-------------------------------------------------------------------
 Wed Jan 15 11:38:38 UTC 2020 - Samuel Cabrero <scabrero@suse.de>
 
 - Do not stop nmbd while nmbstatus is running, it is not necessary

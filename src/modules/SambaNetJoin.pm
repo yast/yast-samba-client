@@ -23,6 +23,7 @@ YaST::YCP::Import("Package");
 YaST::YCP::Import("SCR");
 YaST::YCP::Import("SambaConfig");
 YaST::YCP::Import("SambaAD");
+YaST::YCP::Import("SambaNetUtils");
 YaST::YCP::Import("SambaWinbind");
 YaST::YCP::Import("String");
 
@@ -82,23 +83,9 @@ sub ClusterPresent {
       return FALSE;
     }
 
-    if (SambaAD->IsDHCPClient (FALSE)) {
-      y2milestone ("DHCP client found: checking if IP addresses are configured for CTDB traffic...");
-      # Go through IP addresses and check if they are cofigured for CTDB (/etc/ctdb/nodes).
-      # This is not a perfect solution, but as we cannot find out if IP is statically assigned by
-      # DHCP server, we have at least a hint that current addresses seem to be configured correctly.
-      # See bnc#811008
-      my $nodes = SCR->Read (".target.string", "/etc/ctdb/nodes") || "";
-      my $out   = SCR->Execute (".target.bash_output",
-        "LANG=C /sbin/ifconfig | grep 'inet addr' | grep -v '127.0.0.1' | cut -d: -f2 | cut -d ' ' -f1");
-      my $cluster_ip    = TRUE;
-      foreach my $line (split (/\n/,$out->{"stdout"} || "")) {
-        if ($nodes !~ /$line/) {
-          y2warning ("IP address $line is not configured for CTDB");
-          $cluster_ip   = FALSE;
-        }
-      }
-      return FALSE unless $cluster_ip;
+    # are IP addresses configured for CTDB?
+    unless (SambaNetUtils->IsIPValidForCTDB ()) {
+      return FALSE;
     }
 
     my $out     = SCR->Execute (".target.bash_output", "/usr/sbin/crm_mon -s");
@@ -182,15 +169,9 @@ sub PrepareCTDB {
     # 8. Wait until the unhealthy status disappears.
     my $start   = time;
     my $wait    = 60; # 1 minute timeout
-    my $ctdbd_socket = SambaConfig->GlobalGetStr("ctdbd socket", undef);
-    my $ctdb_args = "";
-    if (defined $ctdbd_socket) {
-      $ctdb_args = "--socket=$ctdbd_socket";
-    }
 
     while (time<$start+$wait) {
-      my $out = SCR->Execute(".target.bash_output",
-			     "/usr/bin/ctdb $ctdb_args status");
+      my $out = SCR->Execute(".target.bash_output", "/usr/bin/ctdb status");
       last if ($out->{"exit"} == 0);
       sleep (1); #0.5);
     }
