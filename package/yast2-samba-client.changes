@@ -1,3 +1,8 @@
+Mon Mar 15 12:24:52 UTC 2021 - Petr Pavlu <petr.pavlu@suse.com>
+
+- Fix joining a domain when running a clustered Samba environment
+  (bsc#1181595).
+- 4.3.3
 -------------------------------------------------------------------
 Mon Aug 10 17:52:46 CEST 2020 - schubi@suse.de
 

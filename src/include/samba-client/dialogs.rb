@@ -42,6 +42,7 @@ module Yast
       Yast.import "Popup"
       Yast.import "Samba"
       Yast.import "SambaConfig"
+      Yast.import "SambaNetUtils"
       Yast.import "Stage"
       Yast.import "Wizard"
 
@@ -637,7 +638,7 @@ module Yast
                   )
                 ),
                 Left(
-                  SambaAD.ADS != "" && !SambaAD.IsDHCPClient(false) ?
+                  SambaAD.ADS != "" && !SambaNetUtils.IsDHCPClient() ?
                     # checkbox label
                     CheckBox(Id(:adapt_dns), _("Change primary DNS suffix")) :
                     VBox()
