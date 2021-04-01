@@ -39,7 +39,6 @@ our %TYPEINFO;
 
 YaST::YCP::Import ("FileUtils");
 YaST::YCP::Import ("Kerberos");
-YaST::YCP::Import ("LanItems");
 YaST::YCP::Import ("Mode");
 YaST::YCP::Import ("SCR");
 YaST::YCP::Import ("SambaConfig");
@@ -59,22 +58,6 @@ my $ads		= "";
 
 # Kerberos realm for AD
 my $realm	= "";
-
-# remember if machine is DHCP client
-my $dhcp_client         = undef;
-
-# Checks if machine is DHCP client
-# @param force  do force check (otherwise use latest state)
-BEGIN{$TYPEINFO{IsDHCPClient}=["function","boolean", "boolean"]}
-sub IsDHCPClient {
-
-    my ($self, $force) = @_;
-
-    return $dhcp_client if (defined $dhcp_client) && !$force;
-    LanItems->Read();
-    my @dhcp_interfaces = LanItems->find_dhcp_ifaces();
-    return scalar (@dhcp_interfaces) > 0;
-}
 
 # Read the list of available machine accounts in the current domain
 #
