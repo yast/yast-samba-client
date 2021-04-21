@@ -1,7 +1,7 @@
 #
 # spec file for package yast2-samba-client
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2021 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -17,36 +17,29 @@
 
 
 Name:           yast2-samba-client
-Version:        4.4.0
+Version:        4.4.1
 Release:        0
 Summary:        YaST2 - Samba Client Configuration
-Group:          System/YaST
 License:        GPL-2.0-only
-Url:            https://github.com/yast/yast-samba-client
-
+Group:          System/YaST
+URL:            https://github.com/yast/yast-samba-client
 Source0:        %{name}-%{version}.tar.bz2
-
+BuildRequires:  update-desktop-files
+BuildRequires:  yast2-devtools >= 4.4.0
 BuildRequires:  yast2-pam
 BuildRequires:  yast2-perl-bindings
-BuildRequires:  update-desktop-files
-BuildRequires:  yast2-devtools >= 4.2.2
-
 Requires:       perl-XML-LibXML
-# new Pam.ycp API
-Requires:       yast2-pam >= 2.14.0
 # SuSEFirewall2 replaced by firewalld (fate#323460)
 Requires:       yast2 >= 4.0.39
 # Yast::Lan.yast_config
 Requires:       yast2-network >= 4.2.0
-Requires:       yast2-ruby-bindings >= 1.0.0
+# new Pam.ycp API
+Requires:       yast2-pam >= 2.14.0
 Requires:       yast2-python3-bindings >= 4.0.8
-
-Conflicts:      yast2-kerberos-client < 3.1.2
-
+Requires:       yast2-ruby-bindings >= 1.0.0
 Recommends:     samba-python3
-
 Supplements:    autoyast(samba-client)
-
+Conflicts:      yast2-kerberos-client < 3.1.2
 BuildArch:      noarch
 
 %description
@@ -64,6 +57,7 @@ workgroup/domain and authentication against an SMB domain.
 %yast_metainfo
 
 %files
+%license COPYING
 %{yast_yncludedir}
 %{yast_clientdir}
 %{yast_moduledir}
@@ -73,5 +67,5 @@ workgroup/domain and authentication against an SMB domain.
 %{yast_agentdir}
 %{yast_schemadir}
 %{yast_icondir}
-%doc %{yast_docdir}
-%license COPYING
+
+%changelog
