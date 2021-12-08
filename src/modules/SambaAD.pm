@@ -243,7 +243,7 @@ sub GetADS {
 	}
     }
     if ($server ne "" &&
-	SCR->Execute (".target.bash", "net -s $dummy_conf_file ads lookup -U% -S $server") ne 0) {
+	SCR->Execute (".target.bash", "net -s $dummy_conf_file ads lookup -S $server") ne 0) {
 	$server	= "";
     }
     y2milestone ("returning server: $server");
