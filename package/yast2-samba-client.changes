@@ -1,3 +1,11 @@
+-------------------------------------------------------------------
+Wed Dec  8 14:46:40 UTC 2021 - Noel Power <nopower@suse.com>
+
+- With latest versions of samba (>=4.15.0) calling 'net ads lookup'
+  with '-U%' fails; (boo#1193533).
+- 4.3.4
+
+-------------------------------------------------------------------
 Mon Mar 15 12:24:52 UTC 2021 - Petr Pavlu <petr.pavlu@suse.com>
 
 - Fix joining a domain when running a clustered Samba environment
