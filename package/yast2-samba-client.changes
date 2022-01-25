@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Tue Jan 11 15:47:59 UTC 2022 - Noel Power <nopower@suse.com>
+
+- With latest versions of samba (>=4.15.0) calling 'net ads lookup'
+  with '-U%' fails; (boo#1193533).
+- yast-samba-client fails to join if /etc/samba/smb.conf or
+  /etc/krb5.conf don't exist; (bsc#1089938)
+- Do not stop nmbd while nmbstatus is running, it is not necessary
+  anymore; (bsc#1158916);
+- 3.1.23
+
+-------------------------------------------------------------------
 Thu Aug  8 10:24:29 UTC 2019 - Noel Power <nopower@suse.com>
 
 - Adjust ADDomain2Workgroup function to parse workgroup/domain
