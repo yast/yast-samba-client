@@ -731,7 +731,7 @@ module Yast
         # change the default ccache name
         WriteKrb5ConfValue(
           path(".etc.krb5_conf.v.libdefaults.default_ccache_name"),
-          "FILE:/tmp/krb5cc_%{uid}"
+          "KEYRING:persistent:%{uid}"
         )
 
         # write the mapping domain-realm

@@ -348,7 +348,7 @@ sub AdjustSambaConfig {
     });
     SambaConfig->WinbindGlobalSetMap({
 	"krb5_auth"			=> $remove ? undef : "yes",
-	"krb5_ccache_type"		=> $remove ? undef : "FILE"
+	"krb5_ccache_type"		=> $remove ? undef : "KEYRING"
     });
     if ($status) {
 	if (SambaConfig->GlobalGetTruth ("domain logons", 0)) {
