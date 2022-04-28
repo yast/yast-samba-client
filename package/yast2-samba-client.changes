@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 27 08:47:46 UTC 2022 - Noel Power <nopower@suse.com>
+
+- Use translation macro for range settings expert details text;
+  (bsc#1197936).
+- 3.1.24
+
+-------------------------------------------------------------------
 Tue Jan 11 15:47:59 UTC 2022 - Noel Power <nopower@suse.com>
 
 - With latest versions of samba (>=4.15.0) calling 'net ads lookup'
