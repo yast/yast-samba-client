@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 27 08:47:46 UTC 2022 - Noel Power <nopower@suse.com>
+
+- Use translation macro for range settings expert details text;
+  (bsc#1197936).
+- 4.2.5
+
+-------------------------------------------------------------------
 Mon Mar 15 12:24:52 UTC 2021 - Petr Pavlu <petr.pavlu@suse.com>
 
 - Fix joining a domain when running a clustered Samba environment
