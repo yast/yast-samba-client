@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 27 08:47:46 UTC 2022 - Noel Power <nopower@suse.com>
+
+- Use translation macro for range settings expert details text;
+  (bsc#1197936).
+- 4.4.4
+
+-------------------------------------------------------------------
 Fri Jan 28 09:30:17 UTC 2022 - Samuel Cabrero <scabrero@suse.de>
 
 - Switch from file based krb5 ccache to kernel keyring;
@@ -24,6 +31,9 @@ Tue Apr 20 18:14:05 UTC 2021 - Dirk Müller <dmueller@suse.com>
 Tue Apr 20 13:51:55 UTC 2021 - Ladislav Slezák <lslezak@suse.cz>
 
 - 4.4.0
+=======
+- 4.3.4
+>>>>>>> upstream/SLE-15-SP3
 
 -------------------------------------------------------------------
 Mon Mar 15 12:24:52 UTC 2021 - Petr Pavlu <petr.pavlu@suse.com>

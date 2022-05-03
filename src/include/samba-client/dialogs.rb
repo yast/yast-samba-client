@@ -240,6 +240,7 @@ module Yast
         Item(Id(method), method, method == idmap_domain_backend)
       end
 
+     ranges_text = _("If you're unsure of which backend to choose, please <a href=\"https://www.suse.com/support/kb/doc/?id=7007006\">read kb article 7007006</a>. For the tdb, ad, rid, and autorid idmap backend details, see the idmap_tdb(8), idmap_ad(8), idmap_rid(8) and idmap_autorid(8) man pages. Please refer to the smb.conf(5) man page for further options which may need to be manually configured. For other idmap backends, see the idmap_tdb2(8), idmap_ldap(8), idmap_hash(8), idmap_nss(8) and idmap_rfc2307(8) man pages.")
       contents = HBox(
         HSpacing(3),
         VBox(
@@ -265,7 +266,7 @@ module Yast
               IntField(Id(:domain_max), _("M&aximum"), 0, 999999, domain_max),
               ComboBox(Id(:backend), _("Back&end"), idmap_domain_backends),
             ),
-            RichText("If you're unsure of which backend to choose, please <a href=\"https://www.suse.com/support/kb/doc/?id=7007006\">read kb article 7007006</a>. For the tdb, ad, rid, and autorid idmap backend details, see the idmap_tdb(8), idmap_ad(8), idmap_rid(8) and idmap_autorid(8) man pages. Please refer to the smb.conf(5) man page for further options which may need to be manually configured. For other idmap backends, see the idmap_tdb2(8), idmap_ldap(8), idmap_hash(8), idmap_nss(8) and idmap_rfc2307(8) man pages.")
+            RichText(ranges_text)
             )
           ),
           VSpacing(0.2),
