@@ -17,7 +17,7 @@
 
 
 Name:           yast2-samba-client
-Version:        4.3.4
+Version:        4.3.5
 Release:        0
 Summary:        YaST2 - Samba Client Configuration
 Group:          System/YaST
