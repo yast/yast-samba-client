@@ -912,7 +912,8 @@ module Yast
       if WritePAMMount() &&
           Ops.greater_than(Builtins.size(@pam_mount_volumes), 0)
         # enable pam_mount for services gdm, xdm, login, sshd (bnc#433845)
-        Builtins.foreach(["gdm", "login", "xdm", "sshd"]) do |service|
+        # and gdm-password (bsc#1204830)
+        Builtins.foreach(["gdm", "gdm-password", "login", "xdm", "sshd"]) do |service|
           out = Convert.to_map(
             SCR.Execute(
               path(".target.bash_output"),
