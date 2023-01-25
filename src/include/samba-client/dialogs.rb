@@ -635,6 +635,14 @@ module Yast
                         Samba.GetSSHSupport
                       )
                     ),
+                    Left(
+                      # checkbox label
+                      CheckBox(
+                        Id(:gpupdate),
+                        _("&Group Policy Application"),
+                        Samba.GetApplyGroupPolicy
+                      )
+                    ),
                     VSpacing(0.2)
                   )
                 ),
@@ -680,7 +688,7 @@ module Yast
         Stage.cont ? Label.NextButton : Label.OKButton
       )
       #    CWMFirewallInterfaces::OpenFirewallInit (firewall_widget, "");
-      Builtins.foreach([:mkhomedir, :caching, :ssh]) do |t|
+      Builtins.foreach([:mkhomedir, :caching, :ssh, :gpupdate]) do |t|
         UI.ChangeWidget(Id(t), :Enabled, Samba.GetWinbind || Stage.cont)
       end
       Builtins.foreach([:group, :max_shares, :guest_ch]) do |t|
@@ -719,6 +727,7 @@ module Yast
           UI.ChangeWidget(Id(:mkhomedir), :Enabled, use_winbind)
           UI.ChangeWidget(Id(:caching), :Enabled, use_winbind)
           UI.ChangeWidget(Id(:ssh), :Enabled, use_winbind)
+          UI.ChangeWidget(Id(:gpupdate), :Enabled, use_winbind)
         elsif ret == :share_ch
           Builtins.foreach([:group, :max_shares, :guest_ch]) do |t|
             UI.ChangeWidget(
@@ -899,6 +908,10 @@ module Yast
           Samba.SetWinbindCaching(
             use_winbind &&
               Convert.to_boolean(UI.QueryWidget(Id(:caching), :Value))
+          )
+          Samba.SetApplyGroupPolicy(
+            use_winbind &&
+              Convert.to_boolean(UI.QueryWidget(Id(:gpupdate), :Value))
           )
 
           new_share = Convert.to_boolean(UI.QueryWidget(Id(:share_ch), :Value))
