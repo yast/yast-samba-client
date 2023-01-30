@@ -404,6 +404,18 @@ module Yast
       enable
     end
 
+    # Get the current status of apply group policy
+    def GetApplyGroupPolicy
+      enabled = SambaConfig.GlobalGetStr("apply group policies", "")
+      enabled == "yes"
+    end
+
+    # Set the new value for apply group policy
+    def SetApplyGroupPolicy(enable)
+      SambaConfig.GlobalSetStr("apply group policies", enable ? "yes" : nil)
+      enable
+    end
+
     # Read the current status of ssh single-sign-on support (fate #303415)
     def ReadSSHSupport
       ssh = nil
