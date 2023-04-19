@@ -1,5 +1,11 @@
 -------------------------------------------------------------------
-Fri Sep 01 19:57:03 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
+Wed Apr 19 19:12:38 UTC 2023 - David Mulder <dmulder@suse.com>
+
+- Install samba-gpupdate when enabling Group Policy; (bsc#1207604).
+- 4.6.1
+
+-------------------------------------------------------------------
+Fri Mar 03 14:44:07 UTC 2023 - Ladislav Slezák <lslezak@suse.cz>
 
 - Branch package for SP6 (bsc#1208913)
 

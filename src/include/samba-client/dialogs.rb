@@ -772,6 +772,14 @@ module Yast
                 :to   => "list <string>"
               )
             end
+            use_group_policy = UI.QueryWidget(Id(:gpupdate), :Value)
+            if use_group_policy
+              packages = Convert.convert(
+                Builtins.merge(packages, ["samba-gpupdate"]),
+                :from => "list",
+                :to   => "list <string>"
+              )
+            end
             if Samba.PAMMountModified &&
                 Ops.greater_than(Builtins.size(Samba.GetPAMMountVolumes), 0)
               packages = Builtins.add(packages, "pam_mount")
