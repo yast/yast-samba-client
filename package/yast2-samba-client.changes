@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 01 19:57:03 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
+
+- Branch package for SP6 (bsc#1208913)
+
+-------------------------------------------------------------------
 Thu Jan 26 16:57:13 UTC 2023 - David Mulder <dmulder@suse.com>
 
 - Add join option for enabling group policy; (bsc#1207604).
