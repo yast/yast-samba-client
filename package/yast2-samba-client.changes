@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 13 08:04:45 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
+
+- Branch package for SP7 (bsc#1230201)
+
+-------------------------------------------------------------------
 Wed Apr 19 19:12:38 UTC 2023 - David Mulder <dmulder@suse.com>
 
 - Install samba-gpupdate when enabling Group Policy; (bsc#1207604).
