@@ -310,7 +310,7 @@ sub Join {
 	$glb_overrides{"create krb5 conf"} = "no";
 
 	$cmd		= "KRB5_CONFIG=$krb_file ";
-	SCR->Write (".target.string", $krb_file, "[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
+	SCR->Write (".target.string", $krb_file, "[libdefaults]\n\tdefault_realm = $realm\n[realms]\n\t$realm = {\n\tkdc = $server\n\t}\n");
     }
     else {
 	$glb_overrides{"realm"} = undef;
