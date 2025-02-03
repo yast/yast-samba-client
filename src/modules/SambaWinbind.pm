@@ -95,12 +95,6 @@ sub AdjustNsswitch {
     my $ret = Nsswitch->Write();
     y2error("Nsswitch->Write() failed") if (!$ret);
 
-    # remove the passwd and group cache for nscd
-    if (!$write_only && PackageSystem->Installed ("nscd")) {
-	SCR->Execute (".target.bash", "/usr/sbin/nscd -i passwd");
-	SCR->Execute (".target.bash", "/usr/sbin/nscd -i group");
-	Service->RunInitScript ("nscd", "try-restart");
-    }
     # restart zmd (#174589)
     if (!$write_only && PackageSystem->Installed ("zmd") &&
 	Service->Status ("novell-zmd") == 0)
