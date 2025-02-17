@@ -580,11 +580,6 @@ module Yast
           Right(PushButton(Id(:ntp), _("N&TP Configuration...")))
         )
 
-      # checkbox label
-      text_nscd = _("Disable Name Service Cache")
-      # checkbox label
-      text_fam = _("Start File Alteration Monitor")
-
       firewall_widget = CWMFirewallInterfaces.CreateOpenFirewallWidget(
         { "services" => ["samba"], "display_details" => true }
       )
