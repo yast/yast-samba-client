@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Feb 28 09:56:45 UTC 2025 - Noel Power <nopower@suse.com>
+
+- Fix on AD join error "Failed to join domain: failed to create
+  kerberos keytab"; (bsc#1238063);(bso#15727).
+- 4.7.1
+
+-------------------------------------------------------------------
 Fri Sep 13 08:04:45 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
 
 - Branch package for SP7 (bsc#1230201)
