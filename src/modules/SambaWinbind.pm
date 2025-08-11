@@ -10,7 +10,7 @@ package SambaWinbind;
 
 use strict;
 use Data::Dumper;
-
+use File::Copy;
 use YaST::YCP qw(:DATA :LOGGING);
 use YaPI;
 
@@ -81,19 +81,31 @@ sub AdjustSambaConfig {
 BEGIN{$TYPEINFO{AdjustNsswitch}=["function","boolean","boolean","boolean"]}
 sub AdjustNsswitch {
     my ($self, $on, $write_only) = @_;
+    my $etcnsswitch = "/etc/nsswitch.conf";
+    my $usretcnsswitch = "/usr/etc/nsswitch.conf";
+    my $cmd;
+    my $ret;
 
+    if (!-f $etcnsswitch) {
+	   copy($usretcnsswitch, $etcnsswitch);
+    }
     foreach my $db ("passwd", "group") {
-	my $nsswitch = Nsswitch->ReadDb($db);
 	if ($on) {
-	    push @$nsswitch, "winbind" unless grep {$_ eq "winbind"} @$nsswitch;
+		$cmd = "sed -i '/.*winbind.*\$/! s/^$db:.*\$/& winbind/' $etcnsswitch";
 	} else {
-	    @$nsswitch = grep {$_ ne "winbind"} @$nsswitch;
+		$cmd = "sed -i '/^$db:.*winbind.*/ s/ *winbind//g' $etcnsswitch";
 	}
-	y2debug("Nsswitch->WriteDB($db, ".Dumper($nsswitch).")");
-	Nsswitch->WriteDb($db, $nsswitch);
+	my $result = SCR->Execute(".target.bash_output", $cmd);
+        if ($result->{"exit"} ne 0) {
+            y2debug ("sed %s failed, output: %s", $cmd, Dumper ($result));
+            $ret = FALSE;
+	    last;
+        } else  {
+            $ret = TRUE;
+        }
     };
-    my $ret = Nsswitch->Write();
-    y2error("Nsswitch->Write() failed") if (!$ret);
+
+    y2error("update to %s failed", $etcnsswitch) if (!$ret);
 
     # restart zmd (#174589)
     if (!$write_only && PackageSystem->Installed ("zmd") &&
