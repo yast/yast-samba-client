@@ -352,7 +352,7 @@ sub Join {
 	$machine	=~ s/dc=([^,]*)//gi; # remove DC=* parts
 	$machine	=~ s/([^,]*)=//gi; # leave only values from the rest
 	my $m		= join ('/', reverse (split (/,/,$machine)));	
-	$cmd		= $cmd. " createcomputer=\"$m\"" if $m;
+       $cmd            = $cmd. " createcomputer='" . String->Quote($m) . "'" if $m;
     }
 
     my $result = SCR->Execute(".target.bash_output", $cmd);
