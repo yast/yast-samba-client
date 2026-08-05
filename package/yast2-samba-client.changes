@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Aug  5 15:35:08 UTC 2026 - Noel Power <nopower@suse.com>
+
+- CVE-2026-25706: yast2-samba-client: OS command injection via
+  attacker-controlled OU (Active Directory-supplied);
+  (bsc#1272776).
+- 4.7.2
+
+-------------------------------------------------------------------
 Fri Feb 28 09:56:45 UTC 2025 - Noel Power <nopower@suse.com>
 
 - Fix on AD join error "Failed to join domain: failed to create
