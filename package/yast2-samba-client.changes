@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Aug  5 15:35:08 UTC 2026 - Noel Power <nopower@suse.com>
+
+- CVE-2026-25706: yast2-samba-client: OS command injection via
+  attacker-controlled OU (Active Directory-supplied);
+  (bsc#1272776).
+- 4.6.2
+
+-------------------------------------------------------------------
 Wed Apr 19 19:12:38 UTC 2023 - David Mulder <dmulder@suse.com>
 
 - Install samba-gpupdate when enabling Group Policy; (bsc#1207604).
